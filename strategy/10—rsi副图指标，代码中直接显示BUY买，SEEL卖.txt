@@ -1,0 +1,79 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © TRADERS JOURNAL 
+//@version=5
+indicator("2Rsi buy & sell & candlesticks patterns in rsi[Trader's Journal]", "RSI Buy Sell & Candlesticks patterns [Trader's Journal]", overlay = true, max_labels_count = 500
+  , max_lines_count = 500
+  , max_boxes_count = 500
+  , max_bars_back = 500)
+
+len = input.int(14, minval=1, title='Length')
+src = close
+up = ta.rma(math.max(ta.change(src), 0), len)
+down = ta.rma(-math.min(ta.change(src), 0), len)
+rsi = down == 0 ? 100 : up == 0 ? 0 : 100 - (100 / (1 + up / down))
+
+sellThreshold = 69
+buyThreshold = 31
+
+plotshape(series=ta.crossunder(rsi, sellThreshold) ? high : na, color=color.red, style=shape.labeldown, title="Sell", text="Sell", location=location.abovebar)
+plotshape(series=ta.crossover(rsi, buyThreshold) ? low : na, color=color.blue, style=shape.labelup, title="Buy", text="Buy", location=location.belowbar, textcolor=color.yellow)
+
+//Candlesticks Patterns
+
+rsi_length = input.int(14, minval=1, title="RSI Length")
+rsi_upper = 69
+rsi_lower = 31
+rsi_val = ta.rsi(close, rsi_length)
+
+rsi_length1 = 14
+rsi_upper1 = 69
+rsi_lower1 = 31
+rsi_val1 = ta.rsi(close, rsi_length1)
+
+// Fonctions pour détecter les motifs des chandeliers
+is_bullish_engulfing() =>
+    close[1] < open[1] and open < close and close > open[1] and open < close[1]
+
+is_bearish_engulfing() =>
+    close[1] > open[1] and open > close and close < open[1] and open > close[1]
+
+is_morning_star() =>
+    close[2] < open[2] and close[1] < close[2] and close > open
+
+is_evening_star() =>
+    close[2] > open[2] and close[1] > close[2] and close < open
+
+is_bullish_harami() =>
+    close[1] < open[1] and close > open and open > close[1] and close < open[1]
+
+is_bearish_harami() =>
+    close[1] > open[1] and close < open and open < close[1] and close > open[1]
+
+is_hammer_or_hanging_man() =>
+    (high - (open > close ? open : close)) <= 0.25 * (high - low) and open - low >= 0.66 * (high - low)
+
+is_shooting_star_or_inverted_hammer() =>
+    open - high <= 0.25 * (high - low) and high - close >= 0.66 * (high - low)
+
+is_doji() =>
+    math.abs(close - open) < 0.01 * (high - low)
+
+is_bullish_piercing() =>
+    close[1] < open[1] and open < close[1] and close > (open[1] + close[1]) / 2 and close < open[1]
+
+is_dark_cloud_cover() =>
+    close[1] > open[1] and open > close[1] and close < (open[1] + close[1]) / 2 and close > open[1]
+
+// Affichage des motifs sur le graphique en fonction du RSI
+plotshape(series=rsi_val > rsi_upper and is_bearish_engulfing() ? high : na, color=color.red, style=shape.triangledown, title="Avalement baissier", text="Avalement baissier", location=location.abovebar)
+plotshape(series=rsi_val < rsi_lower and is_bullish_engulfing() ? low : na, color=color.blue, style=shape.triangleup, title="Avalement haussier", text="Avalement haussier", location=location.belowbar)
+plotshape(series=rsi_val > rsi_upper and is_evening_star() ? high : na, color=color.red, style=shape.triangledown, title="Etoile du soir", text="Etoile du soir", location=location.abovebar)
+plotshape(series=rsi_val < rsi_lower and is_morning_star() ? low : na, color=color.blue, style=shape.triangleup, title="Etoile du matin", text="Etoile du matin", location=location.belowbar)
+plotshape(series=rsi_val > rsi_upper and is_bearish_harami() ? high : na, color=color.red, style=shape.triangledown, title="Harami baissier", text="Harami baissier", location=location.abovebar)
+plotshape(series=rsi_val < rsi_lower and is_bullish_harami() ? low : na, color=color.blue, style=shape.triangleup, title="Harami haussier", text="Harami haussier", location=location.belowbar)
+plotshape(series=rsi_val > rsi_upper and is_hammer_or_hanging_man() ? high : na, color=color.red, style=shape.triangledown, title="Pendu/Marteau", text="Pendu/Marteau", location=location.abovebar)
+plotshape(series=rsi_val < rsi_lower and is_shooting_star_or_inverted_hammer() ? low : na, color=color.blue, style=shape.triangleup, title="Etoile filante/Marteau inversé", text="Etoile filante/Marteau inversé", location=location.belowbar)
+plotshape(series=rsi_val > rsi_upper and is_doji() ? high : na, color=color.red, style=shape.triangledown, title="Doji", text="Doji", location=location.abovebar)
+plotshape(series=rsi_val < rsi_lower and is_bullish_piercing() ? low : na, color=color.blue, style=shape.triangleup, title="Pénétrante haussière", text="Pénétrante haussière", location=location.belowbar)
+plotshape(series=rsi_val > rsi_upper and is_dark_cloud_cover() ? high : na, color=color.red, style=shape.triangledown, title="Couverture nuage noir", text="Couverture nuage noir", location=location.abovebar)
+

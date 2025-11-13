@@ -1,0 +1,47 @@
+//@version=2 
+//                                                created by StevenH and SeaSide420
+study("TC True Strength Indicator", shorttitle="TSI")
+long = input(title="Long Length", type=integer, defval=35)
+short = input(title="Short Length", type=integer, defval=35)
+signal = input(title="Signal Length", type=integer, defval=13)
+linebuy = input(title="Upper Line", type=integer, defval=4)
+linesell = input(title="Lower Line", type=integer, defval=-4)
+price = close
+double_smooth(src, long, short) =>
+    fist_smooth = ema(src, long)
+    ema(fist_smooth, short)
+pc = change(price)
+double_smoothed_pc = double_smooth(pc, long, short)
+double_smoothed_abs_pc = double_smooth(abs(pc), long, short)
+tsi_value = 100 * (double_smoothed_pc / double_smoothed_abs_pc)
+keh = tsi_value>linesell?lime:orange
+teh = ema(tsi_value, signal)>linebuy?orange:red
+meh = ema(tsi_value, signal)>tsi_value?red:lime
+plot(tsi_value, color=keh, linewidth=2)
+plot(ema(tsi_value, signal), color=teh, linewidth=2)
+plot(linebuy,color=green),plot(linesell,color=red)
+plot(cross(tsi_value, ema(tsi_value, signal)) ? tsi_value : na, style = circles, color=meh, linewidth = 3)
+hline(0, title="Zero")//@version=2 
+//                                                created by StevenH and SeaSide420
+study("TC True Strength Indicator", shorttitle="TSI")
+long = input(title="Long Length", type=integer, defval=35)
+short = input(title="Short Length", type=integer, defval=35)
+signal = input(title="Signal Length", type=integer, defval=13)
+linebuy = input(title="Upper Line", type=integer, defval=4)
+linesell = input(title="Lower Line", type=integer, defval=-4)
+price = close
+double_smooth(src, long, short) =>
+    fist_smooth = ema(src, long)
+    ema(fist_smooth, short)
+pc = change(price)
+double_smoothed_pc = double_smooth(pc, long, short)
+double_smoothed_abs_pc = double_smooth(abs(pc), long, short)
+tsi_value = 100 * (double_smoothed_pc / double_smoothed_abs_pc)
+keh = tsi_value>linesell?lime:orange
+teh = ema(tsi_value, signal)>linebuy?orange:red
+meh = ema(tsi_value, signal)>tsi_value?red:lime
+plot(tsi_value, color=keh, linewidth=2)
+plot(ema(tsi_value, signal), color=teh, linewidth=2)
+plot(linebuy,color=green),plot(linesell,color=red)
+plot(cross(tsi_value, ema(tsi_value, signal)) ? tsi_value : na, style = circles, color=meh, linewidth = 3)
+hline(0, title="Zero")

@@ -365,9 +365,22 @@ func buildUserPrompt(ctx *Context) string {
 
 	// BTC 市场
 	if btcData, hasBTC := ctx.MarketDataMap["BTCUSDT"]; hasBTC {
-		sb.WriteString(fmt.Sprintf("BTC: %.2f (1h: %+.2f%%, 4h: %+.2f%%) | MACD: %.4f | RSI: %.2f\n\n",
+		sb.WriteString(fmt.Sprintf("BTC: %.2f (1h: %+.2f%%, 4h: %+.2f%%) | MACD: %.4f | RSI: %.2f | TSI: %.2f | Signal: %.2f\n\n",
 			btcData.CurrentPrice, btcData.PriceChange1h, btcData.PriceChange4h,
-			btcData.CurrentMACD, btcData.CurrentRSI7))
+			btcData.CurrentMACD, btcData.CurrentRSI7, btcData.CurrentTSI, btcData.CurrentTSISignal))
+		// 新增：脚本 2—10 指标摘要（BTC 概览）
+		sb.WriteString(fmt.Sprintf(
+			"BTC Indicators #2–#10 → KEMAD:%d | VGB:%d | SSL exit:%d | ZeroLag:%d | QQE:%d | Range:%d | DPSD:%d | RSI_Buy:%v | RSI_Sell:%v\n\n",
+			btcData.KEMADTrend,
+			btcData.VGBTrend,
+			btcData.SSLExitSignal,
+			btcData.ZeroLagTrend,
+			btcData.QQETrend,
+			btcData.RangeCombinedTrend,
+			btcData.DPSDTrend,
+			btcData.RSIBuySignal,
+			btcData.RSISellSignal,
+		))
 	}
 
 	// 账户

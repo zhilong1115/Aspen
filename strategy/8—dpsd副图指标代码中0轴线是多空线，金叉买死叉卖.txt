@@ -1,0 +1,82 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Patito_1
+//@version = 6
+
+indicator("Dema Percentile Standard Deviation", "DPSD", false)
+import TradingView/ta/8 as ta
+
+//Input's
+DemaLen = input.int(24, "Dema Length", group = "DEMA", inline = "D")
+DemaSrc = input.source(open, "Dema Source", group = "DEMA", inline = "D")
+
+PerLen = input.int(32, "Percentile Length", group = "Percentile", inline = "P")
+pertype = input.string("60/40","Percentile Chosen" , ["60/45","60/40","55/45","55/40"], group = "Percentile" , inline = "P")
+
+SDlen = input.int(27, "SD Length", group = "Standard Deviation") 
+EmaLen = input.int(25, "EMA Length", group = "Confluance") 
+IncluedeEma = input.bool(true, "Use Ema", group = "Confluance")
+
+ColUp = input.color(#49ff00, "Color Up-trend", group = "Customization", inline = "C")
+ColDown = input.color(#b600ff, "Color Down-trend", group = "Customization", inline = "C")
+Transparency = input.int(85, "Background Transparency", group = "Customization", minval = 0, maxval = 100)
+
+ShowBGCol = input.bool(false, "Color Background", group = "Show")
+PlotMomenutm = input.bool(true, "Plot Momentum", group = "Show")
+
+//Variables
+var T = 0.0
+var Trend = 0.0
+var PerUp = 0.0
+var PerDown = 0.0
+
+//CALCULATIONS
+dema = ta.dema(DemaSrc, DemaLen)
+
+if pertype == "60/40"
+    PerUp := ta.percentile_nearest_rank(dema, PerLen, 60)
+    PerDown := ta.percentile_nearest_rank(dema, PerLen, 40) 
+
+if pertype == "60/45"
+    PerUp := ta.percentile_nearest_rank(dema, PerLen, 60)
+    PerDown := ta.percentile_nearest_rank(dema, PerLen, 45) 
+
+if pertype == "55/40"
+    PerUp := ta.percentile_nearest_rank(dema, PerLen, 55)
+    PerDown := ta.percentile_nearest_rank(dema, PerLen, 40) 
+
+if pertype == "55/45"
+    PerUp := ta.percentile_nearest_rank(dema, PerLen, 55)
+    PerDown := ta.percentile_nearest_rank(dema, PerLen, 45) 
+
+sd = ta.stdev(PerDown, SDlen)
+sdl = (PerDown + sd) 
+SDL =  close > (PerDown + sd) 
+
+L = close > PerUp and SDL
+S = close < PerDown
+
+if L 
+    T := 1
+
+if S 
+    T := -1
+
+PT = T == 1 ? close - PerDown : PerUp > sdl ? close - PerUp : close - sdl 
+EMA = ta.ema(PT, EmaLen)
+
+if (IncluedeEma ? PT > 0 and PT > EMA : PT > 0)
+    Trend := 1
+
+if (IncluedeEma ? PT < 0 and PT < EMA : PT < 0)
+    Trend := -1
+
+//PLOT'S
+bgcolor(Trend == 1 ? color.new(ColUp, Transparency) : color.new(ColDown, Transparency), force_overlay = true, display = ShowBGCol ? display.all : display.none)
+plot(PT, "Momentum", color = Trend == 1 ? ColUp : ColDown, display = PlotMomenutm ? display.all : display.none, linewidth = 2)
+plot(EMA, "Ema Confluance", color = color.rgb(230,230,230,10), display = PlotMomenutm ? display.all : display.none, linewidth = 2)
+plot(0, "Zero Line", color.gray, style = plot.style_stepline, display = PlotMomenutm ? display.all : display.none, linewidth = 2)
+
+alertcondition(ta.crossover(Trend, 0), "LONG","Bullish DPSD (go Long moron no time to wait!!!)")
+alertcondition(ta.crossunder(Trend, 0), "SHORT","Bearish DPSD (sell that shit it's gointg to 0, no time to wait!!!)")
+
+
