@@ -470,46 +470,56 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     try {
       // 创建或更新用户的模型配置
       const existingModel = allModels?.find((m) => m.id === modelId)
-      let updatedModels
-
-      // 找到要配置的模型（优先从已配置列表，其次从支持列表）
-      const modelToUpdate =
-        existingModel || supportedModels?.find((m) => m.id === modelId)
-      if (!modelToUpdate) {
-        toast.error(t('modelNotExist', language))
-        return
-      }
+      let updatedModels = [...(allModels || [])]
 
       if (existingModel) {
         // 更新现有配置
-        updatedModels =
-          allModels?.map((m) =>
-            m.id === modelId
-              ? {
-                ...m,
-                apiKey,
-                customApiUrl: customApiUrl || '',
-                customModelName: customModelName || '',
-                enabled: true,
-              }
-              : m
-          ) || []
+        updatedModels = updatedModels.map((m) =>
+          m.id === modelId
+            ? {
+              ...m,
+              apiKey,
+              customApiUrl: customApiUrl || '',
+              customModelName: customModelName || '',
+              enabled: true,
+            }
+            : m
+        )
       } else {
-        // 添加新配置
+        // 添加新配置：从 modelId 中提取 provider
+        // OpenRouter 模型 ID 格式：openrouter-model-name (如 openrouter-openai-gpt-4o)
+        let provider: string
+        if (modelId.startsWith('openrouter-')) {
+          provider = 'openrouter'
+        } else if (modelId.includes('_')) {
+          provider = modelId.split('_')[0]
+        } else {
+          provider = modelId
+        }
+
+        // 从支持列表中查找对应的模型信息
+        const modelTemplate = supportedModels?.find((m) => m.provider === provider)
+        if (!modelTemplate) {
+          toast.error(t('modelNotExist', language))
+          return
+        }
+
+        // 创建新模型配置
         const newModel = {
-          ...modelToUpdate,
+          ...modelTemplate,
+          id: modelId,
           apiKey,
           customApiUrl: customApiUrl || '',
           customModelName: customModelName || '',
           enabled: true,
         }
-        updatedModels = [...(allModels || []), newModel]
+        updatedModels.push(newModel)
       }
 
       const request = {
         models: Object.fromEntries(
           updatedModels.map((model) => [
-            model.provider, // 使用 provider 而不是 id
+            model.id,
             {
               enabled: model.enabled,
               api_key: model.apiKey || '',
@@ -530,8 +540,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       const refreshedModels = await api.getModelConfigs()
       setAllModels(refreshedModels)
 
-      setShowModelModal(false)
-      setEditingModel(null)
+      // 如果是批量创建（OpenRouter 多选），不立即关闭弹窗
+      // 只有在编辑或单个创建时才关闭
+      if (existingModel || !modelId.startsWith('openrouter-')) {
+        setShowModelModal(false)
+        setEditingModel(null)
+      }
     } catch (error) {
       console.error('Failed to save model config:', error)
       toast.error(t('saveConfigFailed', language))
@@ -879,6 +893,23 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           <div className="space-y-2 md:space-y-3">
             {configuredModels.map((model) => {
               const inUse = isModelInUse(model.id)
+              // 生成显示名称
+              let displayName: string
+              if (model.id.startsWith('openrouter-')) {
+                // OpenRouter 模型：显示为 "OpenRouter-ModelName"
+                const modelName = model.customModelName || model.id.replace('openrouter-', '').replace(/-/g, '/')
+                displayName = `OpenRouter-${modelName.split('/').pop() || modelName}`
+              } else if (model.customModelName) {
+                // 其他模型：如果有自定义模型名称，显示它
+                displayName = `${getModelDisplayName(model.provider || model.id)} (${model.customModelName})`
+              } else {
+                // 默认：显示 provider 名称
+                displayName = getModelDisplayName(model.provider || model.id)
+              }
+              // 如果 ID 包含时间戳（多个实例），在名称后添加标识
+              const modelIdSuffix = model.id.includes('_') && model.id !== model.provider && !model.id.startsWith('openrouter-')
+                ? ` #${model.id.split('_').slice(1).join('_')}`
+                : ''
               return (
                 <div
                   key={model.id}
@@ -912,7 +943,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                         className="font-semibold text-sm md:text-base truncate"
                         style={{ color: '#EAECEF' }}
                       >
-                        {getShortName(model.name)}
+                        {displayName}{modelIdSuffix}
                       </div>
                       <div className="text-xs" style={{ color: '#848E9C' }}>
                         {inUse
@@ -1230,16 +1261,21 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       {/* Model Configuration Modal */}
       {showModelModal && (
         <ModelConfigModal
-          allModels={supportedModels}
           configuredModels={allModels}
           editingModelId={editingModel}
-          onSave={handleSaveModelConfig}
+          onSave={async (modelId, apiKey, baseUrl, modelName) => {
+            await handleSaveModelConfig(modelId, apiKey, baseUrl, modelName)
+            // 重新获取模型列表
+            const refreshedModels = await api.getModelConfigs()
+            setAllModels(refreshedModels)
+          }}
           onDelete={handleDeleteModelConfig}
           onClose={() => {
             setShowModelModal(false)
             setEditingModel(null)
           }}
           language={language}
+          supportedModels={supportedModels}
         />
       )}
 
@@ -1454,15 +1490,14 @@ function SignalSourceModal({
 
 // Model Configuration Modal Component
 function ModelConfigModal({
-  allModels,
   configuredModels,
   editingModelId,
   onSave,
   onDelete,
   onClose,
   language,
+  supportedModels,
 }: {
-  allModels: AIModel[]
   configuredModels: AIModel[]
   editingModelId: string | null
   onSave: (
@@ -1470,44 +1505,166 @@ function ModelConfigModal({
     apiKey: string,
     baseUrl?: string,
     modelName?: string
-  ) => void
+  ) => Promise<void>
   onDelete: (modelId: string) => void
   onClose: () => void
   language: Language
+  supportedModels?: AIModel[]
 }) {
-  const [selectedModelId, setSelectedModelId] = useState(editingModelId || '')
+  const [selectedProvider, setSelectedProvider] = useState<string>('')
   const [apiKey, setApiKey] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
   const [modelName, setModelName] = useState('')
+  const [modelNamesInput, setModelNamesInput] = useState<string>('') // OpenRouter 模型名称输入（支持换行或逗号分隔）
 
-  // 获取当前编辑的模型信息 - 编辑时从已配置的模型中查找，新建时从所有支持的模型中查找
+  // 获取当前编辑的模型信息 - 编辑时从已配置的模型中查找
   const selectedModel = editingModelId
-    ? configuredModels?.find((m) => m.id === selectedModelId)
-    : allModels?.find((m) => m.id === selectedModelId)
+    ? configuredModels?.find((m) => m.id === editingModelId)
+    : selectedProvider
+      ? supportedModels?.find((m) => m.provider === selectedProvider)
+      : null
 
-  // 如果是编辑现有模型，初始化API Key、Base URL和Model Name
+  // 如果是编辑现有模型，初始化所有字段
   useEffect(() => {
-    if (editingModelId && selectedModel) {
-      setApiKey(selectedModel.apiKey || '')
-      setBaseUrl(selectedModel.customApiUrl || '')
-      setModelName(selectedModel.customModelName || '')
+    if (editingModelId) {
+      const model = configuredModels?.find((m) => m.id === editingModelId)
+      if (model) {
+        setSelectedProvider(model.provider || '')
+        setApiKey(model.apiKey || '')
+        setBaseUrl(model.customApiUrl || '')
+        setModelName(model.customModelName || '')
+      }
+    } else {
+      // 新建时重置所有字段
+      setSelectedProvider('')
+      setApiKey('')
+      setBaseUrl('')
+      setModelName('')
+      setModelNamesInput('')
     }
-  }, [editingModelId, selectedModel])
+  }, [editingModelId, configuredModels])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // 当选择 OpenRouter 时，重置模型输入
+  useEffect(() => {
+    if (selectedProvider !== 'openrouter') {
+      setModelNamesInput('')
+    }
+  }, [selectedProvider])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedModelId || !apiKey.trim()) return
+    if (!apiKey.trim()) return
 
-    onSave(
-      selectedModelId,
-      apiKey.trim(),
-      baseUrl.trim() || undefined,
-      modelName.trim() || undefined
-    )
+    if (editingModelId) {
+      // 编辑现有模型：使用现有的 ID
+      await onSave(
+        editingModelId,
+        apiKey.trim(),
+        baseUrl.trim() || undefined,
+        modelName.trim() || undefined
+      )
+    } else {
+      // 创建新模型
+      if (!selectedProvider) {
+        return
+      }
+
+      // OpenRouter 特殊处理：支持多选模型
+      if (selectedProvider === 'openrouter') {
+        if (!modelNamesInput.trim()) {
+          toast.error('请输入至少一个模型名称')
+          return
+        }
+
+        // 解析模型名称：支持换行或逗号分隔
+        const modelNames = modelNamesInput
+          .split(/[\n,，]/) // 支持换行、英文逗号、中文逗号
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0)
+
+        if (modelNames.length === 0) {
+          toast.error('请输入至少一个模型名称')
+          return
+        }
+
+        // 批量创建所有模型实例
+        try {
+          let updatedModels = [...(configuredModels || [])]
+          for (const model of modelNames) {
+            const modelId = `openrouter-${model.replace(/\//g, '-')}`
+            // 检查是否已存在
+            if (!updatedModels.find((m) => m.id === modelId)) {
+              const modelTemplate = supportedModels?.find(
+                (m) => m.provider === 'openrouter'
+              )
+              if (modelTemplate) {
+                updatedModels.push({
+                  ...modelTemplate,
+                  id: modelId,
+                  apiKey: apiKey.trim(),
+                  customApiUrl: '',
+                  customModelName: model,
+                  enabled: true,
+                })
+              }
+            }
+          }
+
+          const request = {
+            models: Object.fromEntries(
+              updatedModels.map((model) => [
+                model.id,
+                {
+                  enabled: model.enabled,
+                  api_key: model.apiKey || '',
+                  custom_api_url: model.customApiUrl || '',
+                  custom_model_name: model.customModelName || '',
+                },
+              ])
+            ),
+          }
+
+          await toast.promise(api.updateModelConfigs(request), {
+            loading: `正在创建 ${modelNames.length} 个模型配置…`,
+            success: `成功创建 ${modelNames.length} 个模型实例`,
+            error: '创建模型配置失败',
+          })
+
+          // 关闭弹窗，父组件会重新获取模型列表
+          onClose()
+        } catch (error) {
+          console.error('批量创建模型失败:', error)
+          toast.error('批量创建模型失败')
+        }
+        return
+      } else {
+        // 其他 provider：单个模型
+        const existingCount = configuredModels?.filter(
+          (m) => m.provider === selectedProvider
+        ).length || 0
+
+        let newModelId: string
+        if (existingCount === 0) {
+          // 第一个实例，使用 provider 作为 ID
+          newModelId = selectedProvider
+        } else {
+          // 后续实例，使用 provider_timestamp 格式
+          const timestamp = Date.now()
+          newModelId = `${selectedProvider}_${timestamp}`
+        }
+
+        await onSave(
+          newModelId,
+          apiKey.trim(),
+          baseUrl.trim() || undefined,
+          modelName.trim() || undefined
+        )
+      }
+    }
   }
 
-  // 可选择的模型列表（所有支持的模型）
-  const availableModels = allModels || []
+  // 可选择的模型列表（支持的模型类型）
+  const availableProviders = supportedModels || []
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -1554,8 +1711,8 @@ function ModelConfigModal({
                   {t('selectModel', language)}
                 </label>
                 <select
-                  value={selectedModelId}
-                  onChange={(e) => setSelectedModelId(e.target.value)}
+                  value={selectedProvider}
+                  onChange={(e) => setSelectedProvider(e.target.value)}
                   className="w-full px-3 py-2 rounded"
                   style={{
                     background: '#0B0E11',
@@ -1565,12 +1722,21 @@ function ModelConfigModal({
                   required
                 >
                   <option value="">{t('pleaseSelectModel', language)}</option>
-                  {availableModels.map((model) => (
-                    <option key={model.id} value={model.id}>
-                      {getShortName(model.name)} ({model.provider})
-                    </option>
-                  ))}
+                  {availableProviders.map((model) => {
+                    const existingCount = configuredModels?.filter(
+                      (m) => m.provider === model.provider
+                    ).length || 0
+                    return (
+                      <option key={model.provider} value={model.provider}>
+                        {getShortName(model.name)} ({model.provider})
+                        {existingCount > 0 && ` - 已有 ${existingCount} 个实例`}
+                      </option>
+                    )
+                  })}
                 </select>
+                <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                  可以为同一个 provider 创建多个实例（使用不同的 API Key 或模型）
+                </div>
               </div>
             )}
 
@@ -1589,29 +1755,29 @@ function ModelConfigModal({
                           className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
                           style={{
                             background:
-                              selectedModel.id === 'deepseek'
+                              selectedModel.provider === 'deepseek'
                                 ? '#60a5fa'
                                 : '#c084fc',
                             color: '#fff',
                           }}
                         >
-                          {selectedModel.name[0]}
+                          {(selectedModel.name || selectedModel.provider || '?')[0]}
                         </div>
                       )}
                   </div>
                   <div>
                     <div className="font-semibold" style={{ color: '#EAECEF' }}>
-                      {getShortName(selectedModel.name)}
+                      {getShortName(selectedModel.name || selectedModel.provider || '')}
                     </div>
                     <div className="text-xs" style={{ color: '#848E9C' }}>
-                      {selectedModel.provider} • {selectedModel.id}
+                      {selectedModel.provider || selectedModel.id}
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {selectedModel && (
+            {selectedProvider && (
               <>
                 <div>
                   <label
@@ -1635,7 +1801,7 @@ function ModelConfigModal({
                   />
                 </div>
 
-                {selectedModel?.provider !== 'openrouter' && (
+                {selectedProvider !== 'openrouter' && (
                   <div>
                     <label
                       className="block text-sm font-semibold mb-2"
@@ -1661,35 +1827,79 @@ function ModelConfigModal({
                   </div>
                 )}
 
-                <div>
-                  <label
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#EAECEF' }}
-                  >
-                    Model Name (可选)
-                  </label>
-                  <input
-                    type="text"
-                    value={modelName}
-                    onChange={(e) => setModelName(e.target.value)}
-                    placeholder={
-                      selectedModel?.provider === 'openrouter'
-                        ? '例如: openai/gpt-4o, anthropic/claude-3.5-sonnet'
-                        : '例如: deepseek-chat, qwen3-max, gpt-5'
-                    }
-                    className="w-full px-3 py-2 rounded"
-                    style={{
-                      background: '#0B0E11',
-                      border: '1px solid #2B3139',
-                      color: '#EAECEF',
-                    }}
-                  />
-                  <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
-                    {selectedModel?.provider === 'openrouter'
-                      ? '留空使用默认模型 openai/gpt-4o'
-                      : '留空使用默认模型名称'}
+                {selectedProvider === 'openrouter' && !editingModelId ? (
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#EAECEF' }}
+                    >
+                      模型名称（每行一个或用逗号分隔）
+                    </label>
+                    <textarea
+                      value={modelNamesInput}
+                      onChange={(e) => setModelNamesInput(e.target.value)}
+                      placeholder={`例如：
+openai/gpt-4o
+anthropic/claude-3.5-sonnet
+google/gemini-pro
+
+或者用逗号分隔：
+openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
+                      rows={6}
+                      className="w-full px-3 py-2 rounded font-mono text-sm"
+                      style={{
+                        background: '#0B0E11',
+                        border: '1px solid #2B3139',
+                        color: '#EAECEF',
+                        resize: 'vertical',
+                      }}
+                    />
+                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                      {(() => {
+                        const modelCount = modelNamesInput
+                          .split(/[\n,，]/)
+                          .map((name) => name.trim())
+                          .filter((name) => name.length > 0).length
+                        return modelCount > 0
+                          ? `将创建 ${modelCount} 个模型实例（共享同一个 API Key）`
+                          : '支持换行或逗号分隔，系统将为每个模型创建一个实例'
+                      })()}
+                    </div>
+                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                      常用模型示例：openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro, meta-llama/llama-3.1-405b-instruct
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#EAECEF' }}
+                    >
+                      Model Name (可选)
+                    </label>
+                    <input
+                      type="text"
+                      value={modelName}
+                      onChange={(e) => setModelName(e.target.value)}
+                      placeholder={
+                        selectedProvider === 'openrouter'
+                          ? '例如: openai/gpt-4o, anthropic/claude-3.5-sonnet'
+                          : '例如: deepseek-chat, qwen3-max, gpt-5'
+                      }
+                      className="w-full px-3 py-2 rounded"
+                      style={{
+                        background: '#0B0E11',
+                        border: '1px solid #2B3139',
+                        color: '#EAECEF',
+                      }}
+                    />
+                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                      {selectedProvider === 'openrouter'
+                        ? '留空使用默认模型 openai/gpt-4o'
+                        : '留空使用默认模型名称'}
+                    </div>
+                  </div>
+                )}
 
                 <div
                   className="p-4 rounded"
@@ -1731,7 +1941,13 @@ function ModelConfigModal({
             </button>
             <button
               type="submit"
-              disabled={!selectedModel || !apiKey.trim()}
+              disabled={
+                !selectedProvider ||
+                !apiKey.trim() ||
+                (selectedProvider === 'openrouter' &&
+                  !editingModelId &&
+                  !modelNamesInput.trim())
+              }
               className="flex-1 px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
               style={{ background: '#F0B90B', color: '#000' }}
             >

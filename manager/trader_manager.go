@@ -261,18 +261,33 @@ func (tm *TraderManager) addTraderFromDB(traderCfg *config.TraderRecord, aiModel
 
 	// 根据AI模型设置API密钥
 	if aiModelCfg.Provider == "qwen" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Qwen) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.QwenKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "deepseek" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (DeepSeek) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.DeepSeekKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "openrouter" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (OpenRouter) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.OpenRouterKey = aiModelCfg.APIKey
 		// OpenRouter 使用 CustomModelName 字段来存储模型名称
 		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 OpenRouter 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
 	} else if aiModelCfg.Provider == "custom" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.CustomAPIKey = aiModelCfg.APIKey
 		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+	} else {
+		return fmt.Errorf("交易员 %s 的AI模型 %s 使用了不支持的 provider: %s", traderCfg.Name, aiModelCfg.ID, aiModelCfg.Provider)
 	}
 
 	// 创建trader实例
@@ -381,18 +396,33 @@ func (tm *TraderManager) AddTraderFromDB(traderCfg *config.TraderRecord, aiModel
 
 	// 根据AI模型设置API密钥
 	if aiModelCfg.Provider == "qwen" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Qwen) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.QwenKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "deepseek" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (DeepSeek) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.DeepSeekKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "openrouter" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (OpenRouter) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.OpenRouterKey = aiModelCfg.APIKey
 		// OpenRouter 使用 CustomModelName 字段来存储模型名称
 		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 OpenRouter 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
 	} else if aiModelCfg.Provider == "custom" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.CustomAPIKey = aiModelCfg.APIKey
 		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+	} else {
+		return fmt.Errorf("交易员 %s 的AI模型 %s 使用了不支持的 provider: %s", traderCfg.Name, aiModelCfg.ID, aiModelCfg.Provider)
 	}
 
 	// 创建trader实例
@@ -1094,18 +1124,33 @@ func (tm *TraderManager) loadSingleTrader(traderCfg *config.TraderRecord, aiMode
 
 	// 根据AI模型设置API密钥
 	if aiModelCfg.Provider == "qwen" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Qwen) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.QwenKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "deepseek" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (DeepSeek) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.DeepSeekKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "openrouter" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (OpenRouter) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.OpenRouterKey = aiModelCfg.APIKey
 		// OpenRouter 使用 CustomModelName 字段来存储模型名称
 		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 OpenRouter 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
 	} else if aiModelCfg.Provider == "custom" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
 		traderConfig.CustomAPIKey = aiModelCfg.APIKey
 		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+	} else {
+		return fmt.Errorf("交易员 %s 的AI模型 %s 使用了不支持的 provider: %s", traderCfg.Name, aiModelCfg.ID, aiModelCfg.Provider)
 	}
 
 	// 创建trader实例

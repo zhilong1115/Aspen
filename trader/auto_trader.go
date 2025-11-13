@@ -137,10 +137,16 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 	// 初始化AI
 	if config.AIModel == "custom" {
 		// 使用自定义API
+		if config.CustomAPIKey == "" {
+			return nil, fmt.Errorf("自定义AI API密钥未设置")
+		}
 		mcpClient.SetCustomAPI(config.CustomAPIURL, config.CustomAPIKey, config.CustomModelName)
 		log.Printf("🤖 [%s] 使用自定义AI API: %s (模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
 	} else if config.AIModel == "openrouter" {
 		// 使用OpenRouter (支持自定义模型选择)
+		if config.OpenRouterKey == "" {
+			return nil, fmt.Errorf("OpenRouter API密钥未设置，请先在AI模型配置中设置API Key")
+		}
 		modelName := config.CustomModelName
 		if modelName == "" {
 			modelName = "openai/gpt-4o" // 默认模型
@@ -149,6 +155,9 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		log.Printf("🤖 [%s] 使用OpenRouter AI (模型: %s)", config.Name, modelName)
 	} else if config.UseQwen || config.AIModel == "qwen" {
 		// 使用Qwen (支持自定义URL和Model)
+		if config.QwenKey == "" {
+			return nil, fmt.Errorf("Qwen API密钥未设置，请先在AI模型配置中设置API Key")
+		}
 		mcpClient.SetQwenAPIKey(config.QwenKey, config.CustomAPIURL, config.CustomModelName)
 		if config.CustomAPIURL != "" || config.CustomModelName != "" {
 			log.Printf("🤖 [%s] 使用阿里云Qwen AI (自定义URL: %s, 模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
@@ -157,6 +166,9 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		}
 	} else {
 		// 默认使用DeepSeek (支持自定义URL和Model)
+		if config.DeepSeekKey == "" {
+			return nil, fmt.Errorf("DeepSeek API密钥未设置，请先在AI模型配置中设置API Key")
+		}
 		mcpClient.SetDeepSeekAPIKey(config.DeepSeekKey, config.CustomAPIURL, config.CustomModelName)
 		if config.CustomAPIURL != "" || config.CustomModelName != "" {
 			log.Printf("🤖 [%s] 使用DeepSeek AI (自定义URL: %s, 模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)

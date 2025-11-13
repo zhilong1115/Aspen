@@ -700,7 +700,10 @@ func (d *Database) UpdateAIModel(userID, id string, enabled bool, apiKey, custom
 
 	// 没有找到任何现有配置，创建新的
 	// 推断 provider（从 id 中提取，或者直接使用 id）
-	if provider == id && (provider == "deepseek" || provider == "qwen" || provider == "openrouter") {
+	if strings.HasPrefix(id, "openrouter-") {
+		// OpenRouter 模型 ID 格式：openrouter-{model-name}
+		provider = "openrouter"
+	} else if provider == id && (provider == "deepseek" || provider == "qwen" || provider == "openrouter") {
 		// id 本身就是 provider
 		provider = id
 	} else {
@@ -725,17 +728,25 @@ func (d *Database) UpdateAIModel(userID, id string, enabled bool, apiKey, custom
 		} else if provider == "qwen" {
 			name = "Qwen AI"
 		} else if provider == "openrouter" {
-			name = "OpenRouter AI"
+			// 如果是 openrouter-{model-name} 格式，使用模型名称作为显示名称
+			if strings.HasPrefix(id, "openrouter-") && customModelName != "" {
+				// 从 customModelName 提取模型名称（如 "openai/gpt-4o" -> "GPT-4o"）
+				modelParts := strings.Split(customModelName, "/")
+				modelShortName := modelParts[len(modelParts)-1]
+				name = fmt.Sprintf("OpenRouter-%s", modelShortName)
+			} else {
+				name = "OpenRouter AI"
+			}
 		} else {
 			name = provider + " AI"
 		}
 	}
 
-	// 如果传入的 ID 已经是完整格式（如 "admin_deepseek_custom1"），直接使用
+	// 如果传入的 ID 已经是完整格式（如 "openrouter-gpt-4o" 或 "admin_deepseek_custom1"），直接使用
 	// 否则生成新的 ID
 	newModelID := id
-	if id == provider {
-		// id 就是 provider，生成新的用户特定 ID
+	if id == provider && !strings.HasPrefix(id, "openrouter-") {
+		// id 就是 provider（且不是 openrouter- 格式），生成新的用户特定 ID
 		newModelID = fmt.Sprintf("%s_%s", userID, provider)
 	}
 
