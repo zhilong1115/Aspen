@@ -17,9 +17,10 @@ import (
 type Provider string
 
 const (
-	ProviderDeepSeek Provider = "deepseek"
-	ProviderQwen     Provider = "qwen"
-	ProviderCustom   Provider = "custom"
+	ProviderDeepSeek   Provider = "deepseek"
+	ProviderQwen       Provider = "qwen"
+	ProviderOpenRouter Provider = "openrouter"
+	ProviderCustom     Provider = "custom"
 )
 
 // Client AI API配置
@@ -105,6 +106,31 @@ func (client *Client) SetQwenAPIKey(apiKey string, customURL string, customModel
 	}
 }
 
+// SetOpenRouterAPIKey 设置OpenRouter API密钥
+// modelName 为要使用的模型名称，例如 "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
+// 如果 modelName 为空，则使用默认模型 "openai/gpt-4o"
+func (client *Client) SetOpenRouterAPIKey(apiKey string, modelName string) {
+	client.Provider = ProviderOpenRouter
+	client.APIKey = apiKey
+	client.BaseURL = "https://openrouter.ai/api/v1"
+	client.UseFullURL = false // OpenRouter 使用标准路径 /chat/completions
+
+	if modelName != "" {
+		client.Model = modelName
+		log.Printf("🔧 [MCP] OpenRouter 使用模型: %s", modelName)
+	} else {
+		client.Model = "openai/gpt-4o"
+		log.Printf("🔧 [MCP] OpenRouter 使用默认模型: %s", client.Model)
+	}
+
+	client.Timeout = 120 * time.Second
+
+	// 打印 API Key 的前后各4位用于验证
+	if len(apiKey) > 8 {
+		log.Printf("🔧 [MCP] OpenRouter API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
 // SetCustomAPI 设置自定义OpenAI兼容API
 func (client *Client) SetCustomAPI(apiURL, apiKey, modelName string) {
 	client.Provider = ProviderCustom
@@ -124,17 +150,17 @@ func (client *Client) SetCustomAPI(apiURL, apiKey, modelName string) {
 }
 
 // SetClient 设置完整的AI配置（高级用户）
-func (client *Client) SetClient(Client Client) {
-	if Client.Timeout == 0 {
-		Client.Timeout = 30 * time.Second
+func (client *Client) SetClient(newClient Client) {
+	if newClient.Timeout == 0 {
+		newClient.Timeout = 30 * time.Second
 	}
-	client = &Client
+	*client = newClient
 }
 
 // CallWithMessages 使用 system + user prompt 调用AI API（推荐）
 func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string, error) {
 	if client.APIKey == "" {
-		return "", fmt.Errorf("AI API密钥未设置，请先调用 SetDeepSeekAPIKey() 或 SetQwenAPIKey()")
+		return "", fmt.Errorf("AI API密钥未设置，请先调用 SetDeepSeekAPIKey()、SetQwenAPIKey()、SetOpenRouterAPIKey() 或 SetCustomAPI()")
 	}
 
 	// 重试配置
@@ -242,6 +268,11 @@ func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) 
 		// 阿里云Qwen使用API-Key认证
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
 		// 注意：如果使用的不是兼容模式，可能需要不同的认证方式
+	case ProviderOpenRouter:
+		// OpenRouter 使用 Bearer 认证，并需要设置 HTTP-Referer 和 X-Title 头部（可选但推荐）
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
+		req.Header.Set("HTTP-Referer", "https://github.com/nofx") // 可选：用于统计
+		req.Header.Set("X-Title", "NOFX Trading Bot")             // 可选：用于标识应用
 	default:
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
 	}

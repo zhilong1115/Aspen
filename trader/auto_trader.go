@@ -20,7 +20,7 @@ type AutoTraderConfig struct {
 	// Trader标识
 	ID      string // Trader唯一标识（用于日志目录等）
 	Name    string // Trader显示名称
-	AIModel string // AI模型: "qwen" 或 "deepseek"
+	AIModel string // AI模型: "qwen", "deepseek", "openrouter" 或 "custom"
 
 	// 交易平台选择
 	Exchange string // "binance", "hyperliquid" 或 "aster"
@@ -45,6 +45,7 @@ type AutoTraderConfig struct {
 	UseQwen     bool
 	DeepSeekKey string
 	QwenKey     string
+	OpenRouterKey string // OpenRouter API密钥
 
 	// 自定义AI API配置
 	CustomAPIURL    string
@@ -119,7 +120,9 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		config.Name = "Default Trader"
 	}
 	if config.AIModel == "" {
-		if config.UseQwen {
+		if config.OpenRouterKey != "" {
+			config.AIModel = "openrouter"
+		} else if config.UseQwen {
 			config.AIModel = "qwen"
 		} else {
 			config.AIModel = "deepseek"
@@ -133,6 +136,14 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		// 使用自定义API
 		mcpClient.SetCustomAPI(config.CustomAPIURL, config.CustomAPIKey, config.CustomModelName)
 		log.Printf("🤖 [%s] 使用自定义AI API: %s (模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
+	} else if config.AIModel == "openrouter" {
+		// 使用OpenRouter (支持自定义模型选择)
+		modelName := config.CustomModelName
+		if modelName == "" {
+			modelName = "openai/gpt-4o" // 默认模型
+		}
+		mcpClient.SetOpenRouterAPIKey(config.OpenRouterKey, modelName)
+		log.Printf("🤖 [%s] 使用OpenRouter AI (模型: %s)", config.Name, modelName)
 	} else if config.UseQwen || config.AIModel == "qwen" {
 		// 使用Qwen (支持自定义URL和Model)
 		mcpClient.SetQwenAPIKey(config.QwenKey, config.CustomAPIURL, config.CustomModelName)
@@ -1254,6 +1265,10 @@ func (at *AutoTrader) GetStatus() map[string]interface{} {
 	aiProvider := "DeepSeek"
 	if at.config.UseQwen {
 		aiProvider = "Qwen"
+	} else if at.config.AIModel == "openrouter" {
+		aiProvider = "OpenRouter"
+	} else if at.config.AIModel == "custom" {
+		aiProvider = "Custom"
 	}
 
 	return map[string]interface{}{

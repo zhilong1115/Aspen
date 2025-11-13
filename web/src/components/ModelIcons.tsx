@@ -18,6 +18,9 @@ export const getModelIcon = (modelType: string, props: IconProps = {}) => {
     case 'qwen':
       iconPath = '/icons/qwen.svg'
       break
+    case 'openrouter':
+      // OpenRouter 暂时没有图标，返回 null 使用默认显示
+      return null
     default:
       return null
   }

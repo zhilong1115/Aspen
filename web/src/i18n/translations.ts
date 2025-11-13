@@ -202,6 +202,17 @@ export const translations = {
       'Hyperliquid uses private key for trading authentication',
     hyperliquidWalletAddressDesc:
       'Wallet address corresponding to the private key',
+    hyperliquidAgentPrivateKey: 'Agent Private Key',
+    hyperliquidMainWalletAddress: 'Main Wallet Address',
+    enterHyperliquidAgentPrivateKey: 'Enter Agent Private Key',
+    enterHyperliquidMainWalletAddress: 'Enter Main Wallet Address',
+    hyperliquidAgentPrivateKeyDesc:
+      'Agent wallet private key (for signing only, balance should be ~0). Create Agent Wallet at https://app.hyperliquid.xyz/ → Settings → API Wallets',
+    hyperliquidMainWalletAddressDesc:
+      'Main wallet address (holds funds, never expose private key). This is your primary trading wallet address.',
+    hyperliquidAgentWalletTitle: 'Agent Wallet Security Best Practice',
+    hyperliquidAgentWalletDesc:
+      '1. Agent Private Key = Agent Wallet private key (for signing only, balance should be ~0)\n2. Main Wallet Address = Your main trading wallet address (holds funds, never expose private key)\nPlease create an Agent Wallet on Hyperliquid official website and authorize it before configuration.',
     asterUserDesc:
       'Main wallet address - The EVM wallet address you use to log in to Aster (Note: Only EVM wallets are supported, Solana wallets are not supported)',
     asterSignerDesc:
@@ -1000,6 +1011,17 @@ export const translations = {
     enterPassphrase: '输入Passphrase (OKX必填)',
     hyperliquidPrivateKeyDesc: 'Hyperliquid 使用私钥进行交易认证',
     hyperliquidWalletAddressDesc: '与私钥对应的钱包地址',
+    hyperliquidAgentPrivateKey: 'Agent 私钥',
+    hyperliquidMainWalletAddress: '主钱包地址',
+    enterHyperliquidAgentPrivateKey: '输入 Agent 私钥',
+    enterHyperliquidMainWalletAddress: '输入主钱包地址',
+    hyperliquidAgentPrivateKeyDesc:
+      'Agent 钱包私钥（仅用于签名，余额应接近 0）。在 https://app.hyperliquid.xyz/ → Settings → API Wallets 创建 Agent 钱包',
+    hyperliquidMainWalletAddressDesc:
+      '主钱包地址（持有资金，切勿泄露私钥）。这是您的主要交易钱包地址。',
+    hyperliquidAgentWalletTitle: 'Agent 钱包安全最佳实践',
+    hyperliquidAgentWalletDesc:
+      '1. Agent 私钥 = Agent 钱包私钥（仅用于签名，余额应接近 0）\n2. 主钱包地址 = 您的主交易钱包地址（持有资金，切勿泄露私钥）\n请在 Hyperliquid 官网创建 Agent 钱包并授权后再进行配置。',
     asterUserDesc:
       '主钱包地址 - 您用于登录 Aster 的 EVM 钱包地址（注意：仅支持 EVM 钱包，不支持 Solana 钱包）',
     asterSignerDesc:

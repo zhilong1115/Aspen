@@ -1,16 +1,32 @@
-import React, { useState, useEffect } from 'react'
+import {
+  AlertTriangle,
+  BarChart3,
+  BookOpen,
+  Bot,
+  Brain,
+  HelpCircle,
+  Landmark,
+  Pencil,
+  Plus,
+  Radio,
+  Trash2,
+  Users,
+} from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import useSWR from 'swr'
-import { api } from '../lib/api'
-import type {
-  TraderInfo,
-  CreateTraderRequest,
-  AIModel,
-  Exchange,
-} from '../types'
+import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { t, type Language } from '../i18n/translations'
-import { useAuth } from '../contexts/AuthContext'
+import { api } from '../lib/api'
+import { confirmToast } from '../lib/notify'
+import type {
+  AIModel,
+  CreateTraderRequest,
+  Exchange,
+  TraderInfo,
+} from '../types'
 import { getExchangeIcon } from './ExchangeIcons'
 import { getModelIcon } from './ModelIcons'
 import { TraderConfigModal } from './TraderConfigModal'
@@ -18,22 +34,6 @@ import {
   TwoStageKeyModal,
   type TwoStageKeyModalResult,
 } from './TwoStageKeyModal'
-import {
-  Bot,
-  Brain,
-  Landmark,
-  BarChart3,
-  Trash2,
-  Plus,
-  Users,
-  AlertTriangle,
-  BookOpen,
-  HelpCircle,
-  Radio,
-  Pencil,
-} from 'lucide-react'
-import { confirmToast } from '../lib/notify'
-import { toast } from 'sonner'
 
 // 获取友好的AI模型名称
 function getModelDisplayName(modelId: string): string {
@@ -42,6 +42,8 @@ function getModelDisplayName(modelId: string): string {
       return 'DeepSeek'
     case 'qwen':
       return 'Qwen'
+    case 'openrouter':
+      return 'OpenRouter'
     case 'claude':
       return 'Claude'
     default:
@@ -484,12 +486,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           allModels?.map((m) =>
             m.id === modelId
               ? {
-                  ...m,
-                  apiKey,
-                  customApiUrl: customApiUrl || '',
-                  customModelName: customModelName || '',
-                  enabled: true,
-                }
+                ...m,
+                apiKey,
+                customApiUrl: customApiUrl || '',
+                customModelName: customModelName || '',
+                enabled: true,
+              }
               : m
           ) || []
       } else {
@@ -616,16 +618,16 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           allExchanges?.map((e) =>
             e.id === exchangeId
               ? {
-                  ...e,
-                  apiKey,
-                  secretKey,
-                  testnet,
-                  hyperliquidWalletAddr,
-                  asterUser,
-                  asterSigner,
-                  asterPrivateKey,
-                  enabled: true,
-                }
+                ...e,
+                apiKey,
+                secretKey,
+                testnet,
+                hyperliquidWalletAddr,
+                asterUser,
+                asterSigner,
+                asterPrivateKey,
+                enabled: true,
+              }
               : e
           ) || []
       } else {
@@ -875,11 +877,10 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={model.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all ${
-                    inUse
-                      ? 'cursor-not-allowed'
-                      : 'cursor-pointer hover:bg-gray-700'
-                  }`}
+                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all ${inUse
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:bg-gray-700'
+                    }`}
                   style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
                   onClick={() => handleModelClick(model.id)}
                 >
@@ -889,17 +890,17 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                         width: 28,
                         height: 28,
                       }) || (
-                        <div
-                          className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold"
-                          style={{
-                            background:
-                              model.id === 'deepseek' ? '#60a5fa' : '#c084fc',
-                            color: '#fff',
-                          }}
-                        >
-                          {getShortName(model.name)[0]}
-                        </div>
-                      )}
+                          <div
+                            className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold"
+                            style={{
+                              background:
+                                model.id === 'deepseek' ? '#60a5fa' : '#c084fc',
+                              color: '#fff',
+                            }}
+                          >
+                            {getShortName(model.name)[0]}
+                          </div>
+                        )}
                     </div>
                     <div className="min-w-0">
                       <div
@@ -955,11 +956,10 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={exchange.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all ${
-                    inUse
-                      ? 'cursor-not-allowed'
-                      : 'cursor-pointer hover:bg-gray-700'
-                  }`}
+                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all ${inUse
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer hover:bg-gray-700'
+                    }`}
                   style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
                   onClick={() => handleExchangeClick(exchange.id)}
                 >
@@ -1070,21 +1070,20 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       {t('status', language)}
                     </div> */}
                     <div
-                      className={`px-2 md:px-3 py-1 rounded text-xs font-bold ${
-                        trader.is_running
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
+                      className={`px-2 md:px-3 py-1 rounded text-xs font-bold ${trader.is_running
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}
                       style={
                         trader.is_running
                           ? {
-                              background: 'rgba(14, 203, 129, 0.1)',
-                              color: '#0ECB81',
-                            }
+                            background: 'rgba(14, 203, 129, 0.1)',
+                            color: '#0ECB81',
+                          }
                           : {
-                              background: 'rgba(246, 70, 93, 0.1)',
-                              color: '#F6465D',
-                            }
+                            background: 'rgba(246, 70, 93, 0.1)',
+                            color: '#F6465D',
+                          }
                       }
                     >
                       {trader.is_running
@@ -1139,13 +1138,13 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       style={
                         trader.is_running
                           ? {
-                              background: 'rgba(246, 70, 93, 0.1)',
-                              color: '#F6465D',
-                            }
+                            background: 'rgba(246, 70, 93, 0.1)',
+                            color: '#F6465D',
+                          }
                           : {
-                              background: 'rgba(14, 203, 129, 0.1)',
-                              color: '#0ECB81',
-                            }
+                            background: 'rgba(14, 203, 129, 0.1)',
+                            color: '#0ECB81',
+                          }
                       }
                     >
                       {trader.is_running
@@ -1182,15 +1181,15 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             </div>
             {(configuredModels.length === 0 ||
               configuredExchanges.length === 0) && (
-              <div className="text-xs md:text-sm text-yellow-500">
-                {configuredModels.length === 0 &&
-                configuredExchanges.length === 0
-                  ? t('configureModelsAndExchangesFirst', language)
-                  : configuredModels.length === 0
-                    ? t('configureModelsFirst', language)
-                    : t('configureExchangesFirst', language)}
-              </div>
-            )}
+                <div className="text-xs md:text-sm text-yellow-500">
+                  {configuredModels.length === 0 &&
+                    configuredExchanges.length === 0
+                    ? t('configureModelsAndExchangesFirst', language)
+                    : configuredModels.length === 0
+                      ? t('configureModelsFirst', language)
+                      : t('configureExchangesFirst', language)}
+                </div>
+              )}
           </div>
         )}
       </div>
@@ -1581,19 +1580,19 @@ function ModelConfigModal({
                       width: 32,
                       height: 32,
                     }) || (
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                        style={{
-                          background:
-                            selectedModel.id === 'deepseek'
-                              ? '#60a5fa'
-                              : '#c084fc',
-                          color: '#fff',
-                        }}
-                      >
-                        {selectedModel.name[0]}
-                      </div>
-                    )}
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                          style={{
+                            background:
+                              selectedModel.id === 'deepseek'
+                                ? '#60a5fa'
+                                : '#c084fc',
+                            color: '#fff',
+                          }}
+                        >
+                          {selectedModel.name[0]}
+                        </div>
+                      )}
                   </div>
                   <div>
                     <div className="font-semibold" style={{ color: '#EAECEF' }}>
@@ -1631,29 +1630,31 @@ function ModelConfigModal({
                   />
                 </div>
 
-                <div>
-                  <label
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#EAECEF' }}
-                  >
-                    {t('customBaseURL', language)}
-                  </label>
-                  <input
-                    type="url"
-                    value={baseUrl}
-                    onChange={(e) => setBaseUrl(e.target.value)}
-                    placeholder={t('customBaseURLPlaceholder', language)}
-                    className="w-full px-3 py-2 rounded"
-                    style={{
-                      background: '#0B0E11',
-                      border: '1px solid #2B3139',
-                      color: '#EAECEF',
-                    }}
-                  />
-                  <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
-                    {t('leaveBlankForDefault', language)}
+                {selectedModel?.provider !== 'openrouter' && (
+                  <div>
+                    <label
+                      className="block text-sm font-semibold mb-2"
+                      style={{ color: '#EAECEF' }}
+                    >
+                      {t('customBaseURL', language)}
+                    </label>
+                    <input
+                      type="url"
+                      value={baseUrl}
+                      onChange={(e) => setBaseUrl(e.target.value)}
+                      placeholder={t('customBaseURLPlaceholder', language)}
+                      className="w-full px-3 py-2 rounded"
+                      style={{
+                        background: '#0B0E11',
+                        border: '1px solid #2B3139',
+                        color: '#EAECEF',
+                      }}
+                    />
+                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                      {t('leaveBlankForDefault', language)}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div>
                   <label
@@ -1666,7 +1667,11 @@ function ModelConfigModal({
                     type="text"
                     value={modelName}
                     onChange={(e) => setModelName(e.target.value)}
-                    placeholder="例如: deepseek-chat, qwen3-max, gpt-5"
+                    placeholder={
+                      selectedModel?.provider === 'openrouter'
+                        ? '例如: openai/gpt-4o, anthropic/claude-3.5-sonnet'
+                        : '例如: deepseek-chat, qwen3-max, gpt-5'
+                    }
                     className="w-full px-3 py-2 rounded"
                     style={{
                       background: '#0B0E11',
@@ -1675,7 +1680,9 @@ function ModelConfigModal({
                     }}
                   />
                   <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
-                    留空使用默认模型名称
+                    {selectedModel?.provider === 'openrouter'
+                      ? '留空使用默认模型 openai/gpt-4o'
+                      : '留空使用默认模型名称'}
                   </div>
                 </div>
 
@@ -2708,6 +2715,35 @@ function ExchangeConfigModal({
                       </div>
                     </div>
                   </>
+                )}
+
+                {/* Testnet 开关 - 所有交易所通用 */}
+                {selectedExchange && (
+                  <div className="flex items-center gap-3 p-4 rounded" style={{ background: '#0B0E11', border: '1px solid #2B3139' }}>
+                    <input
+                      type="checkbox"
+                      id="testnet-checkbox"
+                      checked={testnet}
+                      onChange={(e) => setTestnet(e.target.checked)}
+                      className="w-4 h-4 rounded"
+                      style={{
+                        accentColor: '#F0B90B',
+                        cursor: 'pointer',
+                      }}
+                    />
+                    <label
+                      htmlFor="testnet-checkbox"
+                      className="flex-1 cursor-pointer"
+                      style={{ color: '#EAECEF' }}
+                    >
+                      <div className="text-sm font-semibold">
+                        {t('useTestnet', language)}
+                      </div>
+                      <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                        {t('testnetDescription', language)}
+                      </div>
+                    </label>
+                  </div>
                 )}
               </>
             )}

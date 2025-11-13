@@ -281,6 +281,7 @@ func (d *Database) initDefaultData() error {
 	}{
 		{"deepseek", "DeepSeek", "deepseek"},
 		{"qwen", "Qwen", "qwen"},
+		{"openrouter", "OpenRouter", "openrouter"},
 	}
 
 	for _, model := range aiModels {
@@ -683,7 +684,7 @@ func (d *Database) UpdateAIModel(userID, id string, enabled bool, apiKey, custom
 
 	// 没有找到任何现有配置，创建新的
 	// 推断 provider（从 id 中提取，或者直接使用 id）
-	if provider == id && (provider == "deepseek" || provider == "qwen") {
+	if provider == id && (provider == "deepseek" || provider == "qwen" || provider == "openrouter") {
 		// id 本身就是 provider
 		provider = id
 	} else {
@@ -707,6 +708,8 @@ func (d *Database) UpdateAIModel(userID, id string, enabled bool, apiKey, custom
 			name = "DeepSeek AI"
 		} else if provider == "qwen" {
 			name = "Qwen AI"
+		} else if provider == "openrouter" {
+			name = "OpenRouter AI"
 		} else {
 			name = provider + " AI"
 		}

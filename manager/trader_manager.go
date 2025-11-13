@@ -259,6 +259,15 @@ func (tm *TraderManager) addTraderFromDB(traderCfg *config.TraderRecord, aiModel
 		traderConfig.QwenKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "deepseek" {
 		traderConfig.DeepSeekKey = aiModelCfg.APIKey
+	} else if aiModelCfg.Provider == "openrouter" {
+		traderConfig.OpenRouterKey = aiModelCfg.APIKey
+		// OpenRouter 使用 CustomModelName 字段来存储模型名称
+		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+	} else if aiModelCfg.Provider == "custom" {
+		traderConfig.CustomAPIKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 	}
 
 	// 创建trader实例
@@ -365,6 +374,15 @@ func (tm *TraderManager) AddTraderFromDB(traderCfg *config.TraderRecord, aiModel
 		traderConfig.QwenKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "deepseek" {
 		traderConfig.DeepSeekKey = aiModelCfg.APIKey
+	} else if aiModelCfg.Provider == "openrouter" {
+		traderConfig.OpenRouterKey = aiModelCfg.APIKey
+		// OpenRouter 使用 CustomModelName 字段来存储模型名称
+		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+	} else if aiModelCfg.Provider == "custom" {
+		traderConfig.CustomAPIKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 	}
 
 	// 创建trader实例
@@ -1033,8 +1051,9 @@ func (tm *TraderManager) loadSingleTrader(traderCfg *config.TraderRecord, aiMode
 		ScanInterval:         time.Duration(traderCfg.ScanIntervalMinutes) * time.Minute,
 		CoinPoolAPIURL:       effectiveCoinPoolURL,
 		CustomAPIURL:         aiModelCfg.CustomAPIURL,    // 自定义API URL
-		CustomModelName:      aiModelCfg.CustomModelName, // 自定义模型名称
+		CustomModelName:      aiModelCfg.CustomModelName, // 自定义模型名称（OpenRouter 也使用此字段存储模型名称）
 		UseQwen:              aiModelCfg.Provider == "qwen",
+		OpenRouterKey:        "", // 将在下面根据 provider 设置
 		MaxDailyLoss:         maxDailyLoss,
 		MaxDrawdown:          maxDrawdown,
 		StopTradingTime:      time.Duration(stopTradingMinutes) * time.Minute,
@@ -1063,6 +1082,15 @@ func (tm *TraderManager) loadSingleTrader(traderCfg *config.TraderRecord, aiMode
 		traderConfig.QwenKey = aiModelCfg.APIKey
 	} else if aiModelCfg.Provider == "deepseek" {
 		traderConfig.DeepSeekKey = aiModelCfg.APIKey
+	} else if aiModelCfg.Provider == "openrouter" {
+		traderConfig.OpenRouterKey = aiModelCfg.APIKey
+		// OpenRouter 使用 CustomModelName 字段来存储模型名称
+		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+	} else if aiModelCfg.Provider == "custom" {
+		traderConfig.CustomAPIKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 	}
 
 	// 创建trader实例
