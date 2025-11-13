@@ -6,7 +6,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"nofx/hook"
+	"os"
 	"strconv"
 	"time"
 )
@@ -24,6 +26,17 @@ func NewAPIClient() *APIClient {
 		Timeout: 30 * time.Second,
 	}
 
+	// 检查环境变量中的代理配置
+	proxyURL := getProxyFromEnv()
+	if proxyURL != nil {
+		transport := &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+		client.Transport = transport
+		log.Printf("🌐 [Market] 使用代理服务器: %s", proxyURL.Host)
+	}
+
+	// 尝试通过 Hook 设置 HTTP 客户端（优先级更高）
 	hookRes := hook.HookExec[hook.SetHttpClientResult](hook.SET_HTTP_CLIENT, client)
 	if hookRes != nil && hookRes.Error() == nil {
 		log.Printf("使用Hook设置的HTTP客户端")
@@ -33,6 +46,34 @@ func NewAPIClient() *APIClient {
 	return &APIClient{
 		client: client,
 	}
+}
+
+// getProxyFromEnv 从环境变量获取代理配置
+// 支持 HTTP_PROXY, HTTPS_PROXY, http_proxy, https_proxy
+func getProxyFromEnv() *url.URL {
+	// 优先检查 HTTPS_PROXY（因为 Binance API 使用 HTTPS）
+	proxyStr := os.Getenv("HTTPS_PROXY")
+	if proxyStr == "" {
+		proxyStr = os.Getenv("https_proxy")
+	}
+	if proxyStr == "" {
+		proxyStr = os.Getenv("HTTP_PROXY")
+	}
+	if proxyStr == "" {
+		proxyStr = os.Getenv("http_proxy")
+	}
+
+	if proxyStr == "" {
+		return nil
+	}
+
+	proxyURL, err := url.Parse(proxyStr)
+	if err != nil {
+		log.Printf("⚠️  [Market] 代理URL格式错误: %v", err)
+		return nil
+	}
+
+	return proxyURL
 }
 
 func (c *APIClient) GetExchangeInfo() (*ExchangeInfo, error) {
@@ -60,7 +101,7 @@ func (c *APIClient) GetKlines(symbol, interval string, limit int) ([]Kline, erro
 	url := fmt.Sprintf("%s/fapi/v1/klines", baseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("创建请求失败: %w", err)
 	}
 
 	q := req.URL.Query()
@@ -71,20 +112,25 @@ func (c *APIClient) GetKlines(symbol, interval string, limit int) ([]Kline, erro
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("HTTP请求失败 (可能是网络问题或Binance API不可访问): %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	// 检查HTTP状态码
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Binance API返回错误状态码 %d: %s", resp.StatusCode, string(body))
 	}
 
 	var klineResponses []KlineResponse
 	err = json.Unmarshal(body, &klineResponses)
 	if err != nil {
-		log.Printf("获取K线数据失败,响应内容: %s", string(body))
-		return nil, err
+		log.Printf("❌ [Market] 解析K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
+		return nil, fmt.Errorf("解析JSON响应失败: %w", err)
 	}
 
 	var klines []Kline

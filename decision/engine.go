@@ -171,6 +171,9 @@ func fetchMarketDataForContext(ctx *Context) error {
 	// 收集所有需要获取数据的币种
 	symbolSet := make(map[string]bool)
 
+	// 0. 始终获取 BTC 市场数据（作为重要的市场指标，即使不在候选列表中也要获取）
+	symbolSet["BTCUSDT"] = true
+
 	// 1. 优先获取持仓币种的数据（这是必须的）
 	for _, pos := range ctx.Positions {
 		symbolSet[pos.Symbol] = true
@@ -192,10 +195,17 @@ func fetchMarketDataForContext(ctx *Context) error {
 		positionSymbols[pos.Symbol] = true
 	}
 
+	// 统计信息
+	successCount := 0
+	failedCount := 0
+	filteredCount := 0
+
 	for symbol := range symbolSet {
 		data, err := market.Get(symbol)
 		if err != nil {
-			// 单个币种失败不影响整体，只记录错误
+			// 单个币种失败不影响整体，记录错误
+			failedCount++
+			log.Printf("⚠️  获取 %s 市场数据失败: %v", symbol, err)
 			continue
 		}
 
@@ -210,14 +220,28 @@ func fetchMarketDataForContext(ctx *Context) error {
 			// 计算持仓价值（USD）= 持仓量 × 当前价格
 			oiValue := data.OpenInterest.Latest * data.CurrentPrice
 			oiValueInMillions := oiValue / 1_000_000 // 转换为百万美元单位
-			if oiValueInMillions < minOIThresholdMillions {
+
+			// 如果 OI 为 0，可能是数据获取问题，记录警告但不过滤（避免误过滤）
+			if data.OpenInterest.Latest == 0 {
+				log.Printf("⚠️  %s OpenInterest 为 0（可能是数据获取问题），保留在候选列表中", symbol)
+			} else if oiValueInMillions < minOIThresholdMillions {
+				filteredCount++
 				log.Printf("⚠️  %s 持仓价值过低(%.2fM USD < %.1fM)，跳过此币种 [持仓量:%.0f × 价格:%.4f]",
 					symbol, oiValueInMillions, minOIThresholdMillions, data.OpenInterest.Latest, data.CurrentPrice)
 				continue
 			}
+		} else if !isExistingPosition && data.OpenInterest == nil {
+			// 如果没有 OI 数据，记录警告但不过滤（可能是新币种或数据源问题）
+			log.Printf("⚠️  %s 没有持仓量(OI)数据，但保留在候选列表中", symbol)
 		}
 
 		ctx.MarketDataMap[symbol] = data
+		successCount++
+	}
+
+	// 输出统计信息
+	if failedCount > 0 || filteredCount > 0 {
+		log.Printf("📊 市场数据获取统计: 成功 %d 个, 失败 %d 个, 流动性过滤 %d 个", successCount, failedCount, filteredCount)
 	}
 
 	// 加载OI Top数据（不影响主流程）
@@ -363,7 +387,7 @@ func buildUserPrompt(ctx *Context) string {
 	sb.WriteString(fmt.Sprintf("时间: %s | 周期: #%d | 运行: %d分钟\n\n",
 		ctx.CurrentTime, ctx.CallCount, ctx.RuntimeMinutes))
 
-	// BTC 市场
+	// BTC 市场（始终显示，因为它是重要的市场指标）
 	if btcData, hasBTC := ctx.MarketDataMap["BTCUSDT"]; hasBTC {
 		sb.WriteString(fmt.Sprintf("BTC: %.2f (1h: %+.2f%%, 4h: %+.2f%%) | MACD: %.4f | RSI: %.2f | TSI: %.2f | Signal: %.2f\n\n",
 			btcData.CurrentPrice, btcData.PriceChange1h, btcData.PriceChange4h,
@@ -381,6 +405,10 @@ func buildUserPrompt(ctx *Context) string {
 			btcData.RSIBuySignal,
 			btcData.RSISellSignal,
 		))
+	} else {
+		// 如果 BTC 数据获取失败，记录警告但继续
+		sb.WriteString("BTC: 数据获取失败（请检查网络连接或 Binance API 状态）\n\n")
+		log.Printf("⚠️  警告: BTC 市场数据获取失败，这可能会影响 AI 决策质量")
 	}
 
 	// 账户
@@ -426,8 +454,35 @@ func buildUserPrompt(ctx *Context) string {
 	}
 
 	// 候选币种（完整市场数据）
-	sb.WriteString(fmt.Sprintf("## 候选币种 (%d个)\n\n", len(ctx.MarketDataMap)))
+	// 统计实际有市场数据的候选币种数量
 	displayedCount := 0
+	missingDataCoins := []string{}
+	for _, coin := range ctx.CandidateCoins {
+		if _, hasData := ctx.MarketDataMap[coin.Symbol]; hasData {
+			displayedCount++
+		} else {
+			missingDataCoins = append(missingDataCoins, coin.Symbol)
+		}
+	}
+	sb.WriteString(fmt.Sprintf("## 候选币种 (%d个", displayedCount))
+	if len(ctx.CandidateCoins) > displayedCount {
+		sb.WriteString(fmt.Sprintf(" / 总计%d个", len(ctx.CandidateCoins)))
+	}
+	sb.WriteString(")\n\n")
+
+	// 如果有候选币种但数据获取失败，显示警告
+	if len(ctx.CandidateCoins) > 0 && displayedCount == 0 {
+		sb.WriteString("⚠️ **警告：所有候选币种的市场数据获取失败！**\n\n")
+		sb.WriteString(fmt.Sprintf("失败的币种: %v\n", missingDataCoins))
+		sb.WriteString("可能原因：\n")
+		sb.WriteString("1. 网络连接问题\n")
+		sb.WriteString("2. Binance API 访问限制\n")
+		sb.WriteString("3. WebSocket 监控器未正确初始化\n")
+		sb.WriteString("4. 币种符号格式错误\n\n")
+		sb.WriteString("请检查系统日志中的详细错误信息。\n\n")
+	}
+
+	displayedCount = 0
 	for _, coin := range ctx.CandidateCoins {
 		marketData, hasData := ctx.MarketDataMap[coin.Symbol]
 		if !hasData {

@@ -36,14 +36,15 @@ func SanitizeModelConfigForLog(models map[string]struct {
 
 // SanitizeExchangeConfigForLog 脱敏交易所配置用于日志输出
 func SanitizeExchangeConfigForLog(exchanges map[string]struct {
-	Enabled               bool   `json:"enabled"`
-	APIKey                string `json:"api_key"`
-	SecretKey             string `json:"secret_key"`
-	Testnet               bool   `json:"testnet"`
-	HyperliquidWalletAddr string `json:"hyperliquid_wallet_addr"`
-	AsterUser             string `json:"aster_user"`
-	AsterSigner           string `json:"aster_signer"`
-	AsterPrivateKey       string `json:"aster_private_key"`
+	Enabled                 bool    `json:"enabled"`
+	APIKey                  string  `json:"api_key"`
+	SecretKey               string  `json:"secret_key"`
+	Testnet                 bool    `json:"testnet"`
+	HyperliquidWalletAddr   string  `json:"hyperliquid_wallet_addr"`
+	AsterUser               string  `json:"aster_user"`
+	AsterSigner             string  `json:"aster_signer"`
+	AsterPrivateKey         string  `json:"aster_private_key"`
+	PaperTradingInitialUSDC float64 `json:"paper_trading_initial_usdc"`
 }) map[string]interface{} {
 	safe := make(map[string]interface{})
 	for exchangeID, cfg := range exchanges {
@@ -72,6 +73,9 @@ func SanitizeExchangeConfigForLog(exchanges map[string]struct {
 		}
 		if cfg.AsterSigner != "" {
 			safeExchange["aster_signer"] = cfg.AsterSigner
+		}
+		if cfg.PaperTradingInitialUSDC > 0 {
+			safeExchange["paper_trading_initial_usdc"] = cfg.PaperTradingInitialUSDC
 		}
 
 		safe[exchangeID] = safeExchange

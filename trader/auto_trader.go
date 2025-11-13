@@ -23,7 +23,7 @@ type AutoTraderConfig struct {
 	AIModel string // AI模型: "qwen", "deepseek", "openrouter" 或 "custom"
 
 	// 交易平台选择
-	Exchange string // "binance", "hyperliquid" 或 "aster"
+	Exchange string // "binance", "hyperliquid", "aster" 或 "paper"
 
 	// 币安API配置
 	BinanceAPIKey    string
@@ -38,6 +38,9 @@ type AutoTraderConfig struct {
 	AsterUser       string // Aster主钱包地址
 	AsterSigner     string // Aster API钱包地址
 	AsterPrivateKey string // Aster API钱包私钥
+
+	// Paper Trading配置
+	PaperTradingInitialUSDC float64 // 模拟仓初始USDC金额
 
 	CoinPoolAPIURL string
 
@@ -199,12 +202,24 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		if err != nil {
 			return nil, fmt.Errorf("初始化Aster交易器失败: %w", err)
 		}
+	case "paper":
+		log.Printf("📝 [%s] 使用模拟仓交易 (初始余额: %.2f USDC)", config.Name, config.PaperTradingInitialUSDC)
+		if config.PaperTradingInitialUSDC <= 0 {
+			config.PaperTradingInitialUSDC = 10000.0 // 默认值
+		}
+		trader, err = NewPaperTrader(config.PaperTradingInitialUSDC)
+		if err != nil {
+			return nil, fmt.Errorf("初始化模拟仓交易器失败: %w", err)
+		}
+		// ⚠️ 重要：对于 paper trader，强制使用 PaperTradingInitialUSDC 作为 InitialBalance
+		// 这样总盈亏计算才会正确（因为 PaperTrader 的初始余额就是 PaperTradingInitialUSDC）
+		config.InitialBalance = config.PaperTradingInitialUSDC
 	default:
 		return nil, fmt.Errorf("不支持的交易平台: %s", config.Exchange)
 	}
 
-	// 验证初始金额配置
-	if config.InitialBalance <= 0 {
+	// 验证初始金额配置（模拟仓不需要此验证，因为它使用 PaperTradingInitialUSDC）
+	if config.Exchange != "paper" && config.InitialBalance <= 0 {
 		return nil, fmt.Errorf("初始金额必须大于0，请在配置中设置InitialBalance")
 	}
 
@@ -254,11 +269,16 @@ func (at *AutoTrader) Run() error {
 	at.startTime = time.Now()
 
 	log.Println("🚀 AI驱动自动交易系统启动")
-	log.Printf("💰 初始余额: %.2f USDT", at.initialBalance)
+	stablecoinUnit := at.getStablecoinUnit()
+	log.Printf("💰 初始余额: %.2f %s", at.initialBalance, stablecoinUnit)
 	log.Printf("⚙️  扫描间隔: %v", at.config.ScanInterval)
 	log.Println("🤖 AI将全权决定杠杆、仓位大小、止损止盈等参数")
 	at.monitorWg.Add(1)
-	defer at.monitorWg.Done()
+	defer func() {
+		at.monitorWg.Done()
+		at.isRunning = false
+		log.Printf("[%s] ⏹ 自动交易主循环已退出 (isRunning=%v)", at.name, at.isRunning)
+	}()
 
 	// 启动回撤监控
 	at.startDrawdownMonitor()
@@ -274,15 +294,21 @@ func (at *AutoTrader) Run() error {
 	for at.isRunning {
 		select {
 		case <-ticker.C:
+			if !at.isRunning {
+				log.Printf("[%s] ⚠️  检测到 isRunning=false，退出循环", at.name)
+				return nil
+			}
 			if err := at.runCycle(); err != nil {
 				log.Printf("❌ 执行失败: %v", err)
+				// 注意：runCycle 的错误不会导致停止，只是记录日志
 			}
 		case <-at.stopMonitorCh:
-			log.Printf("[%s] ⏹ 收到停止信号，退出自动交易主循环", at.name)
+			log.Printf("[%s] ⏹ 收到停止信号 (stopMonitorCh)，退出自动交易主循环", at.name)
 			return nil
 		}
 	}
 
+	log.Printf("[%s] ⚠️  循环正常退出 (isRunning=%v)", at.name, at.isRunning)
 	return nil
 }
 
@@ -299,6 +325,12 @@ func (at *AutoTrader) Stop() {
 
 // autoSyncBalanceIfNeeded 自动同步余额（每10分钟检查一次，变化>5%才更新）
 func (at *AutoTrader) autoSyncBalanceIfNeeded() {
+	// ⚠️ 重要：Paper Trading 的初始余额是固定的，不应该被自动同步修改
+	// Paper trader 的初始余额来自 PaperTradingInitialUSDC，应该保持不变
+	if at.exchange == "paper" {
+		return
+	}
+
 	// 距离上次同步不足10分钟，跳过
 	if time.Since(at.lastBalanceSyncTime) < 10*time.Minute {
 		return
@@ -332,7 +364,8 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 
 	// 防止除以零：如果初始余额无效，直接更新为实际余额
 	if oldBalance <= 0 {
-		log.Printf("⚠️ [%s] 初始余额无效 (%.2f)，直接更新为实际余额 %.2f USDT", at.name, oldBalance, actualBalance)
+		stablecoinUnit := at.getStablecoinUnit()
+		log.Printf("⚠️ [%s] 初始余额无效 (%.2f)，直接更新为实际余额 %.2f %s", at.name, oldBalance, actualBalance, stablecoinUnit)
 		at.initialBalance = actualBalance
 		if at.database != nil {
 			type DatabaseUpdater interface {
@@ -358,8 +391,9 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 
 	// 变化超过5%才更新
 	if math.Abs(changePercent) > 5.0 {
-		log.Printf("🔔 [%s] 检测到余额大幅变化: %.2f → %.2f USDT (%.2f%%)",
-			at.name, oldBalance, actualBalance, changePercent)
+		stablecoinUnit := at.getStablecoinUnit()
+		log.Printf("🔔 [%s] 检测到余额大幅变化: %.2f → %.2f %s (%.2f%%)",
+			at.name, oldBalance, actualBalance, stablecoinUnit, changePercent)
 
 		// 更新内存中的 initialBalance
 		at.initialBalance = actualBalance
@@ -463,8 +497,27 @@ func (at *AutoTrader) runCycle() error {
 		record.CandidateCoins = append(record.CandidateCoins, coin.Symbol)
 	}
 
-	log.Printf("📊 账户净值: %.2f USDT | 可用: %.2f USDT | 持仓: %d",
-		ctx.Account.TotalEquity, ctx.Account.AvailableBalance, ctx.Account.PositionCount)
+	stablecoinUnit := at.getStablecoinUnit()
+	log.Printf("📊 账户净值: %.2f %s | 可用: %.2f %s | 持仓: %d",
+		ctx.Account.TotalEquity, stablecoinUnit, ctx.Account.AvailableBalance, stablecoinUnit, ctx.Account.PositionCount)
+	
+	// 诊断信息：显示候选币种配置情况
+	if len(ctx.CandidateCoins) == 0 {
+		log.Printf("⚠️  警告: 候选币种列表为空！")
+		log.Printf("   - 自定义币种 (tradingCoins): %v (数量: %d)", at.tradingCoins, len(at.tradingCoins))
+		log.Printf("   - 默认币种 (defaultCoins): %v (数量: %d)", at.defaultCoins, len(at.defaultCoins))
+		log.Printf("   - 如果两者都为空，系统应该使用 AI500+OI Top 作为 fallback")
+	} else {
+		log.Printf("📋 候选币种列表: %d 个", len(ctx.CandidateCoins))
+		for i, coin := range ctx.CandidateCoins {
+			if i < 5 { // 只显示前5个
+				log.Printf("   %d. %s (来源: %v)", i+1, coin.Symbol, coin.Sources)
+			}
+		}
+		if len(ctx.CandidateCoins) > 5 {
+			log.Printf("   ... 还有 %d 个币种", len(ctx.CandidateCoins)-5)
+		}
+	}
 
 	// 5. 调用AI获取完整决策
 	log.Printf("🤖 正在请求AI分析并决策... [模板: %s]", at.systemPromptTemplate)
@@ -623,11 +676,20 @@ func (at *AutoTrader) buildTradingContext() (*decision.Context, error) {
 	currentPositionKeys := make(map[string]bool)
 
 	for _, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		entryPrice := pos["entryPrice"].(float64)
-		markPrice := pos["markPrice"].(float64)
-		quantity := pos["positionAmt"].(float64)
+		// 安全地获取字段，避免 nil panic
+		symbol, ok := pos["symbol"].(string)
+		if !ok || symbol == "" {
+			log.Printf("⚠️ 构建交易上下文：持仓数据缺少 symbol 字段，跳过: %v", pos)
+			continue
+		}
+		side, ok := pos["side"].(string)
+		if !ok || side == "" {
+			log.Printf("⚠️ 构建交易上下文：持仓数据缺少 side 字段，跳过: %v", pos)
+			continue
+		}
+		entryPrice, _ := pos["entryPrice"].(float64)
+		markPrice, _ := pos["markPrice"].(float64)
+		quantity, _ := pos["positionAmt"].(float64)
 		if quantity < 0 {
 			quantity = -quantity // 空仓数量为负，转为正数
 		}
@@ -806,8 +868,9 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 	totalRequired := requiredMargin + estimatedFee
 
 	if totalRequired > availableBalance {
-		return fmt.Errorf("❌ 保证金不足: 需要 %.2f USDT（保证金 %.2f + 手续费 %.2f），可用 %.2f USDT",
-			totalRequired, requiredMargin, estimatedFee, availableBalance)
+		stablecoinUnit := at.getStablecoinUnit()
+		return fmt.Errorf("❌ 保证金不足: 需要 %.2f %s（保证金 %.2f + 手续费 %.2f），可用 %.2f %s",
+			totalRequired, stablecoinUnit, requiredMargin, estimatedFee, availableBalance, stablecoinUnit)
 	}
 
 	// 设置仓位模式
@@ -886,8 +949,9 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 	totalRequired := requiredMargin + estimatedFee
 
 	if totalRequired > availableBalance {
-		return fmt.Errorf("❌ 保证金不足: 需要 %.2f USDT（保证金 %.2f + 手续费 %.2f），可用 %.2f USDT",
-			totalRequired, requiredMargin, estimatedFee, availableBalance)
+		stablecoinUnit := at.getStablecoinUnit()
+		return fmt.Errorf("❌ 保证金不足: 需要 %.2f %s（保证金 %.2f + 手续费 %.2f），可用 %.2f %s",
+			totalRequired, stablecoinUnit, requiredMargin, estimatedFee, availableBalance, stablecoinUnit)
 	}
 
 	// 设置仓位模式
@@ -1379,16 +1443,25 @@ func (at *AutoTrader) GetPositions() ([]map[string]interface{}, error) {
 
 	var result []map[string]interface{}
 	for _, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		entryPrice := pos["entryPrice"].(float64)
-		markPrice := pos["markPrice"].(float64)
-		quantity := pos["positionAmt"].(float64)
+		// 安全地获取字段，避免 nil panic
+		symbol, ok := pos["symbol"].(string)
+		if !ok || symbol == "" {
+			log.Printf("⚠️ 持仓数据缺少 symbol 字段，跳过: %v", pos)
+			continue
+		}
+		side, ok := pos["side"].(string)
+		if !ok || side == "" {
+			log.Printf("⚠️ 持仓数据缺少 side 字段，跳过: %v", pos)
+			continue
+		}
+		entryPrice, _ := pos["entryPrice"].(float64)
+		markPrice, _ := pos["markPrice"].(float64)
+		quantity, _ := pos["positionAmt"].(float64)
 		if quantity < 0 {
 			quantity = -quantity
 		}
-		unrealizedPnl := pos["unRealizedProfit"].(float64)
-		liquidationPrice := pos["liquidationPrice"].(float64)
+		unrealizedPnl, _ := pos["unRealizedProfit"].(float64)
+		liquidationPrice, _ := pos["liquidationPrice"].(float64)
 
 		leverage := 10
 		if lev, ok := pos["leverage"].(float64); ok {
@@ -1468,6 +1541,9 @@ func sortDecisionsByPriority(decisions []decision.Decision) []decision.Decision 
 
 // getCandidateCoins 获取交易员的候选币种列表
 func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
+	log.Printf("🔍 [%s] 获取候选币种 - 自定义币种: %v (数量: %d), 默认币种: %v (数量: %d)",
+		at.name, at.tradingCoins, len(at.tradingCoins), at.defaultCoins, len(at.defaultCoins))
+	
 	if len(at.tradingCoins) == 0 {
 		// 使用数据库配置的默认币种列表
 		var candidateCoins []decision.CandidateCoin
@@ -1488,8 +1564,10 @@ func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
 			// 如果数据库中没有配置默认币种，则使用AI500+OI Top作为fallback
 			const ai500Limit = 20 // AI500取前20个评分最高的币种
 
+			log.Printf("📋 [%s] 自定义币种和默认币种都为空，尝试使用AI500+OI Top作为fallback...", at.name)
 			mergedPool, err := pool.GetMergedCoinPool(ai500Limit)
 			if err != nil {
+				log.Printf("❌ [%s] 获取AI500+OI Top币种池失败: %v", at.name, err)
 				return nil, fmt.Errorf("获取合并币种池失败: %w", err)
 			}
 
@@ -1502,8 +1580,12 @@ func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
 				})
 			}
 
-			log.Printf("📋 [%s] 数据库无默认币种配置，使用AI500+OI Top: AI500前%d + OI_Top20 = 总计%d个候选币种",
-				at.name, ai500Limit, len(candidateCoins))
+			if len(candidateCoins) == 0 {
+				log.Printf("⚠️  [%s] AI500+OI Top返回了空列表，候选币种将为0个", at.name)
+			} else {
+				log.Printf("📋 [%s] 数据库无默认币种配置，使用AI500+OI Top: AI500前%d + OI_Top20 = 总计%d个候选币种",
+					at.name, ai500Limit, len(candidateCoins))
+			}
 			return candidateCoins, nil
 		}
 	} else {
@@ -1518,18 +1600,39 @@ func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
 			})
 		}
 
-		log.Printf("📋 [%s] 使用自定义币种: %d个币种 %v",
-			at.name, len(candidateCoins), at.tradingCoins)
+		// 提取标准化后的符号列表用于日志
+		var normalizedSymbols []string
+		for _, c := range candidateCoins {
+			normalizedSymbols = append(normalizedSymbols, c.Symbol)
+		}
+		log.Printf("📋 [%s] 使用自定义币种: %d个币种 %v (标准化后: %v)",
+			at.name, len(candidateCoins), at.tradingCoins, normalizedSymbols)
 		return candidateCoins, nil
 	}
 }
 
+// getStablecoinUnit 根据交易所类型返回稳定币单位
+func (at *AutoTrader) getStablecoinUnit() string {
+	switch at.exchange {
+	case "hyperliquid", "paper":
+		return "USDC"
+	case "binance", "aster":
+		return "USDT"
+	default:
+		return "USDT" // 默认使用 USDT
+	}
+}
+
 // normalizeSymbol 标准化币种符号（确保以USDT结尾）
+// 注意：虽然 Hyperliquid 和 Paper Trading 使用 USDC，但交易对格式统一使用 USDT 后缀
+// 例如：BTCUSDT 在 Hyperliquid 内部会转换为 BTC，但符号格式保持一致
 func normalizeSymbol(symbol string) string {
 	// 转为大写
 	symbol = strings.ToUpper(strings.TrimSpace(symbol))
 
 	// 确保以USDT结尾
+	// 注意：即使交易所使用 USDC（如 Hyperliquid、Paper Trading），
+	// 交易对格式仍然使用 USDT 后缀以保持一致性
 	if !strings.HasSuffix(symbol, "USDT") {
 		symbol = symbol + "USDT"
 	}
@@ -1570,11 +1673,20 @@ func (at *AutoTrader) checkPositionDrawdown() {
 	}
 
 	for _, pos := range positions {
-		symbol := pos["symbol"].(string)
-		side := pos["side"].(string)
-		entryPrice := pos["entryPrice"].(float64)
-		markPrice := pos["markPrice"].(float64)
-		quantity := pos["positionAmt"].(float64)
+		// 安全地获取字段，避免 nil panic
+		symbol, ok := pos["symbol"].(string)
+		if !ok || symbol == "" {
+			log.Printf("⚠️ 回撤监控：持仓数据缺少 symbol 字段，跳过: %v", pos)
+			continue
+		}
+		side, ok := pos["side"].(string)
+		if !ok || side == "" {
+			log.Printf("⚠️ 回撤监控：持仓数据缺少 side 字段，跳过: %v", pos)
+			continue
+		}
+		entryPrice, _ := pos["entryPrice"].(float64)
+		markPrice, _ := pos["markPrice"].(float64)
+		quantity, _ := pos["positionAmt"].(float64)
 		if quantity < 0 {
 			quantity = -quantity // 空仓数量为负，转为正数
 		}

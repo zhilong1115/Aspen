@@ -570,6 +570,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               aster_user: exchange.asterUser || '',
               aster_signer: exchange.asterSigner || '',
               aster_private_key: exchange.asterPrivateKey || '',
+              paper_trading_initial_usdc: exchange.paperTradingInitialUSDC || 10000.0,
             },
           ])
         ),
@@ -596,7 +597,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     hyperliquidWalletAddr?: string,
     asterUser?: string,
     asterSigner?: string,
-    asterPrivateKey?: string
+    asterPrivateKey?: string,
+    paperTradingInitialUSDC?: number
   ) => {
     try {
       // 找到要配置的交易所（从supportedExchanges中）
@@ -626,6 +628,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                 asterUser,
                 asterSigner,
                 asterPrivateKey,
+                paperTradingInitialUSDC,
                 enabled: true,
               }
               : e
@@ -641,6 +644,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           asterUser,
           asterSigner,
           asterPrivateKey,
+          paperTradingInitialUSDC,
           enabled: true,
         }
         updatedExchanges = [...(allExchanges || []), newExchange]
@@ -659,6 +663,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               aster_user: exchange.asterUser || '',
               aster_signer: exchange.asterSigner || '',
               aster_private_key: exchange.asterPrivateKey || '',
+              paper_trading_initial_usdc: exchange.paperTradingInitialUSDC || 10000.0,
             },
           ])
         ),
@@ -1758,7 +1763,8 @@ function ExchangeConfigModal({
     hyperliquidWalletAddr?: string,
     asterUser?: string,
     asterSigner?: string,
-    asterPrivateKey?: string
+    asterPrivateKey?: string,
+    paperTradingInitialUSDC?: number
   ) => Promise<void>
   onDelete: (exchangeId: string) => void
   onClose: () => void
@@ -1790,6 +1796,9 @@ function ExchangeConfigModal({
   // Hyperliquid 特定字段
   const [hyperliquidWalletAddr, setHyperliquidWalletAddr] = useState('')
 
+  // Paper Trading 特定字段
+  const [paperTradingInitialUSDC, setPaperTradingInitialUSDC] = useState(10000)
+
   // 安全输入状态
   const [secureInputTarget, setSecureInputTarget] = useState<
     null | 'hyperliquid' | 'aster'
@@ -1815,6 +1824,9 @@ function ExchangeConfigModal({
 
       // Hyperliquid 字段
       setHyperliquidWalletAddr(selectedExchange.hyperliquidWalletAddr || '')
+
+      // Paper Trading 字段
+      setPaperTradingInitialUSDC(selectedExchange.paperTradingInitialUSDC || 10000)
     }
   }, [editingExchangeId, selectedExchange])
 
@@ -1944,6 +1956,23 @@ function ExchangeConfigModal({
         asterUser.trim(),
         asterSigner.trim(),
         asterPrivateKey.trim()
+      )
+    } else if (selectedExchange?.id === 'paper') {
+      // Paper Trading 只需要初始USDC金额
+      if (paperTradingInitialUSDC <= 0) {
+        toast.error('初始USDC金额必须大于0')
+        return
+      }
+      await onSave(
+        selectedExchangeId,
+        '',
+        '',
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        paperTradingInitialUSDC
       )
     } else if (selectedExchange?.id === 'okx') {
       if (!apiKey.trim() || !secretKey.trim() || !passphrase.trim()) return
@@ -2427,6 +2456,71 @@ function ExchangeConfigModal({
                   </>
                 )}
 
+                {/* Paper Trading 交易所的字段 */}
+                {selectedExchange.id === 'paper' && (
+                  <>
+                    <div>
+                      <label
+                        className="block text-sm font-semibold mb-2"
+                        style={{ color: '#EAECEF' }}
+                      >
+                        初始 USDC 金额
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={paperTradingInitialUSDC}
+                        onChange={(e) =>
+                          setPaperTradingInitialUSDC(
+                            parseFloat(e.target.value) || 0
+                          )
+                        }
+                        placeholder="10000"
+                        className="w-full px-3 py-2 rounded"
+                        style={{
+                          background: '#0B0E11',
+                          border: '1px solid #2B3139',
+                          color: '#EAECEF',
+                        }}
+                        required
+                      />
+                      <div
+                        className="text-xs mt-1"
+                        style={{ color: '#848E9C' }}
+                      >
+                        模拟仓的初始USDC余额，用于模拟交易
+                      </div>
+                    </div>
+
+                    <div
+                      className="p-4 rounded"
+                      style={{
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.2)',
+                      }}
+                    >
+                      <div
+                        className="text-sm font-semibold mb-2"
+                        style={{ color: '#3B82F6' }}
+                      >
+                        ℹ️ 关于模拟仓
+                      </div>
+                      <div
+                        className="text-xs space-y-1"
+                        style={{ color: '#848E9C' }}
+                      >
+                        <div>
+                          • 模拟仓使用真实市场价格进行模拟交易
+                        </div>
+                        <div>• 所有交易都是虚拟的，不会产生实际资金流动</div>
+                        <div>• 适合测试交易策略和熟悉系统功能</div>
+                        <div>• 持仓和盈亏会实时计算并显示</div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {/* Hyperliquid 交易所的字段 */}
                 {selectedExchange.id === 'hyperliquid' && (
                   <>
@@ -2717,8 +2811,8 @@ function ExchangeConfigModal({
                   </>
                 )}
 
-                {/* Testnet 开关 - 所有交易所通用 */}
-                {selectedExchange && (
+                {/* Testnet 开关 - 所有交易所通用（Paper Trading 除外） */}
+                {selectedExchange && selectedExchange.id !== 'paper' && (
                   <div className="flex items-center gap-3 p-4 rounded" style={{ background: '#0B0E11', border: '1px solid #2B3139' }}>
                     <input
                       type="checkbox"
@@ -2777,11 +2871,14 @@ function ExchangeConfigModal({
                   (!asterUser.trim() ||
                     !asterSigner.trim() ||
                     !asterPrivateKey.trim())) ||
+                (selectedExchange.id === 'paper' &&
+                  paperTradingInitialUSDC <= 0) || // 验证初始USDC金额
                 (selectedExchange.type === 'cex' &&
                   selectedExchange.id !== 'hyperliquid' &&
                   selectedExchange.id !== 'aster' &&
                   selectedExchange.id !== 'binance' &&
                   selectedExchange.id !== 'okx' &&
+                  selectedExchange.id !== 'paper' &&
                   (!apiKey.trim() || !secretKey.trim()))
               }
               className="flex-1 px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"

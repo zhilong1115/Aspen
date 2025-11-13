@@ -443,14 +443,15 @@ type UpdateModelConfigRequest struct {
 
 type UpdateExchangeConfigRequest struct {
 	Exchanges map[string]struct {
-		Enabled               bool   `json:"enabled"`
-		APIKey                string `json:"api_key"`
-		SecretKey             string `json:"secret_key"`
-		Testnet               bool   `json:"testnet"`
-		HyperliquidWalletAddr string `json:"hyperliquid_wallet_addr"`
-		AsterUser             string `json:"aster_user"`
-		AsterSigner           string `json:"aster_signer"`
-		AsterPrivateKey       string `json:"aster_private_key"`
+		Enabled                 bool    `json:"enabled"`
+		APIKey                  string  `json:"api_key"`
+		SecretKey               string  `json:"secret_key"`
+		Testnet                 bool    `json:"testnet"`
+		HyperliquidWalletAddr   string  `json:"hyperliquid_wallet_addr"`
+		AsterUser               string  `json:"aster_user"`
+		AsterSigner             string  `json:"aster_signer"`
+		AsterPrivateKey         string  `json:"aster_private_key"`
+		PaperTradingInitialUSDC float64 `json:"paper_trading_initial_usdc"`
 	} `json:"exchanges"`
 }
 
@@ -1187,7 +1188,11 @@ func (s *Server) handleUpdateExchangeConfigs(c *gin.Context) {
 
 	// 更新每个交易所的配置
 	for exchangeID, exchangeData := range req.Exchanges {
-		err := s.database.UpdateExchange(userID, exchangeID, exchangeData.Enabled, exchangeData.APIKey, exchangeData.SecretKey, exchangeData.Testnet, exchangeData.HyperliquidWalletAddr, exchangeData.AsterUser, exchangeData.AsterSigner, exchangeData.AsterPrivateKey)
+		paperTradingInitialUSDC := exchangeData.PaperTradingInitialUSDC
+		if paperTradingInitialUSDC <= 0 {
+			paperTradingInitialUSDC = 10000.0 // 默认值
+		}
+		err := s.database.UpdateExchange(userID, exchangeID, exchangeData.Enabled, exchangeData.APIKey, exchangeData.SecretKey, exchangeData.Testnet, exchangeData.HyperliquidWalletAddr, exchangeData.AsterUser, exchangeData.AsterSigner, exchangeData.AsterPrivateKey, paperTradingInitialUSDC)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("更新交易所 %s 失败: %v", exchangeID, err)})
 			return

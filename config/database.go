@@ -28,9 +28,9 @@ type DatabaseInterface interface {
 	GetAIModels(userID string) ([]*AIModelConfig, error)
 	UpdateAIModel(userID, id string, enabled bool, apiKey, customAPIURL, customModelName string) error
 	GetExchanges(userID string) ([]*ExchangeConfig, error)
-	UpdateExchange(userID, id string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string) error
+	UpdateExchange(userID, id string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string, paperTradingInitialUSDC float64) error
 	CreateAIModel(userID, id, name, provider string, enabled bool, apiKey, customAPIURL string) error
-	CreateExchange(userID, id, name, typ string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string) error
+	CreateExchange(userID, id, name, typ string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string, paperTradingInitialUSDC float64) error
 	CreateTrader(trader *TraderRecord) error
 	GetTraders(userID string) ([]*TraderRecord, error)
 	UpdateTraderStatus(userID, id string, isRunning bool) error
@@ -244,6 +244,7 @@ func (d *Database) createTables() error {
 		`ALTER TABLE exchanges ADD COLUMN aster_user TEXT DEFAULT ''`,
 		`ALTER TABLE exchanges ADD COLUMN aster_signer TEXT DEFAULT ''`,
 		`ALTER TABLE exchanges ADD COLUMN aster_private_key TEXT DEFAULT ''`,
+		`ALTER TABLE exchanges ADD COLUMN paper_trading_initial_usdc REAL DEFAULT 10000.0`, // 模拟仓初始USDC金额
 		`ALTER TABLE traders ADD COLUMN custom_prompt TEXT DEFAULT ''`,
 		`ALTER TABLE traders ADD COLUMN override_base_prompt BOOLEAN DEFAULT 0`,
 		`ALTER TABLE traders ADD COLUMN is_cross_margin BOOLEAN DEFAULT 1`,             // 默认为全仓模式
@@ -301,15 +302,28 @@ func (d *Database) initDefaultData() error {
 		{"binance", "Binance Futures", "binance"},
 		{"hyperliquid", "Hyperliquid", "hyperliquid"},
 		{"aster", "Aster DEX", "aster"},
+		{"paper", "Paper Trading (模拟仓)", "paper"},
 	}
 
 	for _, exchange := range exchanges {
-		_, err := d.db.Exec(`
-			INSERT OR IGNORE INTO exchanges (id, user_id, name, type, enabled) 
-			VALUES (?, 'default', ?, ?, 0)
-		`, exchange.id, exchange.name, exchange.typ)
-		if err != nil {
-			return fmt.Errorf("初始化交易所失败: %w", err)
+		if exchange.id == "paper" {
+			// 模拟仓需要设置初始USDC金额
+			initialUSDC := 10000.0
+			_, err := d.db.Exec(`
+				INSERT OR IGNORE INTO exchanges (id, user_id, name, type, enabled, paper_trading_initial_usdc) 
+				VALUES (?, 'default', ?, ?, 0, ?)
+			`, exchange.id, exchange.name, exchange.typ, initialUSDC)
+			if err != nil {
+				return fmt.Errorf("初始化交易所失败: %w", err)
+			}
+		} else {
+			_, err := d.db.Exec(`
+				INSERT OR IGNORE INTO exchanges (id, user_id, name, type, enabled) 
+				VALUES (?, 'default', ?, ?, 0)
+			`, exchange.id, exchange.name, exchange.typ)
+			if err != nil {
+				return fmt.Errorf("初始化交易所失败: %w", err)
+			}
 		}
 	}
 
@@ -464,8 +478,10 @@ type ExchangeConfig struct {
 	AsterUser       string    `json:"asterUser"`
 	AsterSigner     string    `json:"asterSigner"`
 	AsterPrivateKey string    `json:"asterPrivateKey"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	// Paper Trading 特定字段
+	PaperTradingInitialUSDC float64 `json:"paperTradingInitialUSDC"` // 模拟仓初始USDC金额
+	CreatedAt               time.Time `json:"created_at"`
+	UpdatedAt               time.Time `json:"updated_at"`
 }
 
 // TraderRecord 交易员配置（数据库实体）
@@ -741,6 +757,7 @@ func (d *Database) GetExchanges(userID string) ([]*ExchangeConfig, error) {
 		       COALESCE(aster_user, '') as aster_user,
 		       COALESCE(aster_signer, '') as aster_signer,
 		       COALESCE(aster_private_key, '') as aster_private_key,
+		       COALESCE(paper_trading_initial_usdc, 10000.0) as paper_trading_initial_usdc,
 		       created_at, updated_at 
 		FROM exchanges WHERE user_id = ? ORDER BY id
 	`, userID)
@@ -758,6 +775,7 @@ func (d *Database) GetExchanges(userID string) ([]*ExchangeConfig, error) {
 			&exchange.Enabled, &exchange.APIKey, &exchange.SecretKey, &exchange.Testnet,
 			&exchange.HyperliquidWalletAddr, &exchange.AsterUser,
 			&exchange.AsterSigner, &exchange.AsterPrivateKey,
+			&exchange.PaperTradingInitialUSDC,
 			&exchange.CreatedAt, &exchange.UpdatedAt,
 		)
 		if err != nil {
@@ -777,7 +795,7 @@ func (d *Database) GetExchanges(userID string) ([]*ExchangeConfig, error) {
 
 // UpdateExchange 更新交易所配置，如果不存在则创建用户特定配置
 // 🔒 安全特性：空值不会覆盖现有的敏感字段（api_key, secret_key, aster_private_key）
-func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string) error {
+func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string, paperTradingInitialUSDC float64) error {
 	log.Printf("🔧 UpdateExchange: userID=%s, id=%s, enabled=%v", userID, id, enabled)
 
 	// 构建动态 UPDATE SET 子句
@@ -788,9 +806,10 @@ func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secre
 		"hyperliquid_wallet_addr = ?",
 		"aster_user = ?",
 		"aster_signer = ?",
+		"paper_trading_initial_usdc = ?",
 		"updated_at = datetime('now')",
 	}
-	args := []interface{}{enabled, testnet, hyperliquidWalletAddr, asterUser, asterSigner}
+	args := []interface{}{enabled, testnet, hyperliquidWalletAddr, asterUser, asterSigner, paperTradingInitialUSDC}
 
 	// 🔒 敏感字段：只在非空时更新（保护现有数据）
 	if apiKey != "" {
@@ -861,9 +880,9 @@ func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secre
 		// 创建用户特定的配置，使用原始的交易所ID
 		_, err = d.db.Exec(`
 			INSERT INTO exchanges (id, user_id, name, type, enabled, api_key, secret_key, testnet,
-			                       hyperliquid_wallet_addr, aster_user, aster_signer, aster_private_key, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
-		`, id, userID, name, typ, enabled, apiKey, secretKey, testnet, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey)
+			                       hyperliquid_wallet_addr, aster_user, aster_signer, aster_private_key, paper_trading_initial_usdc, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+		`, id, userID, name, typ, enabled, apiKey, secretKey, testnet, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey, paperTradingInitialUSDC)
 
 		if err != nil {
 			log.Printf("❌ UpdateExchange: 创建记录失败: %v", err)
@@ -887,16 +906,16 @@ func (d *Database) CreateAIModel(userID, id, name, provider string, enabled bool
 }
 
 // CreateExchange 创建交易所配置
-func (d *Database) CreateExchange(userID, id, name, typ string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string) error {
+func (d *Database) CreateExchange(userID, id, name, typ string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string, paperTradingInitialUSDC float64) error {
 	// 加密敏感字段
 	encryptedAPIKey := d.encryptSensitiveData(apiKey)
 	encryptedSecretKey := d.encryptSensitiveData(secretKey)
 	encryptedAsterPrivateKey := d.encryptSensitiveData(asterPrivateKey)
 
 	_, err := d.db.Exec(`
-		INSERT OR IGNORE INTO exchanges (id, user_id, name, type, enabled, api_key, secret_key, testnet, hyperliquid_wallet_addr, aster_user, aster_signer, aster_private_key) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, id, userID, name, typ, enabled, encryptedAPIKey, encryptedSecretKey, testnet, hyperliquidWalletAddr, asterUser, asterSigner, encryptedAsterPrivateKey)
+		INSERT OR IGNORE INTO exchanges (id, user_id, name, type, enabled, api_key, secret_key, testnet, hyperliquid_wallet_addr, aster_user, aster_signer, aster_private_key, paper_trading_initial_usdc) 
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, id, userID, name, typ, enabled, encryptedAPIKey, encryptedSecretKey, testnet, hyperliquidWalletAddr, asterUser, asterSigner, encryptedAsterPrivateKey, paperTradingInitialUSDC)
 	return err
 }
 
@@ -1015,6 +1034,7 @@ func (d *Database) GetTraderConfig(userID, traderID string) (*TraderRecord, *AIM
 			COALESCE(e.aster_user, '') as aster_user,
 			COALESCE(e.aster_signer, '') as aster_signer,
 			COALESCE(e.aster_private_key, '') as aster_private_key,
+			COALESCE(e.paper_trading_initial_usdc, 10000.0) as paper_trading_initial_usdc,
 			e.created_at, e.updated_at
 		FROM traders t
 		JOIN ai_models a ON t.ai_model_id = a.id AND t.user_id = a.user_id
@@ -1034,6 +1054,7 @@ func (d *Database) GetTraderConfig(userID, traderID string) (*TraderRecord, *AIM
 		&exchange.ID, &exchange.UserID, &exchange.Name, &exchange.Type, &exchange.Enabled,
 		&exchange.APIKey, &exchange.SecretKey, &exchange.Testnet,
 		&exchange.HyperliquidWalletAddr, &exchange.AsterUser, &exchange.AsterSigner, &exchange.AsterPrivateKey,
+		&exchange.PaperTradingInitialUSDC,
 		&exchange.CreatedAt, &exchange.UpdatedAt,
 	)
 

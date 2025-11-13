@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -372,13 +374,18 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 	apiClient := NewAPIClient()
 	resp, err := apiClient.client.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("HTTP请求失败: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	// 检查HTTP状态码
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Binance API返回错误状态码 %d: %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
@@ -388,10 +395,19 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
+		log.Printf("❌ [Market] 解析OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
+		return nil, fmt.Errorf("解析JSON响应失败: %w", err)
 	}
 
-	oi, _ := strconv.ParseFloat(result.OpenInterest, 64)
+	oi, err := strconv.ParseFloat(result.OpenInterest, 64)
+	if err != nil {
+		log.Printf("❌ [Market] 解析OpenInterest数值失败, symbol=%s, value=%s", symbol, result.OpenInterest)
+		return nil, fmt.Errorf("解析OpenInterest数值失败: %w", err)
+	}
+
+	if oi == 0 {
+		log.Printf("⚠️  [Market] %s 的 OpenInterest 为 0（可能是数据问题或币种未交易）", symbol)
+	}
 
 	return &OIData{
 		Latest:  oi,

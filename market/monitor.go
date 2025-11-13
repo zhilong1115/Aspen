@@ -237,9 +237,11 @@ func (m *WSMonitor) GetCurrentKlines(symbol string, _time string) ([]Kline, erro
 	value, exists := m.getKlineDataMap(_time).Load(symbol)
 	if !exists {
 		// 如果Ws数据未初始化完成时,单独使用api获取 - 兼容性代码 (防止在未初始化完成是,已经有交易员运行)
+		log.Printf("📡 [Market] WebSocket缓存中无 %s 的 %s K线数据，使用API直接获取...", symbol, _time)
 		apiClient := NewAPIClient()
 		klines, err := apiClient.GetKlines(symbol, _time, 100)
 		if err != nil {
+			log.Printf("❌ [Market] 获取 %s 的 %s K线数据失败: %v", symbol, _time, err)
 			return nil, fmt.Errorf("获取%v分钟K线失败: %v", _time, err)
 		}
 

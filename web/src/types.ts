@@ -109,7 +109,7 @@ export interface AIModel {
 export interface Exchange {
   id: string
   name: string
-  type: 'cex' | 'dex'
+  type: 'cex' | 'dex' | 'paper'
   enabled: boolean
   apiKey?: string
   secretKey?: string
@@ -120,6 +120,8 @@ export interface Exchange {
   asterUser?: string
   asterSigner?: string
   asterPrivateKey?: string
+  // Paper Trading 特定字段
+  paperTradingInitialUSDC?: number
 }
 
 export interface CreateTraderRequest {
