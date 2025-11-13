@@ -868,9 +868,38 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 	totalRequired := requiredMargin + estimatedFee
 
 	if totalRequired > availableBalance {
-		stablecoinUnit := at.getStablecoinUnit()
-		return fmt.Errorf("❌ 保证金不足: 需要 %.2f %s（保证金 %.2f + 手续费 %.2f），可用 %.2f %s",
-			totalRequired, stablecoinUnit, requiredMargin, estimatedFee, availableBalance, stablecoinUnit)
+		// 尝试自动调整仓位大小：如果超出不多（<5%），自动缩小仓位以适应可用余额
+		// 这样可以避免因为手续费导致的微小差异而拒绝开仓
+		excessPercent := ((totalRequired - availableBalance) / availableBalance) * 100
+		if excessPercent < 5.0 {
+			// 自动调整：反向计算最大可开仓位
+			// 设调整后的仓位价值为 X，则：
+			// 保证金 = X / leverage
+			// 手续费 = X * 0.0004
+			// 总需求 = X / leverage + X * 0.0004 = X * (1/leverage + 0.0004)
+			// 所以：X = availableBalance / (1/leverage + 0.0004)
+			feeRate := 0.0004
+			maxPositionValue := availableBalance / (1.0/float64(decision.Leverage) + feeRate)
+			
+			// 调整仓位大小和数量
+			originalSize := decision.PositionSizeUSD
+			decision.PositionSizeUSD = maxPositionValue * 0.99 // 留1%安全边际
+			quantity = decision.PositionSizeUSD / marketData.CurrentPrice
+			actionRecord.Quantity = quantity
+			
+			// 重新计算保证金和手续费
+			requiredMargin = decision.PositionSizeUSD / float64(decision.Leverage)
+			estimatedFee = decision.PositionSizeUSD * feeRate
+			totalRequired = requiredMargin + estimatedFee
+			
+			stablecoinUnit := at.getStablecoinUnit()
+			log.Printf("  ⚠️  仓位大小自动调整: %.2f → %.2f %s (超出可用余额 %.2f%%)",
+				originalSize, decision.PositionSizeUSD, stablecoinUnit, excessPercent)
+		} else {
+			stablecoinUnit := at.getStablecoinUnit()
+			return fmt.Errorf("❌ 保证金不足: 需要 %.2f %s（保证金 %.2f + 手续费 %.2f），可用 %.2f %s",
+				totalRequired, stablecoinUnit, requiredMargin, estimatedFee, availableBalance, stablecoinUnit)
+		}
 	}
 
 	// 设置仓位模式
@@ -949,9 +978,38 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 	totalRequired := requiredMargin + estimatedFee
 
 	if totalRequired > availableBalance {
-		stablecoinUnit := at.getStablecoinUnit()
-		return fmt.Errorf("❌ 保证金不足: 需要 %.2f %s（保证金 %.2f + 手续费 %.2f），可用 %.2f %s",
-			totalRequired, stablecoinUnit, requiredMargin, estimatedFee, availableBalance, stablecoinUnit)
+		// 尝试自动调整仓位大小：如果超出不多（<5%），自动缩小仓位以适应可用余额
+		// 这样可以避免因为手续费导致的微小差异而拒绝开仓
+		excessPercent := ((totalRequired - availableBalance) / availableBalance) * 100
+		if excessPercent < 5.0 {
+			// 自动调整：反向计算最大可开仓位
+			// 设调整后的仓位价值为 X，则：
+			// 保证金 = X / leverage
+			// 手续费 = X * 0.0004
+			// 总需求 = X / leverage + X * 0.0004 = X * (1/leverage + 0.0004)
+			// 所以：X = availableBalance / (1/leverage + 0.0004)
+			feeRate := 0.0004
+			maxPositionValue := availableBalance / (1.0/float64(decision.Leverage) + feeRate)
+			
+			// 调整仓位大小和数量
+			originalSize := decision.PositionSizeUSD
+			decision.PositionSizeUSD = maxPositionValue * 0.99 // 留1%安全边际
+			quantity = decision.PositionSizeUSD / marketData.CurrentPrice
+			actionRecord.Quantity = quantity
+			
+			// 重新计算保证金和手续费
+			requiredMargin = decision.PositionSizeUSD / float64(decision.Leverage)
+			estimatedFee = decision.PositionSizeUSD * feeRate
+			totalRequired = requiredMargin + estimatedFee
+			
+			stablecoinUnit := at.getStablecoinUnit()
+			log.Printf("  ⚠️  仓位大小自动调整: %.2f → %.2f %s (超出可用余额 %.2f%%)",
+				originalSize, decision.PositionSizeUSD, stablecoinUnit, excessPercent)
+		} else {
+			stablecoinUnit := at.getStablecoinUnit()
+			return fmt.Errorf("❌ 保证金不足: 需要 %.2f %s（保证金 %.2f + 手续费 %.2f），可用 %.2f %s",
+				totalRequired, stablecoinUnit, requiredMargin, estimatedFee, availableBalance, stablecoinUnit)
+		}
 	}
 
 	// 设置仓位模式
