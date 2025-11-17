@@ -58,7 +58,7 @@ export function TraderConfigModal({
     trading_symbols: '',
     custom_prompt: '',
     override_base_prompt: false,
-    system_prompt_template: 'default',
+    system_prompt_template: 'hybrid',
     is_cross_margin: true,
     use_coin_pool: false,
     use_oi_top: false,
@@ -94,7 +94,7 @@ export function TraderConfigModal({
         trading_symbols: '',
         custom_prompt: '',
         override_base_prompt: false,
-        system_prompt_template: 'default',
+        system_prompt_template: 'hybrid',
         is_cross_margin: true,
         use_coin_pool: false,
         use_oi_top: false,
@@ -106,7 +106,7 @@ export function TraderConfigModal({
     if (traderData && traderData.system_prompt_template === undefined) {
       setFormData((prev) => ({
         ...prev,
-        system_prompt_template: 'default',
+        system_prompt_template: 'hybrid',
       }))
     }
   }, [traderData, isEditMode, availableModels, availableExchanges])

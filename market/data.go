@@ -369,12 +369,16 @@ func calculateLongerTermData(klines []Kline) *LongerTermData {
 
 // getOpenInterestData 获取OI数据
 func getOpenInterestData(symbol string) (*OIData, error) {
-	url := fmt.Sprintf("https://fapi.binance.com/fapi/v1/openInterest?symbol=%s", symbol)
+	url, err := GetOIURL(symbol)
+	if err != nil {
+		return nil, err
+	}
 
 	apiClient := NewAPIClient()
 	resp, err := apiClient.client.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("HTTP请求失败: %w", err)
+		sourceName := string(GetCurrentDataSource())
+		return nil, fmt.Errorf("HTTP请求失败 (%s): %w", sourceName, err)
 	}
 	defer resp.Body.Close()
 
@@ -385,24 +389,52 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 
 	// 检查HTTP状态码
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Binance API返回错误状态码 %d: %s", resp.StatusCode, string(body))
+		sourceName := string(GetCurrentDataSource())
+		return nil, fmt.Errorf("%s API返回错误状态码 %d: %s", sourceName, resp.StatusCode, string(body))
 	}
 
-	var result struct {
-		OpenInterest string `json:"openInterest"`
-		Symbol       string `json:"symbol"`
-		Time         int64  `json:"time"`
-	}
+	var oi float64
 
-	if err := json.Unmarshal(body, &result); err != nil {
-		log.Printf("❌ [Market] 解析OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
-		return nil, fmt.Errorf("解析JSON响应失败: %w", err)
-	}
-
-	oi, err := strconv.ParseFloat(result.OpenInterest, 64)
-	if err != nil {
-		log.Printf("❌ [Market] 解析OpenInterest数值失败, symbol=%s, value=%s", symbol, result.OpenInterest)
-		return nil, fmt.Errorf("解析OpenInterest数值失败: %w", err)
+	if GetCurrentDataSource() == DataSourceBybit {
+		// Bybit 响应格式
+		var response struct {
+			RetCode int    `json:"retCode"`
+			RetMsg  string `json:"retMsg"`
+			Result  struct {
+				Category    string `json:"category"`
+				Symbol      string `json:"symbol"`
+				OpenInterest string `json:"openInterest"`
+				Timestamp   string `json:"timestamp"`
+			} `json:"result"`
+		}
+		if err := json.Unmarshal(body, &response); err != nil {
+			log.Printf("❌ [Market] 解析Bybit OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
+			return nil, fmt.Errorf("解析Bybit JSON响应失败: %w", err)
+		}
+		if response.RetCode != 0 {
+			return nil, fmt.Errorf("Bybit API错误: %s (code: %d)", response.RetMsg, response.RetCode)
+		}
+		oi, err = strconv.ParseFloat(response.Result.OpenInterest, 64)
+		if err != nil {
+			log.Printf("❌ [Market] 解析Bybit OpenInterest数值失败, symbol=%s, value=%s", symbol, response.Result.OpenInterest)
+			return nil, fmt.Errorf("解析OpenInterest数值失败: %w", err)
+		}
+	} else {
+		// Binance 响应格式
+		var result struct {
+			OpenInterest string `json:"openInterest"`
+			Symbol       string `json:"symbol"`
+			Time         int64  `json:"time"`
+		}
+		if err := json.Unmarshal(body, &result); err != nil {
+			log.Printf("❌ [Market] 解析OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
+			return nil, fmt.Errorf("解析JSON响应失败: %w", err)
+		}
+		oi, err = strconv.ParseFloat(result.OpenInterest, 64)
+		if err != nil {
+			log.Printf("❌ [Market] 解析OpenInterest数值失败, symbol=%s, value=%s", symbol, result.OpenInterest)
+			return nil, fmt.Errorf("解析OpenInterest数值失败: %w", err)
+		}
 	}
 
 	if oi == 0 {
@@ -428,7 +460,10 @@ func getFundingRate(symbol string) (float64, error) {
 	}
 
 	// 缓存过期或不存在，调用 API
-	url := fmt.Sprintf("https://fapi.binance.com/fapi/v1/premiumIndex?symbol=%s", symbol)
+	url, err := GetFundingURL(symbol)
+	if err != nil {
+		return 0, err
+	}
 
 	apiClient := NewAPIClient()
 	resp, err := apiClient.client.Get(url)
@@ -442,29 +477,58 @@ func getFundingRate(symbol string) (float64, error) {
 		return 0, err
 	}
 
-	var result struct {
-		Symbol          string `json:"symbol"`
-		MarkPrice       string `json:"markPrice"`
-		IndexPrice      string `json:"indexPrice"`
-		LastFundingRate string `json:"lastFundingRate"`
-		NextFundingTime int64  `json:"nextFundingTime"`
-		InterestRate    string `json:"interestRate"`
-		Time            int64  `json:"time"`
+	var fundingRate float64
+	if GetCurrentDataSource() == DataSourceBybit {
+		// Bybit 响应格式
+		var response struct {
+			RetCode int    `json:"retCode"`
+			RetMsg  string `json:"retMsg"`
+			Result  struct {
+				List []struct {
+					Symbol        string `json:"symbol"`
+					FundingRate   string `json:"fundingRate"`
+					MarkPrice     string `json:"markPrice"`
+					IndexPrice    string `json:"indexPrice"`
+				} `json:"list"`
+			} `json:"result"`
+		}
+		if err := json.Unmarshal(body, &response); err != nil {
+			return 0, err
+		}
+		if response.RetCode != 0 || len(response.Result.List) == 0 {
+			return 0, fmt.Errorf("Bybit API错误: %s", response.RetMsg)
+		}
+		fundingRate, err = strconv.ParseFloat(response.Result.List[0].FundingRate, 64)
+		if err != nil {
+			return 0, err
+		}
+	} else {
+		// Binance 响应格式
+		var result struct {
+			Symbol          string `json:"symbol"`
+			MarkPrice       string `json:"markPrice"`
+			IndexPrice      string `json:"indexPrice"`
+			LastFundingRate string `json:"lastFundingRate"`
+			NextFundingTime int64  `json:"nextFundingTime"`
+			InterestRate    string `json:"interestRate"`
+			Time            int64  `json:"time"`
+		}
+		if err := json.Unmarshal(body, &result); err != nil {
+			return 0, err
+		}
+		fundingRate, err = strconv.ParseFloat(result.LastFundingRate, 64)
+		if err != nil {
+			return 0, err
+		}
 	}
-
-	if err := json.Unmarshal(body, &result); err != nil {
-		return 0, err
-	}
-
-	rate, _ := strconv.ParseFloat(result.LastFundingRate, 64)
 
 	// 更新缓存
 	fundingRateMap.Store(symbol, &FundingRateCache{
-		Rate:      rate,
+		Rate:      fundingRate,
 		UpdatedAt: time.Now(),
 	})
 
-	return rate, nil
+	return fundingRate, nil
 }
 
 // TSI 指标计算 来自脚本:1—TSI副图指标，指标-40区域金叉买，正40死叉卖

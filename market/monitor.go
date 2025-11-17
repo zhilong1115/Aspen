@@ -141,10 +141,23 @@ func (m *WSMonitor) Start(coins []string) {
 // subscribeSymbol 注册监听
 func (m *WSMonitor) subscribeSymbol(symbol, st string) []string {
 	var streams []string
-	stream := fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), st)
-	ch := m.combinedClient.AddSubscriber(stream, 100)
-	streams = append(streams, stream)
-	go m.handleKlineData(symbol, ch, st)
+	
+	if GetCurrentDataSource() == DataSourceBybit {
+		// Bybit 格式: kline.3.BTCUSDT
+		bybitInterval := convertIntervalToBybit(st)
+		stream := fmt.Sprintf("kline.%s.%s", bybitInterval, symbol)
+		// 转换为 Binance 格式用于内部映射
+		binanceStream := fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), st)
+		ch := m.combinedClient.AddSubscriber(binanceStream, 100)
+		streams = append(streams, stream)
+		go m.handleKlineData(symbol, ch, st)
+	} else {
+		// Binance 格式
+		stream := fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), st)
+		ch := m.combinedClient.AddSubscriber(stream, 100)
+		streams = append(streams, stream)
+		go m.handleKlineData(symbol, ch, st)
+	}
 
 	return streams
 }

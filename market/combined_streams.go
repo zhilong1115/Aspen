@@ -34,17 +34,25 @@ func (c *CombinedStreamsClient) Connect() error {
 		HandshakeTimeout: 10 * time.Second,
 	}
 
-	// 组合流使用不同的端点
-	conn, _, err := dialer.Dial("wss://fstream.binance.com/stream", nil)
+	// 根据数据源选择不同的 WebSocket 端点
+	cfg := GetDataSourceConfig()
+	wsURL := cfg.WSStreamURL
+	if wsURL == "" {
+		// 默认使用 Binance
+		wsURL = "wss://fstream.binance.com/stream"
+	}
+
+	log.Printf("📡 [WebSocket] 连接到数据源: %s", string(GetCurrentDataSource()))
+	conn, _, err := dialer.Dial(wsURL, nil)
 	if err != nil {
-		return fmt.Errorf("组合流WebSocket连接失败: %v", err)
+		return fmt.Errorf("组合流WebSocket连接失败 (%s): %v", string(GetCurrentDataSource()), err)
 	}
 
 	c.mu.Lock()
 	c.conn = conn
 	c.mu.Unlock()
 
-	log.Println("组合流WebSocket连接成功")
+	log.Printf("✅ [WebSocket] 组合流连接成功: %s", string(GetCurrentDataSource()))
 	go c.readMessages()
 
 	return nil
@@ -58,13 +66,21 @@ func (c *CombinedStreamsClient) BatchSubscribeKlines(symbols []string, interval 
 	for i, batch := range batches {
 		log.Printf("订阅第 %d 批, 数量: %d", i+1, len(batch))
 
-		streams := make([]string, len(batch))
-		for j, symbol := range batch {
-			streams[j] = fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), interval)
-		}
+		if GetCurrentDataSource() == DataSourceBybit {
+			// Bybit 使用不同的订阅格式
+			if err := c.subscribeBybitKlines(batch, interval); err != nil {
+				return fmt.Errorf("第 %d 批订阅失败: %v", i+1, err)
+			}
+		} else {
+			// Binance 格式
+			streams := make([]string, len(batch))
+			for j, symbol := range batch {
+				streams[j] = fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), interval)
+			}
 
-		if err := c.subscribeStreams(streams); err != nil {
-			return fmt.Errorf("第 %d 批订阅失败: %v", i+1, err)
+			if err := c.subscribeStreams(streams); err != nil {
+				return fmt.Errorf("第 %d 批订阅失败: %v", i+1, err)
+			}
 		}
 
 		// 批次间延迟，避免被限制
@@ -74,6 +90,33 @@ func (c *CombinedStreamsClient) BatchSubscribeKlines(symbols []string, interval 
 	}
 
 	return nil
+}
+
+// subscribeBybitKlines 订阅 Bybit K线数据
+func (c *CombinedStreamsClient) subscribeBybitKlines(symbols []string, interval string) error {
+	// Bybit 间隔格式转换: 3m -> 3, 4h -> 240
+	bybitInterval := convertIntervalToBybit(interval)
+	
+	// Bybit 订阅格式: {"op": "subscribe", "args": ["kline.3.BTCUSDT", "kline.3.ETHUSDT"]}
+	args := make([]string, len(symbols))
+	for i, symbol := range symbols {
+		args[i] = fmt.Sprintf("kline.%s.%s", bybitInterval, symbol)
+	}
+
+	subscribeMsg := map[string]interface{}{
+		"op":   "subscribe",
+		"args": args,
+	}
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if c.conn == nil {
+		return fmt.Errorf("WebSocket未连接")
+	}
+
+	log.Printf("📡 [Bybit] 订阅流: %v", args)
+	return c.conn.WriteJSON(subscribeMsg)
 }
 
 // splitIntoBatches 将切片分成指定大小的批次
@@ -91,7 +134,7 @@ func (c *CombinedStreamsClient) splitIntoBatches(symbols []string, batchSize int
 	return batches
 }
 
-// subscribeStreams 订阅多个流
+// subscribeStreams 订阅多个流（Binance 格式）
 func (c *CombinedStreamsClient) subscribeStreams(streams []string) error {
 	subscribeMsg := map[string]interface{}{
 		"method": "SUBSCRIBE",
@@ -106,7 +149,7 @@ func (c *CombinedStreamsClient) subscribeStreams(streams []string) error {
 		return fmt.Errorf("WebSocket未连接")
 	}
 
-	log.Printf("订阅流: %v", streams)
+	log.Printf("📡 [Binance] 订阅流: %v", streams)
 	return c.conn.WriteJSON(subscribeMsg)
 }
 
@@ -138,13 +181,22 @@ func (c *CombinedStreamsClient) readMessages() {
 }
 
 func (c *CombinedStreamsClient) handleCombinedMessage(message []byte) {
+	if GetCurrentDataSource() == DataSourceBybit {
+		c.handleBybitMessage(message)
+	} else {
+		c.handleBinanceMessage(message)
+	}
+}
+
+// handleBinanceMessage 处理 Binance 格式的消息
+func (c *CombinedStreamsClient) handleBinanceMessage(message []byte) {
 	var combinedMsg struct {
 		Stream string          `json:"stream"`
 		Data   json.RawMessage `json:"data"`
 	}
 
 	if err := json.Unmarshal(message, &combinedMsg); err != nil {
-		log.Printf("解析组合消息失败: %v", err)
+		log.Printf("解析Binance组合消息失败: %v", err)
 		return
 	}
 
@@ -159,6 +211,148 @@ func (c *CombinedStreamsClient) handleCombinedMessage(message []byte) {
 			log.Printf("订阅者通道已满: %s", combinedMsg.Stream)
 		}
 	}
+}
+
+// handleBybitMessage 处理 Bybit 格式的消息
+func (c *CombinedStreamsClient) handleBybitMessage(message []byte) {
+	var bybitMsg struct {
+		Topic string          `json:"topic"`
+		Type  string          `json:"type"`
+		Data  json.RawMessage `json:"data"`
+	}
+
+	if err := json.Unmarshal(message, &bybitMsg); err != nil {
+		// 可能是订阅确认消息或其他格式
+		var ackMsg map[string]interface{}
+		if err2 := json.Unmarshal(message, &ackMsg); err2 == nil {
+			if op, ok := ackMsg["op"].(string); ok && op == "subscribe" {
+				if success, ok := ackMsg["success"].(bool); ok && success {
+					log.Printf("✅ [Bybit] 订阅成功: %v", ackMsg["args"])
+				} else {
+					log.Printf("⚠️  [Bybit] 订阅失败: %v", ackMsg)
+				}
+			}
+		}
+		return
+	}
+
+	// Bybit topic 格式: "kline.3.BTCUSDT" -> 转换为 Binance 格式 "btcusdt@kline_3m"
+	if strings.HasPrefix(bybitMsg.Topic, "kline.") {
+		parts := strings.Split(bybitMsg.Topic, ".")
+		if len(parts) >= 3 {
+			interval := parts[1]
+			symbol := strings.ToLower(parts[2])
+			// 转换间隔格式: "3" -> "3m", "240" -> "4h"
+			binanceInterval := convertBybitIntervalToBinance(interval)
+			stream := fmt.Sprintf("%s@kline_%s", symbol, binanceInterval)
+
+			c.mu.RLock()
+			ch, exists := c.subscribers[stream]
+			c.mu.RUnlock()
+
+			if exists {
+				// Bybit 的 data 是数组，需要提取第一个元素
+				var dataArray []json.RawMessage
+				if err := json.Unmarshal(bybitMsg.Data, &dataArray); err == nil && len(dataArray) > 0 {
+					// 转换为 Binance 格式的 Kline 数据（传递间隔信息）
+					binanceData := c.convertBybitKlineToBinance(dataArray[0], symbol, binanceInterval)
+					if binanceData != nil {
+						select {
+						case ch <- binanceData:
+						default:
+							log.Printf("订阅者通道已满: %s", stream)
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// convertBybitIntervalToBinance 将 Bybit 间隔转换为 Binance 格式
+func convertBybitIntervalToBinance(interval string) string {
+	intervalMap := map[string]string{
+		"1": "1m", "3": "3m", "5": "5m", "15": "15m", "30": "30m",
+		"60": "1h", "120": "2h", "240": "4h", "360": "6h", "720": "12h",
+		"D": "1d", "W": "1w", "M": "1M",
+	}
+	if binanceInterval, ok := intervalMap[interval]; ok {
+		return binanceInterval
+	}
+	return interval + "m" // 默认假设是分钟
+}
+
+// convertBybitKlineToBinance 将 Bybit K线数据转换为 Binance 格式
+func (c *CombinedStreamsClient) convertBybitKlineToBinance(bybitData json.RawMessage, symbol string, interval string) []byte {
+	var bybitKline struct {
+		StartTime string `json:"start"`
+		Open      string `json:"open"`
+		High      string `json:"high"`
+		Low       string `json:"low"`
+		Close     string `json:"close"`
+		Volume    string `json:"volume"`
+		Turnover  string `json:"turnover"`
+		Confirm   bool   `json:"confirm"`
+		Interval  string `json:"interval"`
+	}
+
+	if err := json.Unmarshal(bybitData, &bybitKline); err != nil {
+		log.Printf("解析Bybit K线数据失败: %v", err)
+		return nil
+	}
+
+	// 计算间隔对应的毫秒数
+	intervalMs := getIntervalMs(interval)
+	startTime := parseBybitTimestamp(bybitKline.StartTime)
+	closeTime := startTime + intervalMs
+
+	// 转换为 Binance 格式
+	binanceKline := map[string]interface{}{
+		"e": "kline",
+		"E": time.Now().Unix() * 1000,
+		"s": strings.ToUpper(symbol),
+		"k": map[string]interface{}{
+			"t":  startTime,
+			"T":  closeTime,
+			"s":  strings.ToUpper(symbol),
+			"i":  interval,
+			"f":  0,
+			"L":  0,
+			"o":  bybitKline.Open,
+			"c":  bybitKline.Close,
+			"h":  bybitKline.High,
+			"l":  bybitKline.Low,
+			"v":  bybitKline.Volume,
+			"n":  0,
+			"x":  bybitKline.Confirm,
+			"q":  bybitKline.Turnover,
+			"V":  "0",
+			"Q":  "0",
+		},
+	}
+
+	result, _ := json.Marshal(binanceKline)
+	return result
+}
+
+// parseBybitTimestamp 解析 Bybit 时间戳（毫秒）
+func parseBybitTimestamp(ts string) int64 {
+	var t int64
+	fmt.Sscanf(ts, "%d", &t)
+	return t
+}
+
+// getIntervalMs 获取间隔对应的毫秒数
+func getIntervalMs(interval string) int64 {
+	intervalMap := map[string]int64{
+		"1m": 60000, "3m": 180000, "5m": 300000, "15m": 900000, "30m": 1800000,
+		"1h": 3600000, "2h": 7200000, "4h": 14400000, "6h": 21600000, "12h": 43200000,
+		"1d": 86400000, "1w": 604800000, "1M": 2592000000,
+	}
+	if ms, ok := intervalMap[interval]; ok {
+		return ms
+	}
+	return 180000 // 默认3分钟
 }
 
 func (c *CombinedStreamsClient) AddSubscriber(stream string, bufferSize int) <-chan []byte {

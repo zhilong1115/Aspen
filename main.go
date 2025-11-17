@@ -172,6 +172,22 @@ func main() {
 		log.Fatalf("❌ 读取config.json失败: %v", err)
 	}
 
+	// 加载配置到 config.Config 结构（用于初始化数据源）
+	cfg, err := config.LoadConfig("config.json")
+	if err != nil {
+		log.Printf("⚠️  读取config.json失败，使用默认配置: %v", err)
+		cfg = &config.Config{}
+	}
+
+	// 初始化市场数据源
+	marketDataSource := ""
+	finnhubAPIKey := ""
+	if cfg != nil {
+		marketDataSource = cfg.MarketDataSource
+		finnhubAPIKey = cfg.FinnhubAPIKey
+	}
+	market.InitDataSource(marketDataSource, finnhubAPIKey)
+
 	log.Printf("📋 初始化配置数据库: %s", dbPath)
 	database, err := config.NewDatabase(dbPath)
 	if err != nil {

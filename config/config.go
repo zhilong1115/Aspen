@@ -41,7 +41,9 @@ type Config struct {
 	Leverage           LeverageConfig `json:"leverage"`
 	JWTSecret          string         `json:"jwt_secret"`
 	DataKLineTime      string         `json:"data_k_line_time"`
-	Log                *LogConfig     `json:"log"` // 日志配置
+	MarketDataSource   string         `json:"market_data_source"` // 市场数据源: "binance" (默认), "bybit", "binance_us", "finnhub"
+	FinnhubAPIKey      string         `json:"finnhub_api_key"`    // Finnhub API Key
+	Log                *LogConfig     `json:"log"`                 // 日志配置
 }
 
 // LoadConfig 从文件加载配置

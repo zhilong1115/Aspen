@@ -326,18 +326,26 @@ func buildSystemPrompt(accountEquity float64, btcEthLeverage, altcoinLeverage in
 
 	// 1. 加载提示词模板（核心交易策略部分）
 	if templateName == "" {
-		templateName = "default" // 默认使用 default 模板
+		templateName = "hybrid" // 默认使用 hybrid 模板
 	}
 
 	template, err := GetPromptTemplate(templateName)
 	if err != nil {
-		// 如果模板不存在，记录错误并使用 default
-		log.Printf("⚠️  提示词模板 '%s' 不存在，使用 default: %v", templateName, err)
-		template, err = GetPromptTemplate("default")
+		// 如果模板不存在，记录错误并使用 hybrid 作为 fallback
+		log.Printf("⚠️  提示词模板 '%s' 不存在，使用 hybrid: %v", templateName, err)
+		template, err = GetPromptTemplate("hybrid")
 		if err != nil {
-			// 如果连 default 都不存在，使用内置的简化版本
-			log.Printf("❌ 无法加载任何提示词模板，使用内置简化版本")
-			sb.WriteString("你是专业的加密货币交易AI。请根据市场数据做出交易决策。\n\n")
+			// 如果连 hybrid 都不存在，尝试使用 default
+			log.Printf("⚠️  hybrid 模板不存在，尝试使用 default: %v", err)
+			template, err = GetPromptTemplate("default")
+			if err != nil {
+				// 如果连 default 都不存在，使用内置的简化版本
+				log.Printf("❌ 无法加载任何提示词模板，使用内置简化版本")
+				sb.WriteString("你是专业的加密货币交易AI。请根据市场数据做出交易决策。\n\n")
+			} else {
+				sb.WriteString(template.Content)
+				sb.WriteString("\n\n")
+			}
 		} else {
 			sb.WriteString(template.Content)
 			sb.WriteString("\n\n")
@@ -407,7 +415,8 @@ func buildUserPrompt(ctx *Context) string {
 		))
 	} else {
 		// 如果 BTC 数据获取失败，记录警告但继续
-		sb.WriteString("BTC: 数据获取失败（请检查网络连接或 Binance API 状态）\n\n")
+		dataSourceName := string(market.GetCurrentDataSource())
+		sb.WriteString(fmt.Sprintf("BTC: 数据获取失败（请检查网络连接或 %s API 状态）\n\n", strings.ToUpper(dataSourceName)))
 		log.Printf("⚠️  警告: BTC 市场数据获取失败，这可能会影响 AI 决策质量")
 	}
 
@@ -475,13 +484,15 @@ func buildUserPrompt(ctx *Context) string {
 
 	// 如果有候选币种但数据获取失败，显示警告
 	if len(ctx.CandidateCoins) > 0 && displayedCount == 0 {
+		dataSourceName := string(market.GetCurrentDataSource())
 		sb.WriteString("⚠️ **警告：所有候选币种的市场数据获取失败！**\n\n")
 		sb.WriteString(fmt.Sprintf("失败的币种: %v\n", missingDataCoins))
 		sb.WriteString("可能原因：\n")
 		sb.WriteString("1. 网络连接问题\n")
-		sb.WriteString("2. Binance API 访问限制\n")
+		sb.WriteString(fmt.Sprintf("2. %s API 访问限制或服务不可用\n", strings.ToUpper(dataSourceName)))
 		sb.WriteString("3. WebSocket 监控器未正确初始化\n")
-		sb.WriteString("4. 币种符号格式错误\n\n")
+		sb.WriteString("4. 币种符号格式错误\n")
+		sb.WriteString("5. 需要配置代理服务器（如果 API 被地区封锁）\n\n")
 		sb.WriteString("请检查系统日志中的详细错误信息。\n\n")
 	}
 
