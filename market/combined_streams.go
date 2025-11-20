@@ -71,6 +71,27 @@ func (c *CombinedStreamsClient) BatchSubscribeKlines(symbols []string, interval 
 			if err := c.subscribeBybitKlines(batch, interval); err != nil {
 				return fmt.Errorf("第 %d 批订阅失败: %v", i+1, err)
 			}
+		} else if GetCurrentDataSource() == DataSourceHyperliquid {
+			// Hyperliquid specific subscription
+			// Hyperliquid doesn't support batch subscription in the same way (one message per stream usually)
+			// But we can send multiple messages.
+			for _, symbol := range batch {
+				hlSymbol := symbol
+				if len(symbol) > 4 && symbol[len(symbol)-4:] == "USDT" {
+					hlSymbol = symbol[:len(symbol)-4]
+				}
+				msg := map[string]interface{}{
+					"method": "subscribe",
+					"subscription": map[string]string{
+						"type":     "candle",
+						"coin":     hlSymbol,
+						"interval": ConvertIntervalToHyperliquid(interval),
+					},
+				}
+				if err := c.sendJSON(msg); err != nil {
+					log.Printf("Hyperliquid 订阅失败 %s: %v", symbol, err)
+				}
+			}
 		} else {
 			// Binance 格式
 			streams := make([]string, len(batch))
@@ -96,7 +117,7 @@ func (c *CombinedStreamsClient) BatchSubscribeKlines(symbols []string, interval 
 func (c *CombinedStreamsClient) subscribeBybitKlines(symbols []string, interval string) error {
 	// Bybit 间隔格式转换: 3m -> 3, 4h -> 240
 	bybitInterval := convertIntervalToBybit(interval)
-	
+
 	// Bybit 订阅格式: {"op": "subscribe", "args": ["kline.3.BTCUSDT", "kline.3.ETHUSDT"]}
 	args := make([]string, len(symbols))
 	for i, symbol := range symbols {
@@ -153,6 +174,17 @@ func (c *CombinedStreamsClient) subscribeStreams(streams []string) error {
 	return c.conn.WriteJSON(subscribeMsg)
 }
 
+func (c *CombinedStreamsClient) sendJSON(msg interface{}) error {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	if c.conn == nil {
+		return fmt.Errorf("WebSocket未连接")
+	}
+
+	return c.conn.WriteJSON(msg)
+}
+
 func (c *CombinedStreamsClient) readMessages() {
 	for {
 		select {
@@ -183,8 +215,97 @@ func (c *CombinedStreamsClient) readMessages() {
 func (c *CombinedStreamsClient) handleCombinedMessage(message []byte) {
 	if GetCurrentDataSource() == DataSourceBybit {
 		c.handleBybitMessage(message)
+	} else if GetCurrentDataSource() == DataSourceHyperliquid {
+		c.handleHyperliquidMessage(message)
 	} else {
 		c.handleBinanceMessage(message)
+	}
+}
+
+// handleHyperliquidMessage 处理 Hyperliquid 消息
+func (c *CombinedStreamsClient) handleHyperliquidMessage(message []byte) {
+	// Re-use the logic from WSClient or implement similar here.
+	// Since CombinedStreamsClient is used by Monitor, we need to route to subscribers.
+	// The subscribers are keyed by "symbol@kline_interval" (Binance format) because Monitor uses that key.
+
+	var hlMsg HyperliquidWSMessage
+	if err := json.Unmarshal(message, &hlMsg); err != nil {
+		return
+	}
+
+	if hlMsg.Channel == "candle" {
+		dataMap, ok := hlMsg.Data.(map[string]interface{})
+		if !ok {
+			return
+		}
+
+		coin, _ := dataMap["s"].(string)
+		interval, _ := dataMap["i"].(string)
+
+		if coin == "" || interval == "" {
+			return
+		}
+
+		symbol := coin + "USDT"
+		streamKey := fmt.Sprintf("%s@kline_%s", strings.ToLower(symbol), interval)
+
+		c.mu.RLock()
+		ch, exists := c.subscribers[streamKey]
+		c.mu.RUnlock()
+
+		if exists {
+			// Convert to Binance KlineWSData
+			t, _ := dataMap["t"].(float64)
+			o, _ := dataMap["o"].(string)
+			c_price, _ := dataMap["c"].(string)
+			h, _ := dataMap["h"].(string)
+			l, _ := dataMap["l"].(string)
+			v, _ := dataMap["v"].(string)
+			n, _ := dataMap["n"].(float64)
+
+			binanceMsg := KlineWSData{
+				EventType: "kline",
+				EventTime: int64(t),
+				Symbol:    symbol,
+				Kline: struct {
+					StartTime           int64  `json:"t"`
+					CloseTime           int64  `json:"T"`
+					Symbol              string `json:"s"`
+					Interval            string `json:"i"`
+					FirstTradeID        int64  `json:"f"`
+					LastTradeID         int64  `json:"L"`
+					OpenPrice           string `json:"o"`
+					ClosePrice          string `json:"c"`
+					HighPrice           string `json:"h"`
+					LowPrice            string `json:"l"`
+					Volume              string `json:"v"`
+					NumberOfTrades      int    `json:"n"`
+					IsFinal             bool   `json:"x"`
+					QuoteVolume         string `json:"q"`
+					TakerBuyBaseVolume  string `json:"V"`
+					TakerBuyQuoteVolume string `json:"Q"`
+				}{
+					StartTime:      int64(t),
+					CloseTime:      int64(t) + 60000, // Approx
+					Symbol:         symbol,
+					Interval:       interval,
+					OpenPrice:      o,
+					ClosePrice:     c_price,
+					HighPrice:      h,
+					LowPrice:       l,
+					Volume:         v,
+					NumberOfTrades: int(n),
+					IsFinal:        true,
+				},
+			}
+
+			jsonBytes, _ := json.Marshal(binanceMsg)
+
+			select {
+			case ch <- jsonBytes:
+			default:
+			}
+		}
 	}
 }
 
@@ -312,22 +433,22 @@ func (c *CombinedStreamsClient) convertBybitKlineToBinance(bybitData json.RawMes
 		"E": time.Now().Unix() * 1000,
 		"s": strings.ToUpper(symbol),
 		"k": map[string]interface{}{
-			"t":  startTime,
-			"T":  closeTime,
-			"s":  strings.ToUpper(symbol),
-			"i":  interval,
-			"f":  0,
-			"L":  0,
-			"o":  bybitKline.Open,
-			"c":  bybitKline.Close,
-			"h":  bybitKline.High,
-			"l":  bybitKline.Low,
-			"v":  bybitKline.Volume,
-			"n":  0,
-			"x":  bybitKline.Confirm,
-			"q":  bybitKline.Turnover,
-			"V":  "0",
-			"Q":  "0",
+			"t": startTime,
+			"T": closeTime,
+			"s": strings.ToUpper(symbol),
+			"i": interval,
+			"f": 0,
+			"L": 0,
+			"o": bybitKline.Open,
+			"c": bybitKline.Close,
+			"h": bybitKline.High,
+			"l": bybitKline.Low,
+			"v": bybitKline.Volume,
+			"n": 0,
+			"x": bybitKline.Confirm,
+			"q": bybitKline.Turnover,
+			"V": "0",
+			"Q": "0",
 		},
 	}
 

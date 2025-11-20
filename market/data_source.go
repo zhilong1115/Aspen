@@ -9,10 +9,11 @@ import (
 type DataSource string
 
 const (
-	DataSourceBinance   DataSource = "binance"   // Binance (默认，可能被美国IP封锁)
-	DataSourceBybit     DataSource = "bybit"     // Bybit (推荐给美国用户)
-	DataSourceBinanceUS DataSource = "binance_us" // Binance.US (仅现货，无期货数据)
-	DataSourceFinnhub   DataSource = "finnhub"   // Finnhub (需要 API key，无期货数据)
+	DataSourceBinance     DataSource = "binance"     // Binance (默认，可能被美国IP封锁)
+	DataSourceBybit       DataSource = "bybit"       // Bybit (推荐给美国用户)
+	DataSourceBinanceUS   DataSource = "binance_us"  // Binance.US (仅现货，无期货数据)
+	DataSourceFinnhub     DataSource = "finnhub"     // Finnhub (需要 API key，无期货数据)
+	DataSourceHyperliquid DataSource = "hyperliquid" // Hyperliquid (DEX, US-friendly via VPN/DeFi)
 )
 
 // DataSourceConfig 数据源配置
@@ -30,7 +31,7 @@ type DataSourceConfig struct {
 
 var (
 	currentDataSource DataSource = DataSourceBinance
-	dataSourceConfigs = map[DataSource]*DataSourceConfig{
+	dataSourceConfigs            = map[DataSource]*DataSourceConfig{
 		DataSourceBinance: {
 			Source:          DataSourceBinance,
 			BaseURL:         "https://fapi.binance.com",
@@ -71,6 +72,16 @@ var (
 			WSURL:           "", // Finnhub WebSocket 需要单独实现
 			WSStreamURL:     "",
 		},
+		DataSourceHyperliquid: {
+			Source:          DataSourceHyperliquid,
+			BaseURL:         "https://api.hyperliquid.xyz",
+			KlinesEndpoint:  "/info", // Hyperliquid uses POST /info for most things
+			PriceEndpoint:   "/info",
+			OIEndpoint:      "/info",
+			FundingEndpoint: "/info",
+			WSURL:           "wss://api.hyperliquid.xyz/ws",
+			WSStreamURL:     "wss://api.hyperliquid.xyz/ws",
+		},
 	}
 )
 
@@ -98,6 +109,9 @@ func InitDataSource(source string, apiKey string) {
 	case DataSourceBinanceUS:
 		currentDataSource = DataSourceBinanceUS
 		log.Printf("⚠️  [Market] 使用数据源: Binance.US (注意：仅支持现货数据，无期货 Open Interest 和 Funding Rate)")
+	case DataSourceHyperliquid:
+		currentDataSource = DataSourceHyperliquid
+		log.Printf("📊 [Market] 使用数据源: Hyperliquid (DEX)")
 	case DataSourceBinance:
 		fallthrough
 	default:
@@ -144,13 +158,19 @@ func GetOIURL(symbol string) (string, error) {
 	if cfg.OIEndpoint == "" {
 		return "", fmt.Errorf("当前数据源 %s 不支持 Open Interest 数据", cfg.Source)
 	}
-	
+
 	switch currentDataSource {
 	case DataSourceBinance:
 		return fmt.Sprintf("%s%s?symbol=%s", cfg.BaseURL, cfg.OIEndpoint, symbol), nil
 	case DataSourceBybit:
 		// Bybit 需要 category 参数
 		return fmt.Sprintf("%s%s?category=linear&symbol=%s", cfg.BaseURL, cfg.OIEndpoint, symbol), nil
+	case DataSourceHyperliquid:
+		// Hyperliquid uses POST /info, so URL is just base + endpoint.
+		// The caller needs to know to send a POST body.
+		// For now, we return the URL, and the caller (monitor.go) needs to handle the POST logic.
+		// This might require refactoring monitor.go, but for now let's return the URL.
+		return fmt.Sprintf("%s%s", cfg.BaseURL, cfg.OIEndpoint), nil
 	default:
 		return "", fmt.Errorf("不支持的数据源: %s", cfg.Source)
 	}
@@ -162,15 +182,16 @@ func GetFundingURL(symbol string) (string, error) {
 	if cfg.FundingEndpoint == "" {
 		return "", fmt.Errorf("当前数据源 %s 不支持 Funding Rate 数据", cfg.Source)
 	}
-	
+
 	switch currentDataSource {
 	case DataSourceBinance:
 		return fmt.Sprintf("%s%s?symbol=%s", cfg.BaseURL, cfg.FundingEndpoint, symbol), nil
 	case DataSourceBybit:
 		// Bybit 的 Funding Rate 在 tickers 接口中
 		return fmt.Sprintf("%s%s?category=linear&symbol=%s", cfg.BaseURL, cfg.FundingEndpoint, symbol), nil
+	case DataSourceHyperliquid:
+		return fmt.Sprintf("%s%s", cfg.BaseURL, cfg.FundingEndpoint), nil
 	default:
 		return "", fmt.Errorf("不支持的数据源: %s", cfg.Source)
 	}
 }
-

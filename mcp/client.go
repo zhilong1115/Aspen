@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -51,7 +52,7 @@ func New() *Client {
 		Provider:  ProviderDeepSeek,
 		BaseURL:   "https://api.deepseek.com/v1",
 		Model:     "deepseek-chat",
-		Timeout:   120 * time.Second, // 增加到120秒，因为AI需要分析大量数据
+		Timeout:   180 * time.Second, // 增加到180秒，因为AI需要分析大量数据
 		MaxTokens: maxTokens,
 	}
 }
@@ -123,7 +124,7 @@ func (client *Client) SetOpenRouterAPIKey(apiKey string, modelName string) {
 		log.Printf("🔧 [MCP] OpenRouter 使用默认模型: %s", client.Model)
 	}
 
-	client.Timeout = 120 * time.Second
+	client.Timeout = 180 * time.Second
 
 	// 打印 API Key 的前后各4位用于验证
 	if len(apiKey) > 8 {
@@ -146,7 +147,7 @@ func (client *Client) SetCustomAPI(apiURL, apiKey, modelName string) {
 	}
 
 	client.Model = modelName
-	client.Timeout = 120 * time.Second
+	client.Timeout = 180 * time.Second
 }
 
 // SetClient 设置完整的AI配置（高级用户）
@@ -277,18 +278,50 @@ func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) 
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
 	}
 
-	// 发送请求
-	httpClient := &http.Client{Timeout: client.Timeout}
+	// 发送请求（使用带超时的HTTP客户端）
+	// 注意：http.Client.Timeout 包括连接、发送请求和读取响应的总时间
+	httpClient := &http.Client{
+		Timeout: client.Timeout,
+	}
+
+	// 使用 context 包装请求，确保整个请求过程（包括读取响应）都有超时保护
+	ctx, cancel := context.WithTimeout(context.Background(), client.Timeout)
+	defer cancel()
+	req = req.WithContext(ctx)
+
 	resp, err := httpClient.Do(req)
 	if err != nil {
+		// 检查是否是超时错误
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("请求超时（%v）: %w", client.Timeout, err)
+		}
 		return "", fmt.Errorf("发送请求失败: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// 读取响应
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("读取响应失败: %w", err)
+	// 读取响应（使用带超时的 context 控制）
+	// 由于 http.Client.Timeout 已经包含了读取时间，这里主要是为了更好的错误处理
+	type readResult struct {
+		data []byte
+		err  error
+	}
+	resultChan := make(chan readResult, 1)
+
+	go func() {
+		data, err := io.ReadAll(resp.Body)
+		resultChan <- readResult{data: data, err: err}
+	}()
+
+	var body []byte
+	select {
+	case result := <-resultChan:
+		body = result.data
+		err = result.err
+		if err != nil {
+			return "", fmt.Errorf("读取响应失败: %w", err)
+		}
+	case <-ctx.Done():
+		return "", fmt.Errorf("读取响应超时（%v）: %w", client.Timeout, ctx.Err())
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -322,15 +355,21 @@ func isRetryableError(err error) bool {
 	retryableErrors := []string{
 		"EOF",
 		"timeout",
+		"Timeout",
+		"deadline exceeded",
+		"context deadline exceeded",
+		"context cancellation",
 		"connection reset",
 		"connection refused",
 		"temporary failure",
 		"no such host",
 		"stream error",   // HTTP/2 stream 错误
 		"INTERNAL_ERROR", // 服务端内部错误
+		"i/o timeout",
+		"read: connection reset",
 	}
 	for _, retryable := range retryableErrors {
-		if strings.Contains(errStr, retryable) {
+		if strings.Contains(strings.ToLower(errStr), strings.ToLower(retryable)) {
 			return true
 		}
 	}

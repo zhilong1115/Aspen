@@ -1,6 +1,7 @@
 package market
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -84,11 +85,24 @@ func (c *APIClient) GetExchangeInfo() (*ExchangeInfo, error) {
 		endpoint = fmt.Sprintf("%s/v5/market/instruments-info?category=linear", cfg.BaseURL)
 	case DataSourceBinanceUS:
 		endpoint = fmt.Sprintf("%s/api/v3/exchangeInfo", cfg.BaseURL)
+	case DataSourceHyperliquid:
+		endpoint = fmt.Sprintf("%s/info", cfg.BaseURL)
 	default: // Binance
 		endpoint = fmt.Sprintf("%s/fapi/v1/exchangeInfo", cfg.BaseURL)
 	}
-	
-	resp, err := c.client.Get(endpoint)
+
+	var resp *http.Response
+	var err error
+
+	if currentDataSource == DataSourceHyperliquid {
+		// Hyperliquid uses POST
+		reqBody := HyperliquidRequest{Type: "meta"}
+		jsonBody, _ := json.Marshal(reqBody)
+		resp, err = c.client.Post(endpoint, "application/json", bytes.NewBuffer(jsonBody))
+	} else {
+		resp, err = c.client.Get(endpoint)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +112,39 @@ func (c *APIClient) GetExchangeInfo() (*ExchangeInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if currentDataSource == DataSourceHyperliquid {
+		var meta HyperliquidMeta
+		if err := json.Unmarshal(body, &meta); err != nil {
+			return nil, err
+		}
+		// Convert to ExchangeInfo
+		var exchangeInfo ExchangeInfo
+		for _, asset := range meta.Universe {
+			if asset.IsDelisted {
+				continue
+			}
+			// Hyperliquid symbols are just "BTC", "ETH". We might want to append "USDT" or keep as is?
+			// The system seems to expect "BTCUSDT".
+			// Hyperliquid is USDC based usually, but let's check.
+			// For compatibility, let's append "USDT" or "USD" if the system expects it.
+			// Existing code in monitor.go checks for "USDT" suffix (line 60).
+			// So we should probably append "USDT" or "USDC".
+			// Let's use "USDT" for now to match existing filters, or update filters.
+			// Hyperliquid is USDC margined.
+			symbolName := asset.Name + "USDT" // Mapping to USDT for compatibility
+
+			exchangeInfo.Symbols = append(exchangeInfo.Symbols, SymbolInfo{
+				Symbol:       symbolName,
+				Status:       "TRADING",
+				ContractType: "PERPETUAL",
+				BaseAsset:    asset.Name,
+				QuoteAsset:   "USDT",
+			})
+		}
+		return &exchangeInfo, nil
+	}
+
 	var exchangeInfo ExchangeInfo
 	err = json.Unmarshal(body, &exchangeInfo)
 	if err != nil {
@@ -166,6 +213,32 @@ func (c *APIClient) GetKlines(symbol, interval string, limit int) ([]Kline, erro
 		q.Add("interval", interval)
 		q.Add("limit", strconv.Itoa(limit))
 		req.URL.RawQuery = q.Encode()
+	case DataSourceHyperliquid:
+		url = fmt.Sprintf("%s%s", cfg.BaseURL, cfg.KlinesEndpoint)
+		// Hyperliquid symbol conversion: BTCUSDT -> BTC
+		hlSymbol := symbol
+		if len(symbol) > 4 && symbol[len(symbol)-4:] == "USDT" {
+			hlSymbol = symbol[:len(symbol)-4]
+		}
+
+		startTime := CalculateHyperliquidStartTime(interval, limit)
+		endTime := time.Now().UnixMilli()
+
+		reqBody := HyperliquidRequest{
+			Type: "candleSnapshot",
+			Req: CandleSnapshotReq{
+				Coin:      hlSymbol,
+				Interval:  ConvertIntervalToHyperliquid(interval),
+				StartTime: startTime,
+				EndTime:   endTime,
+			},
+		}
+		jsonBody, _ := json.Marshal(reqBody)
+		req, err = http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		if err != nil {
+			return nil, fmt.Errorf("创建请求失败: %w", err)
+		}
 	default: // Binance
 		url = fmt.Sprintf("%s%s", cfg.BaseURL, cfg.KlinesEndpoint)
 		req, err = http.NewRequest("GET", url, nil)
@@ -210,6 +283,39 @@ func (c *APIClient) GetKlines(symbol, interval string, limit int) ([]Kline, erro
 		if err != nil {
 			log.Printf("❌ [Market] 解析Bybit K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
 			return nil, fmt.Errorf("解析Bybit JSON响应失败: %w", err)
+		}
+	} else if currentDataSource == DataSourceHyperliquid {
+		var hlKlines []HyperliquidCandle
+		err = json.Unmarshal(body, &hlKlines)
+		if err != nil {
+			log.Printf("❌ [Market] 解析Hyperliquid K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
+			return nil, fmt.Errorf("解析Hyperliquid JSON响应失败: %w", err)
+		}
+		for _, hlk := range hlKlines {
+			open, _ := strconv.ParseFloat(hlk.O, 64)
+			high, _ := strconv.ParseFloat(hlk.H, 64)
+			low, _ := strconv.ParseFloat(hlk.L, 64)
+			close, _ := strconv.ParseFloat(hlk.C, 64)
+			volume, _ := strconv.ParseFloat(hlk.V, 64)
+
+			// Hyperliquid volume is in base currency (BTC), quote volume needs calculation or approx
+			// QuoteVolume approx = volume * close (or avg of OHLC)
+			quoteVolume := volume * close
+
+			kline := Kline{
+				OpenTime:            hlk.T / 1000, // ms to s
+				Open:                open,
+				High:                high,
+				Low:                 low,
+				Close:               close,
+				Volume:              volume,
+				CloseTime:           (hlk.T / 1000) + 60, // Approx, or calculate based on interval
+				QuoteVolume:         quoteVolume,
+				Trades:              int(hlk.N),
+				TakerBuyBaseVolume:  0,
+				TakerBuyQuoteVolume: 0,
+			}
+			klines = append(klines, kline)
 		}
 	} else {
 		// Binance 和 Binance.US 使用相同的格式
@@ -461,6 +567,15 @@ func (c *APIClient) GetCurrentPrice(symbol string) (float64, error) {
 		if err != nil {
 			return 0, err
 		}
+	case DataSourceHyperliquid:
+		url = fmt.Sprintf("%s%s", cfg.BaseURL, cfg.PriceEndpoint)
+		reqBody := HyperliquidRequest{Type: "allMids"}
+		jsonBody, _ := json.Marshal(reqBody)
+		req, err = http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		if err != nil {
+			return 0, err
+		}
 	default: // Binance
 		url = fmt.Sprintf("%s%s?symbol=%s", cfg.BaseURL, cfg.PriceEndpoint, symbol)
 		req, err = http.NewRequest("GET", url, nil)
@@ -483,12 +598,12 @@ func (c *APIClient) GetCurrentPrice(symbol string) (float64, error) {
 	var price float64
 	if currentDataSource == DataSourceFinnhub {
 		var response struct {
-			C float64 `json:"c"` // Current price
-			H float64 `json:"h"` // High
-			L float64 `json:"l"` // Low
-			O float64 `json:"o"` // Open
+			C  float64 `json:"c"`  // Current price
+			H  float64 `json:"h"`  // High
+			L  float64 `json:"l"`  // Low
+			O  float64 `json:"o"`  // Open
 			PC float64 `json:"pc"` // Previous close
-			T int64   `json:"t"` // Timestamp
+			T  int64   `json:"t"`  // Timestamp
 		}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
@@ -516,6 +631,27 @@ func (c *APIClient) GetCurrentPrice(symbol string) (float64, error) {
 			return 0, fmt.Errorf("Bybit API错误: %s", response.RetMsg)
 		}
 		price, err = strconv.ParseFloat(response.Result.List[0].LastPrice, 64)
+		if err != nil {
+			return 0, err
+		}
+	} else if currentDataSource == DataSourceHyperliquid {
+		var allMids HyperliquidAllMids
+		err = json.Unmarshal(body, &allMids)
+		if err != nil {
+			return 0, err
+		}
+
+		// Hyperliquid symbol conversion: BTCUSDT -> BTC
+		hlSymbol := symbol
+		if len(symbol) > 4 && symbol[len(symbol)-4:] == "USDT" {
+			hlSymbol = symbol[:len(symbol)-4]
+		}
+
+		priceStr, ok := allMids[hlSymbol]
+		if !ok {
+			return 0, fmt.Errorf("Hyperliquid price not found for %s", hlSymbol)
+		}
+		price, err = strconv.ParseFloat(priceStr, 64)
 		if err != nil {
 			return 0, err
 		}
