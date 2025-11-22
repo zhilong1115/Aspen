@@ -1,13 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
-import MainLayout from '../layouts/MainLayout'
-import AuthLayout from '../layouts/AuthLayout'
-import { LandingPage } from '../pages/LandingPage'
-import { FAQPage } from '../pages/FAQPage'
+import { AITradersPage } from '../components/AITradersPage'
+import { CompetitionPage } from '../components/CompetitionPage'
 import { LoginPage } from '../components/LoginPage'
 import { RegisterPage } from '../components/RegisterPage'
 import { ResetPasswordPage } from '../components/ResetPasswordPage'
-import { CompetitionPage } from '../components/CompetitionPage'
-import { AITradersPage } from '../components/AITradersPage'
+import AuthLayout from '../layouts/AuthLayout'
+import MainLayout from '../layouts/MainLayout'
+import { LandingPage } from '../pages/LandingPage'
 import TraderDashboard from '../pages/TraderDashboard'
 
 export const router = createBrowserRouter([
@@ -37,10 +36,7 @@ export const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
-      {
-        path: '/faq',
-        element: <FAQPage />,
-      },
+
       {
         path: '/competition',
         element: <CompetitionPage />,

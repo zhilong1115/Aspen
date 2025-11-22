@@ -9,8 +9,7 @@ import {
   Pencil,
   Plus,
   Radio,
-  Trash2,
-  Users,
+  Trash2
 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -734,32 +733,25 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
         <div className="flex items-center gap-3 md:gap-4">
-          <div
-            className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center"
-            style={{
-              background: 'linear-gradient(135deg, #F0B90B 0%, #FCD535 100%)',
-              boxShadow: '0 4px 14px rgba(240, 185, 11, 0.4)',
-            }}
-          >
-            <Bot className="w-5 h-5 md:w-6 md:h-6" style={{ color: '#000' }} />
+          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-lg bg-white/50 backdrop-blur-sm border border-white/20">
+            <img src="/icons/icon-ai-trader.png" alt="AI Traders" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
           </div>
           <div>
             <h1
-              className="text-xl md:text-2xl font-bold flex items-center gap-2"
-              style={{ color: '#EAECEF' }}
+              className="text-xl md:text-2xl font-bold flex items-center gap-2 text-[var(--text-primary)]"
             >
               {t('aiTraders', language)}
               <span
                 className="text-xs font-normal px-2 py-1 rounded"
                 style={{
-                  background: 'rgba(240, 185, 11, 0.15)',
-                  color: '#F0B90B',
+                  background: 'var(--surface-soft-yellow)',
+                  color: 'var(--google-yellow)',
                 }}
               >
                 {traders?.length || 0} {t('active', language)}
               </span>
             </h1>
-            <p className="text-xs" style={{ color: '#848E9C' }}>
+            <p className="text-xs text-[var(--text-secondary)]">
               {t('manageAITraders', language)}
             </p>
           </div>
@@ -768,12 +760,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         <div className="flex gap-2 md:gap-3 w-full md:w-auto overflow-hidden flex-wrap md:flex-nowrap">
           <button
             onClick={handleAddModel}
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap"
-            style={{
-              background: '#2B3139',
-              color: '#EAECEF',
-              border: '1px solid #474D57',
-            }}
+            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
           >
             <Plus className="w-3 h-3 md:w-4 md:h-4" />
             {t('aiModels', language)}
@@ -781,12 +768,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
           <button
             onClick={handleAddExchange}
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap"
-            style={{
-              background: '#2B3139',
-              color: '#EAECEF',
-              border: '1px solid #474D57',
-            }}
+            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-white border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
           >
             <Plus className="w-3 h-3 md:w-4 md:h-4" />
             {t('exchanges', language)}
@@ -794,12 +776,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
           <button
             onClick={() => setShowSignalSourceModal(true)}
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap"
-            style={{
-              background: '#2B3139',
-              color: '#EAECEF',
-              border: '1px solid #474D57',
-            }}
+            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-white border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
           >
             <Radio className="w-3 h-3 md:w-4 md:h-4" />
             {t('signalSource', language)}
@@ -810,17 +787,10 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             disabled={
               configuredModels.length === 0 || configuredExchanges.length === 0
             }
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 whitespace-nowrap"
-            style={{
-              background:
-                configuredModels.length > 0 && configuredExchanges.length > 0
-                  ? '#F0B90B'
-                  : '#2B3139',
-              color:
-                configuredModels.length > 0 && configuredExchanges.length > 0
-                  ? '#000'
-                  : '#848E9C',
-            }}
+            className={`px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 whitespace-nowrap ${configuredModels.length > 0 && configuredExchanges.length > 0
+              ? 'bg-[var(--google-blue)] text-white shadow-md hover:shadow-lg'
+              : 'bg-[var(--surface-hover)] text-[var(--text-tertiary)]'
+              }`}
           >
             <Plus className="w-4 h-4" />
             {t('createTrader', language)}
@@ -834,22 +804,17 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         !userSignalSource.coinPoolUrl &&
         !userSignalSource.oiTopUrl && (
           <div
-            className="rounded-lg px-4 py-3 flex items-start gap-3 animate-slide-in"
-            style={{
-              background: 'rgba(246, 70, 93, 0.1)',
-              border: '1px solid rgba(246, 70, 93, 0.3)',
-            }}
+            className="rounded-lg px-4 py-3 flex items-start gap-3 animate-slide-in bg-[var(--surface-soft)] border border-[var(--google-red)]/30"
           >
             <AlertTriangle
               size={20}
-              className="flex-shrink-0 mt-0.5"
-              style={{ color: '#F6465D' }}
+              className="flex-shrink-0 mt-0.5 text-[var(--google-red)]"
             />
             <div className="flex-1">
-              <div className="font-semibold mb-1" style={{ color: '#F6465D' }}>
+              <div className="font-semibold mb-1 text-[var(--google-red)]">
                 ⚠️ {t('signalSourceNotConfigured', language)}
               </div>
-              <div className="text-sm" style={{ color: '#848E9C' }}>
+              <div className="text-sm text-[var(--text-secondary)]">
                 <p className="mb-2">
                   {t('signalSourceWarningMessage', language)}
                 </p>
@@ -864,11 +829,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               </div>
               <button
                 onClick={() => setShowSignalSourceModal(true)}
-                className="mt-3 px-3 py-1.5 rounded text-sm font-semibold transition-all hover:scale-105"
-                style={{
-                  background: '#F0B90B',
-                  color: '#000',
-                }}
+                className="mt-3 px-3 py-1.5 rounded text-sm font-semibold transition-all hover:scale-105 bg-[var(--google-yellow)] text-black"
               >
                 {t('configureSignalSourceNow', language)}
               </button>
@@ -879,15 +840,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       {/* Configuration Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* AI Models */}
-        <div className="binance-card p-3 md:p-4">
-          <h3
-            className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2"
-            style={{ color: '#EAECEF' }}
-          >
-            <Brain
-              className="w-4 h-4 md:w-5 md:h-5"
-              style={{ color: '#60a5fa' }}
-            />
+        <div className="glass-card p-4 md:p-5">
+          <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-3 text-[var(--text-primary)]">
+            <div className="p-1.5 rounded-md bg-[var(--surface-soft-purple)] text-[var(--google-blue)]">
+              <Brain size={20} />
+            </div>
             {t('aiModels', language)}
           </h3>
           <div className="space-y-2 md:space-y-3">
@@ -913,11 +870,10 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={model.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all ${inUse
-                    ? 'cursor-not-allowed'
-                    : 'cursor-pointer hover:bg-gray-700'
+                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all border border-[var(--border-light)] ${inUse
+                    ? 'cursor-not-allowed bg-gray-50'
+                    : 'cursor-pointer hover:bg-[var(--surface-hover)] bg-[var(--surface)]'
                     }`}
-                  style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
                   onClick={() => handleModelClick(model.id)}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
@@ -930,8 +886,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                             className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold"
                             style={{
                               background:
-                                model.id === 'deepseek' ? '#60a5fa' : '#c084fc',
-                              color: '#fff',
+                                model.id === 'deepseek' ? 'var(--google-blue)' : 'var(--surface-soft-purple)',
+                              color: model.id === 'deepseek' ? '#fff' : 'var(--google-blue)',
                             }}
                           >
                             {getShortName(model.name)[0]}
@@ -940,12 +896,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                     </div>
                     <div className="min-w-0">
                       <div
-                        className="font-semibold text-sm md:text-base truncate"
-                        style={{ color: '#EAECEF' }}
+                        className="font-semibold text-sm md:text-base truncate text-[var(--text-primary)]"
                       >
                         {displayName}{modelIdSuffix}
                       </div>
-                      <div className="text-xs" style={{ color: '#848E9C' }}>
+                      <div className="text-xs text-[var(--text-secondary)]">
                         {inUse
                           ? t('inUse', language)
                           : model.enabled
@@ -962,8 +917,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             })}
             {configuredModels.length === 0 && (
               <div
-                className="text-center py-6 md:py-8"
-                style={{ color: '#848E9C' }}
+                className="text-center py-6 md:py-8 text-[var(--text-secondary)]"
               >
                 <Brain className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 opacity-50" />
                 <div className="text-xs md:text-sm">
@@ -975,15 +929,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         </div>
 
         {/* Exchanges */}
-        <div className="binance-card p-3 md:p-4">
-          <h3
-            className="text-base md:text-lg font-semibold mb-3 flex items-center gap-2"
-            style={{ color: '#EAECEF' }}
-          >
-            <Landmark
-              className="w-4 h-4 md:w-5 md:h-5"
-              style={{ color: '#F0B90B' }}
-            />
+        <div className="glass-card p-4 md:p-5">
+          <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-3 text-[var(--text-primary)]">
+            <div className="p-1.5 rounded-md bg-[var(--surface-soft-green)] text-[var(--google-green)]">
+              <Landmark size={20} />
+            </div>
             {t('exchanges', language)}
           </h3>
           <div className="space-y-2 md:space-y-3">
@@ -992,11 +942,10 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={exchange.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all ${inUse
-                    ? 'cursor-not-allowed'
-                    : 'cursor-pointer hover:bg-gray-700'
+                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all border border-[var(--border-light)] ${inUse
+                    ? 'cursor-not-allowed bg-gray-50'
+                    : 'cursor-pointer hover:bg-[var(--surface-hover)] bg-[var(--surface)]'
                     }`}
-                  style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
                   onClick={() => handleExchangeClick(exchange.id)}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
@@ -1005,12 +954,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                     </div>
                     <div className="min-w-0">
                       <div
-                        className="font-semibold text-sm md:text-base truncate"
-                        style={{ color: '#EAECEF' }}
+                        className="font-semibold text-sm md:text-base truncate text-[var(--text-primary)]"
                       >
                         {getShortName(exchange.name)}
                       </div>
-                      <div className="text-xs" style={{ color: '#848E9C' }}>
+                      <div className="text-xs text-[var(--text-secondary)]">
                         {exchange.type.toUpperCase()} •{' '}
                         {inUse
                           ? t('inUse', language)
@@ -1028,8 +976,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             })}
             {configuredExchanges.length === 0 && (
               <div
-                className="text-center py-6 md:py-8"
-                style={{ color: '#848E9C' }}
+                className="text-center py-6 md:py-8 text-[var(--text-secondary)]"
               >
                 <Landmark className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 opacity-50" />
                 <div className="text-xs md:text-sm">
@@ -1042,16 +989,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       </div>
 
       {/* Traders List */}
-      <div className="binance-card p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4 md:mb-5">
-          <h2
-            className="text-lg md:text-xl font-bold flex items-center gap-2"
-            style={{ color: '#EAECEF' }}
-          >
-            <Users
-              className="w-5 h-5 md:w-6 md:h-6"
-              style={{ color: '#F0B90B' }}
-            />
+      <div className="glass-card p-4 md:p-6">
+        <div className="flex items-center justify-between mb-5 md:mb-6">
+          <h2 className="text-lg md:text-xl font-bold flex items-center gap-3 text-[var(--text-primary)]">
+            <div className="p-1.5 rounded-md bg-[var(--surface-soft-blue)] text-[var(--google-blue)]">
+              <Bot size={20} />
+            </div>
             {t('currentTraders', language)}
           </h2>
         </div>
@@ -1061,25 +1004,23 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             {traders.map((trader) => (
               <div
                 key={trader.trader_id}
-                className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 rounded transition-all hover:translate-y-[-1px] gap-3 md:gap-4"
-                style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
+                className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 rounded transition-all hover:translate-y-[-1px] gap-3 md:gap-4 bg-[var(--surface)] border border-[var(--border-light)] hover:shadow-md"
               >
                 <div className="flex items-center gap-3 md:gap-4">
                   <div
                     className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
                       background: trader.ai_model.includes('deepseek')
-                        ? '#60a5fa'
-                        : '#c084fc',
-                      color: '#fff',
+                        ? 'var(--google-blue)'
+                        : 'var(--surface-soft-purple)',
+                      color: trader.ai_model.includes('deepseek') ? '#fff' : 'var(--google-blue)',
                     }}
                   >
                     <Bot className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div className="min-w-0">
                     <div
-                      className="font-bold text-base md:text-lg truncate"
-                      style={{ color: '#EAECEF' }}
+                      className="font-bold text-base md:text-lg truncate text-[var(--text-primary)]"
                     >
                       {trader.trader_name}
                     </div>
@@ -1087,8 +1028,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       className="text-xs md:text-sm truncate"
                       style={{
                         color: trader.ai_model.includes('deepseek')
-                          ? '#60a5fa'
-                          : '#c084fc',
+                          ? 'var(--google-blue)'
+                          : 'var(--text-secondary)',
                       }}
                     >
                       {getModelDisplayName(
@@ -1113,12 +1054,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       style={
                         trader.is_running
                           ? {
-                            background: 'rgba(14, 203, 129, 0.1)',
-                            color: '#0ECB81',
+                            background: 'var(--surface-soft-green)',
+                            color: 'var(--google-green)',
                           }
                           : {
-                            background: 'rgba(246, 70, 93, 0.1)',
-                            color: '#F6465D',
+                            background: 'var(--surface-soft)',
+                            color: 'var(--google-red)',
                           }
                       }
                     >
@@ -1140,8 +1081,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       }}
                       className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 whitespace-nowrap"
                       style={{
-                        background: 'rgba(99, 102, 241, 0.1)',
-                        color: '#6366F1',
+                        background: 'var(--surface-soft-blue)',
+                        color: 'var(--google-blue)',
                       }}
                     >
                       <BarChart3 className="w-3 h-3 md:w-4 md:h-4" />
@@ -1154,9 +1095,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1"
                       style={{
                         background: trader.is_running
-                          ? 'rgba(132, 142, 156, 0.1)'
-                          : 'rgba(255, 193, 7, 0.1)',
-                        color: trader.is_running ? '#848E9C' : '#FFC107',
+                          ? 'var(--surface-hover)'
+                          : 'var(--surface-soft-yellow)',
+                        color: trader.is_running ? 'var(--text-secondary)' : 'var(--google-yellow)',
                       }}
                     >
                       <Pencil className="w-3 h-3 md:w-4 md:h-4" />
@@ -1174,12 +1115,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       style={
                         trader.is_running
                           ? {
-                            background: 'rgba(246, 70, 93, 0.1)',
-                            color: '#F6465D',
+                            background: 'var(--surface-soft)',
+                            color: 'var(--google-red)',
                           }
                           : {
-                            background: 'rgba(14, 203, 129, 0.1)',
-                            color: '#0ECB81',
+                            background: 'var(--surface-soft-green)',
+                            color: 'var(--google-green)',
                           }
                       }
                     >
@@ -1192,8 +1133,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                       onClick={() => handleDeleteTrader(trader.trader_id)}
                       className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105"
                       style={{
-                        background: 'rgba(246, 70, 93, 0.1)',
-                        color: '#F6465D',
+                        background: 'var(--surface-soft)',
+                        color: 'var(--google-red)',
                       }}
                     >
                       <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
@@ -1205,8 +1146,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           </div>
         ) : (
           <div
-            className="text-center py-12 md:py-16"
-            style={{ color: '#848E9C' }}
+            className="text-center py-12 md:py-16 text-[var(--text-secondary)]"
           >
             <Bot className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 opacity-50" />
             <div className="text-base md:text-lg font-semibold mb-2">
@@ -1331,9 +1271,9 @@ function Tooltip({
         <div
           className="absolute z-10 px-3 py-2 text-sm rounded-lg shadow-lg w-64 left-1/2 transform -translate-x-1/2 bottom-full mb-2"
           style={{
-            background: '#2B3139',
-            color: '#EAECEF',
-            border: '1px solid #474D57',
+            background: 'var(--surface-hover)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border)',
           }}
         >
           {content}
@@ -1344,7 +1284,7 @@ function Tooltip({
               height: 0,
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderTop: '6px solid #2B3139',
+              borderTop: '6px solid var(--surface-hover)',
             }}
           />
         </div>
@@ -1378,13 +1318,12 @@ function SignalSourceModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div
-        className="bg-gray-800 rounded-lg w-full max-w-lg relative my-8"
+        className="bg-[var(--surface)] rounded-xl w-full max-w-lg relative my-8 shadow-2xl border border-[var(--border-light)]"
         style={{
-          background: '#1E2329',
           maxHeight: 'calc(100vh - 4rem)',
         }}
       >
-        <h3 className="text-xl font-bold mb-4" style={{ color: '#EAECEF' }}>
+        <h3 className="text-xl font-bold mb-4 text-[var(--text-primary)]">
           {t('signalSourceConfig', language)}
         </h3>
 
@@ -1395,8 +1334,7 @@ function SignalSourceModal({
           >
             <div>
               <label
-                className="block text-sm font-semibold mb-2"
-                style={{ color: '#EAECEF' }}
+                className="block text-sm font-semibold mb-2 text-[var(--text-primary)]"
               >
                 COIN POOL URL
               </label>
@@ -1405,12 +1343,7 @@ function SignalSourceModal({
                 value={coinPool}
                 onChange={(e) => setCoinPool(e.target.value)}
                 placeholder="https://api.example.com/coinpool"
-                className="w-full px-3 py-2 rounded"
-                style={{
-                  background: '#0B0E11',
-                  border: '1px solid #2B3139',
-                  color: '#EAECEF',
-                }}
+                className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent outline-none transition-all"
               />
               <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
                 {t('coinPoolDescription', language)}
@@ -1419,8 +1352,7 @@ function SignalSourceModal({
 
             <div>
               <label
-                className="block text-sm font-semibold mb-2"
-                style={{ color: '#EAECEF' }}
+                className="block text-sm font-semibold mb-2 text-[var(--text-primary)]"
               >
                 OI TOP URL
               </label>
@@ -1429,12 +1361,7 @@ function SignalSourceModal({
                 value={oiTop}
                 onChange={(e) => setOiTop(e.target.value)}
                 placeholder="https://api.example.com/oitop"
-                className="w-full px-3 py-2 rounded"
-                style={{
-                  background: '#0B0E11',
-                  border: '1px solid #2B3139',
-                  color: '#EAECEF',
-                }}
+                className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent outline-none transition-all"
               />
               <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
                 {t('oiTopDescription', language)}
@@ -1444,17 +1371,16 @@ function SignalSourceModal({
             <div
               className="p-4 rounded"
               style={{
-                background: 'rgba(240, 185, 11, 0.1)',
-                border: '1px solid rgba(240, 185, 11, 0.2)',
+                background: 'var(--surface-soft-yellow)',
+                border: '1px solid var(--google-yellow)/20',
               }}
             >
               <div
-                className="text-sm font-semibold mb-2"
-                style={{ color: '#F0B90B' }}
+                className="text-sm font-semibold mb-2 text-[var(--google-yellow)]"
               >
                 ℹ️ {t('information', language)}
               </div>
-              <div className="text-xs space-y-1" style={{ color: '#848E9C' }}>
+              <div className="text-xs space-y-1 text-[var(--text-secondary)]">
                 <div>{t('signalSourceInfo1', language)}</div>
                 <div>{t('signalSourceInfo2', language)}</div>
                 <div>{t('signalSourceInfo3', language)}</div>
@@ -1463,21 +1389,18 @@ function SignalSourceModal({
           </div>
 
           <div
-            className="flex gap-3 mt-6 pt-4 sticky bottom-0"
-            style={{ background: '#1E2329' }}
+            className="flex gap-3 mt-6 pt-4 sticky bottom-0 bg-[var(--surface)] border-t border-[var(--border-light)]"
           >
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: '#2B3139', color: '#848E9C' }}
+              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-[var(--surface-hover)] text-[var(--text-secondary)]"
             >
               {t('cancel', language)}
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: '#F0B90B', color: '#000' }}
+              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-[var(--google-blue)] text-white hover:opacity-90 transition-opacity shadow-md"
             >
               {t('save', language)}
             </button>

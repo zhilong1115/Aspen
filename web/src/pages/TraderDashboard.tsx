@@ -1,32 +1,32 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import useSWR from 'swr'
-import { api } from '../lib/api'
-import { EquityChart } from '../components/EquityChart'
-import AILearning from '../components/AILearning'
-import { useLanguage } from '../contexts/LanguageContext'
-import { useAuth } from '../contexts/AuthContext'
-import { t, type Language } from '../i18n/translations'
 import {
   AlertTriangle,
   Bot,
   Brain,
-  RefreshCw,
-  TrendingUp,
-  PieChart,
-  Inbox,
-  Send,
   Check,
+  Inbox,
+  PieChart,
+  RefreshCw,
+  Send,
+  TrendingUp,
   X,
-  XCircle,
+  XCircle
 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import useSWR from 'swr'
+import AILearning from '../components/AILearning'
+import { EquityChart } from '../components/EquityChart'
+import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
+import { t, type Language } from '../i18n/translations'
+import { api } from '../lib/api'
 import { stripLeadingIcons } from '../lib/text'
 import type {
-  SystemStatus,
   AccountInfo,
-  Position,
   DecisionRecord,
+  Position,
   Statistics,
+  SystemStatus,
   TraderInfo,
 } from '../types'
 
@@ -148,26 +148,9 @@ export default function TraderDashboard() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md mx-auto px-6">
           <div
-            className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
-            style={{
-              background: 'rgba(240, 185, 11, 0.1)',
-              border: '2px solid rgba(240, 185, 11, 0.3)',
-            }}
+            className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center bg-[var(--surface-soft-yellow)] border-2 border-[var(--google-yellow)]/30"
           >
-            <svg
-              className="w-12 h-12"
-              style={{ color: '#F0B90B' }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
+            <Bot size={48} className="text-[var(--google-yellow)]" />
           </div>
           <h2 className="text-2xl font-bold mb-3" style={{ color: '#EAECEF' }}>
             {t('dashboardEmptyTitle', language)}
@@ -177,12 +160,7 @@ export default function TraderDashboard() {
           </p>
           <button
             onClick={() => navigate('/traders')}
-            className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, #F0B90B 0%, #FCD535 100%)',
-              color: '#0B0E11',
-              boxShadow: '0 4px 12px rgba(240, 185, 11, 0.3)',
-            }}
+            className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 active:scale-95 bg-[var(--google-yellow)] text-black shadow-md hover:shadow-lg"
           >
             {t('goToTradersPage', language)}
           </button>
@@ -197,26 +175,9 @@ export default function TraderDashboard() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center max-w-md mx-auto px-6">
           <div
-            className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center"
-            style={{
-              background: 'rgba(240, 185, 11, 0.1)',
-              border: '2px solid rgba(240, 185, 11, 0.3)',
-            }}
+            className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center bg-[var(--surface-soft-yellow)] border-2 border-[var(--google-yellow)]/30"
           >
-            <svg
-              className="w-12 h-12"
-              style={{ color: '#F0B90B' }}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
+            <Bot size={48} className="text-[var(--google-yellow)]" />
           </div>
           <h2 className="text-2xl font-bold mb-3" style={{ color: '#EAECEF' }}>
             {t('dashboardEmptyTitle', language)}
@@ -226,12 +187,7 @@ export default function TraderDashboard() {
           </p>
           <button
             onClick={() => navigate('/traders')}
-            className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, #F0B90B 0%, #FCD535 100%)',
-              color: '#0B0E11',
-              boxShadow: '0 4px 12px rgba(240, 185, 11, 0.3)',
-            }}
+            className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 active:scale-95 bg-[var(--google-yellow)] text-black shadow-md hover:shadow-lg"
           >
             {t('goToTradersPage', language)}
           </button>
@@ -244,25 +200,27 @@ export default function TraderDashboard() {
   if (!selectedTrader) {
     return (
       <div className="space-y-6">
-        <div className="binance-card p-6 animate-pulse">
-          <div className="skeleton h-8 w-48 mb-3"></div>
-          <div className="flex gap-4">
-            <div className="skeleton h-4 w-32"></div>
-            <div className="skeleton h-4 w-24"></div>
-            <div className="skeleton h-4 w-28"></div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="binance-card p-5 animate-pulse">
-              <div className="skeleton h-4 w-24 mb-3"></div>
-              <div className="skeleton h-8 w-32"></div>
+        <div className="space-y-6">
+          <div className="glass-card p-6 animate-pulse">
+            <div className="skeleton h-8 w-48 mb-3 bg-gray-200"></div>
+            <div className="flex gap-4">
+              <div className="skeleton h-4 w-32 bg-gray-200"></div>
+              <div className="skeleton h-4 w-24 bg-gray-200"></div>
+              <div className="skeleton h-4 w-28 bg-gray-200"></div>
             </div>
-          ))}
-        </div>
-        <div className="binance-card p-6 animate-pulse">
-          <div className="skeleton h-6 w-40 mb-4"></div>
-          <div className="skeleton h-64 w-full"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="glass-card p-5 animate-pulse">
+                <div className="skeleton h-4 w-24 mb-3 bg-gray-200"></div>
+                <div className="skeleton h-8 w-32 bg-gray-200"></div>
+              </div>
+            ))}
+          </div>
+          <div className="glass-card p-6 animate-pulse">
+            <div className="skeleton h-6 w-40 mb-4 bg-gray-200"></div>
+            <div className="skeleton h-64 w-full bg-gray-200"></div>
+          </div>
         </div>
       </div>
     )
@@ -271,27 +229,11 @@ export default function TraderDashboard() {
   return (
     <div>
       {/* Trader Header */}
-      <div
-        className="mb-6 rounded p-6 animate-scale-in"
-        style={{
-          background:
-            'linear-gradient(135deg, rgba(240, 185, 11, 0.15) 0%, rgba(252, 213, 53, 0.05) 100%)',
-          border: '1px solid rgba(240, 185, 11, 0.2)',
-          boxShadow: '0 0 30px rgba(240, 185, 11, 0.15)',
-        }}
-      >
+      <div className="mb-6 rounded-xl p-6 animate-scale-in bg-[var(--surface-soft-yellow)] border border-[var(--google-yellow)]/20 shadow-sm">
         <div className="flex items-start justify-between mb-3">
-          <h2
-            className="text-2xl font-bold flex items-center gap-2"
-            style={{ color: '#EAECEF' }}
-          >
-            <span
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #F0B90B 0%, #FCD535 100%)',
-              }}
-            >
-              <Bot className="w-5 h-5" style={{ color: '#0B0E11' }} />
+          <h2 className="text-2xl font-bold flex items-center gap-2 text-[var(--text-primary)]">
+            <span className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--google-yellow)] text-black shadow-sm">
+              <Bot className="w-5 h-5" />
             </span>
             {selectedTrader.trader_name}
           </h2>
@@ -299,18 +241,13 @@ export default function TraderDashboard() {
           {/* Trader Selector */}
           {traders && traders.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-sm" style={{ color: '#848E9C' }}>
+              <span className="text-sm text-[var(--text-secondary)]">
                 {t('switchTrader', language)}:
               </span>
               <select
                 value={selectedTraderId}
                 onChange={(e) => handleTraderSelect(e.target.value)}
-                className="rounded px-3 py-2 text-sm font-medium cursor-pointer transition-colors"
-                style={{
-                  background: '#1E2329',
-                  border: '1px solid #2B3139',
-                  color: '#EAECEF',
-                }}
+                className="rounded px-3 py-2 text-sm font-medium cursor-pointer transition-colors bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--google-blue)] focus:border-transparent outline-none"
               >
                 {traders.map((trader) => (
                   <option key={trader.trader_id} value={trader.trader_id}>
@@ -321,23 +258,20 @@ export default function TraderDashboard() {
             </div>
           )}
         </div>
-        <div
-          className="flex items-center gap-4 text-sm"
-          style={{ color: '#848E9C' }}
-        >
+        <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
           <span>
             AI Model:{' '}
             <span
               className="font-semibold"
               style={{
                 color: selectedTrader.ai_model.includes('qwen')
-                  ? '#c084fc'
-                  : '#60a5fa',
+                  ? '#9333ea'
+                  : '#2563eb',
               }}
             >
               {getModelDisplayName(
                 selectedTrader.ai_model.split('_').pop() ||
-                  selectedTrader.ai_model
+                selectedTrader.ai_model
               )}
             </span>
           </span>
@@ -354,11 +288,8 @@ export default function TraderDashboard() {
 
       {/* Debug Info */}
       {account && (
-        <div
-          className="mb-4 p-3 rounded text-xs font-mono"
-          style={{ background: '#1E2329', border: '1px solid #2B3139' }}
-        >
-          <div style={{ color: '#848E9C' }}>
+        <div className="mb-4 p-3 rounded text-xs font-mono bg-[var(--surface)] border border-[var(--border-light)] text-[var(--text-secondary)]">
+          <div>
             <RefreshCw className="inline w-4 h-4 mr-1 align-text-bottom" />
             Last Update: {lastUpdate} | Total Equity:{' '}
             {account?.total_equity?.toFixed(2) || '0.00'} | Available:{' '}
@@ -406,25 +337,17 @@ export default function TraderDashboard() {
 
           {/* Current Positions */}
           <div
-            className="binance-card p-6 animate-slide-in"
+            className="glass-card p-6 animate-slide-in"
             style={{ animationDelay: '0.15s' }}
           >
             <div className="flex items-center justify-between mb-5">
-              <h2
-                className="text-xl font-bold flex items-center gap-2"
-                style={{ color: '#EAECEF' }}
-              >
-                <TrendingUp className="w-5 h-5" style={{ color: '#F0B90B' }} />
+              <h2 className="text-xl font-bold flex items-center gap-2 text-[var(--text-primary)]">
+                <TrendingUp className="w-5 h-5 text-[var(--google-yellow)]" />
                 {t('currentPositions', language)}
               </h2>
               {positions && positions.length > 0 && (
                 <div
-                  className="text-xs px-3 py-1 rounded"
-                  style={{
-                    background: 'rgba(240, 185, 11, 0.1)',
-                    color: '#F0B90B',
-                    border: '1px solid rgba(240, 185, 11, 0.2)',
-                  }}
+                  className="text-xs px-3 py-1 rounded bg-[var(--surface-soft-yellow)] text-[var(--google-yellow)] border border-[var(--google-yellow)]/20"
                 >
                   {positions.length} {t('active', language)}
                 </div>
@@ -433,7 +356,7 @@ export default function TraderDashboard() {
             {positions && positions.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-left border-b border-gray-800">
+                  <thead className="text-left border-b border-[var(--border-light)]">
                     <tr>
                       <th className="pb-3 font-semibold text-gray-400">
                         {t('symbol', language)}
@@ -468,7 +391,7 @@ export default function TraderDashboard() {
                     {positions.map((pos, i) => (
                       <tr
                         key={i}
-                        className="border-b border-gray-800 last:border-0"
+                        className="border-b border-[var(--border-light)] last:border-0"
                       >
                         <td className="py-3 font-mono font-semibold">
                           {pos.symbol}
@@ -479,13 +402,13 @@ export default function TraderDashboard() {
                             style={
                               pos.side === 'long'
                                 ? {
-                                    background: 'rgba(14, 203, 129, 0.1)',
-                                    color: '#0ECB81',
-                                  }
+                                  background: 'var(--surface-soft-green)',
+                                  color: 'var(--google-green)',
+                                }
                                 : {
-                                    background: 'rgba(246, 70, 93, 0.1)',
-                                    color: '#F6465D',
-                                  }
+                                  background: 'var(--surface-soft)',
+                                  color: 'var(--google-red)',
+                                }
                             }
                           >
                             {t(
@@ -494,41 +417,26 @@ export default function TraderDashboard() {
                             )}
                           </span>
                         </td>
-                        <td
-                          className="py-3 font-mono"
-                          style={{ color: '#EAECEF' }}
-                        >
+                        <td className="py-3 font-mono text-[var(--text-primary)]">
                           {pos.entry_price.toFixed(4)}
                         </td>
-                        <td
-                          className="py-3 font-mono"
-                          style={{ color: '#EAECEF' }}
-                        >
+                        <td className="py-3 font-mono text-[var(--text-primary)]">
                           {pos.mark_price.toFixed(4)}
                         </td>
-                        <td
-                          className="py-3 font-mono"
-                          style={{ color: '#EAECEF' }}
-                        >
+                        <td className="py-3 font-mono text-[var(--text-primary)]">
                           {pos.quantity.toFixed(4)}
                         </td>
-                        <td
-                          className="py-3 font-mono font-bold"
-                          style={{ color: '#EAECEF' }}
-                        >
+                        <td className="py-3 font-mono font-bold text-[var(--text-primary)]">
                           {(pos.quantity * pos.mark_price).toFixed(2)} USDT
                         </td>
-                        <td
-                          className="py-3 font-mono"
-                          style={{ color: '#F0B90B' }}
-                        >
+                        <td className="py-3 font-mono text-[var(--google-yellow)]">
                           {pos.leverage}x
                         </td>
                         <td className="py-3 font-mono">
                           <span
                             style={{
                               color:
-                                pos.unrealized_pnl >= 0 ? '#0ECB81' : '#F6465D',
+                                pos.unrealized_pnl >= 0 ? 'var(--google-green)' : 'var(--google-red)',
                               fontWeight: 'bold',
                             }}
                           >
@@ -537,10 +445,7 @@ export default function TraderDashboard() {
                             {pos.unrealized_pnl_pct.toFixed(2)}%)
                           </span>
                         </td>
-                        <td
-                          className="py-3 font-mono"
-                          style={{ color: '#848E9C' }}
-                        >
+                        <td className="py-3 font-mono text-[var(--text-secondary)]">
                           {pos.liquidation_price.toFixed(4)}
                         </td>
                       </tr>
@@ -549,7 +454,7 @@ export default function TraderDashboard() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-16" style={{ color: '#848E9C' }}>
+              <div className="text-center py-16 text-[var(--text-tertiary)]">
                 <div className="mb-4 opacity-50 flex justify-center">
                   <PieChart className="w-16 h-16" />
                 </div>
@@ -566,28 +471,23 @@ export default function TraderDashboard() {
 
         {/* 右侧：Recent Decisions */}
         <div
-          className="binance-card p-6 animate-slide-in h-fit lg:sticky lg:top-24 lg:max-h-[calc(100vh-120px)]"
+          className="glass-card p-6 animate-slide-in h-fit lg:sticky lg:top-24 lg:max-h-[calc(100vh-120px)]"
           style={{ animationDelay: '0.2s' }}
         >
           <div
-            className="flex items-center gap-3 mb-5 pb-4 border-b"
-            style={{ borderColor: '#2B3139' }}
+            className="flex items-center gap-3 mb-5 pb-4 border-b border-[var(--border-light)]"
           >
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
-              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center bg-[var(--surface-soft-purple)] shadow-sm"
             >
-              <Brain className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+              <Brain className="w-5 h-5 text-[var(--google-blue)]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold" style={{ color: '#EAECEF' }}>
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">
                 {t('recentDecisions', language)}
               </h2>
               {decisions && decisions.length > 0 && (
-                <div className="text-xs" style={{ color: '#848E9C' }}>
+                <div className="text-xs text-[var(--text-secondary)]">
                   {t('lastCycles', language, { count: decisions.length })}
                 </div>
               )}
@@ -607,13 +507,10 @@ export default function TraderDashboard() {
                 <div className="mb-4 opacity-30 flex justify-center">
                   <Brain className="w-16 h-16" />
                 </div>
-                <div
-                  className="text-lg font-semibold mb-2"
-                  style={{ color: '#EAECEF' }}
-                >
+                <div className="text-lg font-semibold mb-2 text-[var(--text-primary)]">
                   {t('noDecisionsYet', language)}
                 </div>
-                <div className="text-sm" style={{ color: '#848E9C' }}>
+                <div className="text-sm text-[var(--text-secondary)]">
                   {t('aiDecisionsWillAppear', language)}
                 </div>
               </div>
@@ -646,23 +543,17 @@ function StatCard({
 }) {
   return (
     <div className="stat-card animate-fade-in">
-      <div
-        className="text-xs mb-2 mono uppercase tracking-wider"
-        style={{ color: '#848E9C' }}
-      >
+      <div className="text-xs mb-2 mono uppercase tracking-wider text-[var(--text-secondary)]">
         {title}
       </div>
-      <div
-        className="text-2xl font-bold mb-1 mono"
-        style={{ color: '#EAECEF' }}
-      >
+      <div className="text-2xl font-bold mb-1 mono text-[var(--text-primary)]">
         {value}
       </div>
       {change !== undefined && (
         <div className="flex items-center gap-1">
           <div
             className="text-sm mono font-bold"
-            style={{ color: positive ? '#0ECB81' : '#F6465D' }}
+            style={{ color: positive ? 'var(--google-green)' : 'var(--google-red)' }}
           >
             {positive ? '▲' : '▼'} {positive ? '+' : ''}
             {change.toFixed(2)}%
@@ -670,7 +561,7 @@ function StatCard({
         </div>
       )}
       {subtitle && (
-        <div className="text-xs mt-2 mono" style={{ color: '#848E9C' }}>
+        <div className="text-xs mt-2 mono text-[var(--text-secondary)]">
           {subtitle}
         </div>
       )}
@@ -691,20 +582,15 @@ function DecisionCard({
 
   return (
     <div
-      className="rounded p-5 transition-all duration-300 hover:translate-y-[-2px]"
-      style={{
-        border: '1px solid #2B3139',
-        background: '#1E2329',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-      }}
+      className="rounded-xl p-5 transition-all duration-300 hover:translate-y-[-2px] bg-[var(--surface)] border border-[var(--border)] shadow-sm hover:shadow-md"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="font-semibold" style={{ color: '#EAECEF' }}>
+          <div className="font-semibold text-[var(--text-primary)]">
             {t('cycle', language)} #{decision.cycle_number}
           </div>
-          <div className="text-xs" style={{ color: '#848E9C' }}>
+          <div className="text-xs text-[var(--text-secondary)]">
             {new Date(decision.timestamp).toLocaleString()}
           </div>
         </div>
@@ -712,8 +598,8 @@ function DecisionCard({
           className="px-3 py-1 rounded text-xs font-bold"
           style={
             decision.success
-              ? { background: 'rgba(14, 203, 129, 0.1)', color: '#0ECB81' }
-              : { background: 'rgba(246, 70, 93, 0.1)', color: '#F6465D' }
+              ? { background: 'var(--surface-soft-green)', color: 'var(--google-green)' }
+              : { background: 'var(--surface-soft)', color: 'var(--google-red)' }
           }
         >
           {t(decision.success ? 'success' : 'failed', language)}
@@ -725,8 +611,7 @@ function DecisionCard({
         <div className="mb-3">
           <button
             onClick={() => setShowInputPrompt(!showInputPrompt)}
-            className="flex items-center gap-2 text-sm transition-colors"
-            style={{ color: '#60a5fa' }}
+            className="flex items-center gap-2 text-sm transition-colors text-[var(--google-blue)]"
           >
             <span className="font-semibold flex items-center gap-2">
               <Inbox className="w-4 h-4" /> {t('inputPrompt', language)}
@@ -741,9 +626,9 @@ function DecisionCard({
             <div
               className="mt-2 rounded p-4 text-sm font-mono whitespace-pre-wrap max-h-96 overflow-y-auto"
               style={{
-                background: '#0B0E11',
-                border: '1px solid #2B3139',
-                color: '#EAECEF',
+                background: 'var(--background)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
               }}
             >
               {decision.input_prompt}
@@ -757,8 +642,7 @@ function DecisionCard({
         <div className="mb-3">
           <button
             onClick={() => setShowCoT(!showCoT)}
-            className="flex items-center gap-2 text-sm transition-colors"
-            style={{ color: '#F0B90B' }}
+            className="flex items-center gap-2 text-sm transition-colors text-[var(--google-yellow)]"
           >
             <span className="font-semibold flex items-center gap-2">
               <Send className="w-4 h-4" />{' '}
@@ -772,9 +656,9 @@ function DecisionCard({
             <div
               className="mt-2 rounded p-4 text-sm font-mono whitespace-pre-wrap max-h-96 overflow-y-auto"
               style={{
-                background: '#0B0E11',
-                border: '1px solid #2B3139',
-                color: '#EAECEF',
+                background: 'var(--background)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
               }}
             >
               {decision.cot_trace}
@@ -789,13 +673,9 @@ function DecisionCard({
           {decision.decisions.map((action, j) => (
             <div
               key={j}
-              className="flex items-center gap-2 text-sm rounded px-3 py-2"
-              style={{ background: '#0B0E11' }}
+              className="flex items-center gap-2 text-sm rounded px-3 py-2 bg-[var(--background)]"
             >
-              <span
-                className="font-mono font-bold"
-                style={{ color: '#EAECEF' }}
-              >
+              <span className="font-mono font-bold text-[var(--text-primary)]">
                 {action.symbol}
               </span>
               <span
@@ -803,13 +683,13 @@ function DecisionCard({
                 style={
                   action.action.includes('open')
                     ? {
-                        background: 'rgba(96, 165, 250, 0.1)',
-                        color: '#60a5fa',
-                      }
+                      background: 'rgba(96, 165, 250, 0.1)',
+                      color: '#60a5fa',
+                    }
                     : {
-                        background: 'rgba(240, 185, 11, 0.1)',
-                        color: '#F0B90B',
-                      }
+                      background: 'var(--surface-soft-yellow)',
+                      color: 'var(--google-yellow)',
+                    }
                 }
               >
                 {action.action}
@@ -819,8 +699,7 @@ function DecisionCard({
               )}
               {action.price > 0 && (
                 <span
-                  className="font-mono text-xs"
-                  style={{ color: '#848E9C' }}
+                  className="font-mono text-xs text-[var(--text-secondary)]"
                 >
                   @{action.price.toFixed(4)}
                 </span>
@@ -833,7 +712,7 @@ function DecisionCard({
                 )}
               </span>
               {action.error && (
-                <span className="text-xs ml-2" style={{ color: '#F6465D' }}>
+                <span className="text-xs ml-2 text-[var(--google-red)]">
                   {action.error}
                 </span>
               )}
@@ -845,8 +724,7 @@ function DecisionCard({
       {/* Account State Summary */}
       {decision.account_state && (
         <div
-          className="flex gap-4 text-xs mb-3 rounded px-3 py-2"
-          style={{ background: '#0B0E11', color: '#848E9C' }}
+          className="flex gap-4 text-xs mb-3 rounded px-3 py-2 bg-[var(--background)] text-[var(--text-secondary)]"
         >
           <span>
             净值: {decision.account_state.total_balance.toFixed(2)} USDT
@@ -862,9 +740,9 @@ function DecisionCard({
             style={{
               color:
                 decision.candidate_coins &&
-                decision.candidate_coins.length === 0
-                  ? '#F6465D'
-                  : '#848E9C',
+                  decision.candidate_coins.length === 0
+                  ? 'var(--google-red)'
+                  : 'var(--text-secondary)',
             }}
           >
             {t('candidateCoins', language)}:{' '}
@@ -876,19 +754,14 @@ function DecisionCard({
       {/* Candidate Coins Warning */}
       {decision.candidate_coins && decision.candidate_coins.length === 0 && (
         <div
-          className="text-sm rounded px-4 py-3 mb-3 flex items-start gap-3"
-          style={{
-            background: 'rgba(246, 70, 93, 0.1)',
-            border: '1px solid rgba(246, 70, 93, 0.3)',
-            color: '#F6465D',
-          }}
+          className="text-sm rounded px-4 py-3 mb-3 flex items-start gap-3 bg-[var(--surface-soft)] border border-[var(--google-red)]/30 text-[var(--google-red)]"
         >
           <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold mb-1">
               {t('candidateCoinsZeroWarning', language)}
             </div>
-            <div className="text-xs space-y-1" style={{ color: '#848E9C' }}>
+            <div className="text-xs space-y-1 text-[var(--text-secondary)]">
               <div>{t('possibleReasons', language)}</div>
               <ul className="list-disc list-inside space-y-0.5 ml-2">
                 <li>{t('coinPoolApiNotConfigured', language)}</li>

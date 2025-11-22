@@ -1,9 +1,11 @@
+import { AnimatePresence } from 'framer-motion'
 import { ReactNode } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import HeaderBar from '../components/HeaderBar'
 import { Container } from '../components/Container'
-import { useLanguage } from '../contexts/LanguageContext'
+import HeaderBar from '../components/HeaderBar'
+import { PageTransition } from '../components/ui/PageTransition'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { t } from '../i18n/translations'
 
 interface MainLayoutProps {
@@ -25,10 +27,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ background: '#0B0E11', color: '#EAECEF' }}
-    >
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text-primary)]">
       <HeaderBar
         isLoggedIn={!!user}
         currentPage={getCurrentPage()}
@@ -43,18 +42,16 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
       {/* Main Content */}
       <Container as="main" className="py-6 pt-24">
-        {children || <Outlet />}
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>
+            {children || <Outlet />}
+          </PageTransition>
+        </AnimatePresence>
       </Container>
 
       {/* Footer */}
-      <footer
-        className="mt-16"
-        style={{ borderTop: '1px solid #2B3139', background: '#181A20' }}
-      >
-        <Container
-          className="py-6 text-center text-sm"
-          style={{ color: '#5E6673' }}
-        >
+      <footer className="mt-16 border-t border-[var(--border-light)] bg-[var(--surface)]">
+        <Container className="py-6 text-center text-sm text-[var(--text-secondary)]">
           <p>{t('footerTitle', language)}</p>
           <p className="mt-1">{t('footerWarning', language)}</p>
           <div className="mt-4">
@@ -62,22 +59,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               href="https://github.com/tinkle-community/nofx"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold transition-all hover:scale-105"
-              style={{
-                background: '#1E2329',
-                color: '#848E9C',
-                border: '1px solid #2B3139',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#2B3139'
-                e.currentTarget.style.color = '#EAECEF'
-                e.currentTarget.style.borderColor = '#F0B90B'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#1E2329'
-                e.currentTarget.style.color = '#848E9C'
-                e.currentTarget.style.borderColor = '#2B3139'
-              }}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold transition-all hover:scale-105 btn-outline"
             >
               <svg
                 width="18"

@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Menu, X, ChevronDown } from 'lucide-react'
+import { ChevronDown, Menu, Moon, Sun, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useTheme } from '../contexts/ThemeContext'
 import { t, type Language } from '../i18n/translations'
 import { Container } from './Container'
 
@@ -28,6 +29,7 @@ export default function HeaderBar({
   onPageChange,
 }: HeaderBarProps) {
   const navigate = useNavigate()
+  const { theme, toggleTheme, isAuto } = useTheme()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false)
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
@@ -57,25 +59,25 @@ export default function HeaderBar({
     }
   }, [])
 
+  const navButtonClass = (isActive: boolean) =>
+    `text-sm font-medium transition-all duration-200 relative px-4 py-1.5 rounded-full flex items-center gap-2 ${isActive
+      ? 'text-[var(--google-blue)] bg-[var(--surface-soft-blue)] font-semibold'
+      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
+    }`
+
   return (
-    <nav className="fixed top-0 w-full z-50 header-bar">
+    <nav className="fixed top-0 w-full z-50 bg-[var(--surface)]/95 backdrop-blur-sm border-b border-[var(--border-light)]">
       <Container className="flex items-center justify-between h-16">
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
         >
-          <img src="/icons/nofx.svg" alt="NOFX Logo" className="w-8 h-8" />
-          <span
-            className="text-xl font-bold"
-            style={{ color: 'var(--brand-yellow)' }}
-          >
-            NOFX
-          </span>
-          <span
-            className="text-sm hidden sm:block"
-            style={{ color: 'var(--text-secondary)' }}
-          >
+          <div className="flex items-center text-2xl font-bold tracking-tight" style={{ fontFamily: "'Google Sans', sans-serif" }}>
+            <span className="text-[var(--google-blue)]">A</span>
+            <span className="text-[var(--text-primary)]">Trade</span>
+          </div>
+          <span className="text-sm hidden sm:block text-[var(--text-secondary)] ml-1 font-medium border-l border-[var(--border)] pl-3 py-0.5">
             Agentic Trading OS
           </span>
         </Link>
@@ -83,168 +85,32 @@ export default function HeaderBar({
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center justify-between flex-1 ml-8">
           {/* Left Side - Navigation Tabs */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {isLoggedIn ? (
               // Main app navigation when logged in
               <>
                 <button
-                  onClick={() => {
-                    navigate('/competition')
-                  }}
-                  className="text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-                  style={{
-                    color:
-                      currentPage === 'competition'
-                        ? 'var(--brand-yellow)'
-                        : 'var(--brand-light-gray)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentPage !== 'competition') {
-                      e.currentTarget.style.color = 'var(--brand-yellow)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== 'competition') {
-                      e.currentTarget.style.color = 'var(--brand-light-gray)'
-                    }
-                  }}
+                  onClick={() => navigate('/competition')}
+                  className={navButtonClass(currentPage === 'competition')}
                 >
-                  {/* Background for selected state */}
-                  {currentPage === 'competition' && (
-                    <span
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.15)',
-                        zIndex: -1,
-                      }}
-                    />
-                  )}
-
+                  <img src="/icons/icon-live-google.png" alt="" className="w-4 h-4 opacity-70" />
                   {t('realtimeNav', language)}
                 </button>
 
                 <button
-                  onClick={() => {
-                    navigate('/traders')
-                  }}
-                  className="text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-                  style={{
-                    color:
-                      currentPage === 'traders'
-                        ? 'var(--brand-yellow)'
-                        : 'var(--brand-light-gray)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentPage !== 'traders') {
-                      e.currentTarget.style.color = 'var(--brand-yellow)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== 'traders') {
-                      e.currentTarget.style.color = 'var(--brand-light-gray)'
-                    }
-                  }}
+                  onClick={() => navigate('/traders')}
+                  className={navButtonClass(currentPage === 'traders')}
                 >
-                  {/* Background for selected state */}
-                  {currentPage === 'traders' && (
-                    <span
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.15)',
-                        zIndex: -1,
-                      }}
-                    />
-                  )}
-
+                  <img src="/icons/icon-config-google.png" alt="" className="w-4 h-4 opacity-70" onError={(e) => e.currentTarget.style.display = 'none'} />
                   {t('configNav', language)}
                 </button>
 
                 <button
-                  onClick={() => {
-                    navigate('/dashboard')
-                  }}
-                  className="text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-                  style={{
-                    color:
-                      currentPage === 'trader'
-                        ? 'var(--brand-yellow)'
-                        : 'var(--brand-light-gray)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentPage !== 'trader') {
-                      e.currentTarget.style.color = 'var(--brand-yellow)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== 'trader') {
-                      e.currentTarget.style.color = 'var(--brand-light-gray)'
-                    }
-                  }}
+                  onClick={() => navigate('/dashboard')}
+                  className={navButtonClass(currentPage === 'trader')}
                 >
-                  {/* Background for selected state */}
-                  {currentPage === 'trader' && (
-                    <span
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.15)',
-                        zIndex: -1,
-                      }}
-                    />
-                  )}
-
+                  <img src="/icons/icon-dashboard-google.png" alt="" className="w-4 h-4 opacity-70" onError={(e) => e.currentTarget.style.display = 'none'} />
                   {t('dashboardNav', language)}
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (onPageChange) {
-                      onPageChange('faq')
-                    } else {
-                      navigate('/faq')
-                    }
-                  }}
-                  className="text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-                  style={{
-                    color:
-                      currentPage === 'faq'
-                        ? 'var(--brand-yellow)'
-                        : 'var(--brand-light-gray)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentPage !== 'faq') {
-                      e.currentTarget.style.color = 'var(--brand-yellow)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== 'faq') {
-                      e.currentTarget.style.color = 'var(--brand-light-gray)'
-                    }
-                  }}
-                >
-                  {/* Background for selected state */}
-                  {currentPage === 'faq' && (
-                    <span
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.15)',
-                        zIndex: -1,
-                      }}
-                    />
-                  )}
-
-                  {t('faqNav', language)}
                 </button>
               </>
             ) : (
@@ -252,83 +118,17 @@ export default function HeaderBar({
               <>
                 <a
                   href="/competition"
-                  className="text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-                  style={{
-                    color:
-                      currentPage === 'competition'
-                        ? 'var(--brand-yellow)'
-                        : 'var(--brand-light-gray)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentPage !== 'competition') {
-                      e.currentTarget.style.color = 'var(--brand-yellow)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== 'competition') {
-                      e.currentTarget.style.color = 'var(--brand-light-gray)'
-                    }
-                  }}
+                  className={navButtonClass(currentPage === 'competition')}
                 >
-                  {/* Background for selected state */}
-                  {currentPage === 'competition' && (
-                    <span
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.15)',
-                        zIndex: -1,
-                      }}
-                    />
-                  )}
-
+                  <img src="/icons/icon-live-google.png" alt="" className="w-4 h-4 opacity-70" />
                   {t('realtimeNav', language)}
-                </a>
-
-                <a
-                  href="/faq"
-                  className="text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-                  style={{
-                    color:
-                      currentPage === 'faq'
-                        ? 'var(--brand-yellow)'
-                        : 'var(--brand-light-gray)',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentPage !== 'faq') {
-                      e.currentTarget.style.color = 'var(--brand-yellow)'
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentPage !== 'faq') {
-                      e.currentTarget.style.color = 'var(--brand-light-gray)'
-                    }
-                  }}
-                >
-                  {/* Background for selected state */}
-                  {currentPage === 'faq' && (
-                    <span
-                      className="absolute inset-0 rounded-lg"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.15)',
-                        zIndex: -1,
-                      }}
-                    />
-                  )}
-
-                  {t('faqNav', language)}
                 </a>
               </>
             )}
           </div>
 
           {/* Right Side - Original Navigation Items and Login */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {/* Only show original navigation items on home page */}
             {isHomePage &&
               [
@@ -356,14 +156,9 @@ export default function HeaderBar({
                       ? 'noopener noreferrer'
                       : undefined
                   }
-                  className="text-sm transition-colors relative group"
-                  style={{ color: 'var(--brand-light-gray)' }}
+                  className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--google-blue)] transition-colors"
                 >
                   {item.label}
-                  <span
-                    className="absolute -bottom-1 left-0 w-0 h-0.5 group-hover:w-full transition-all duration-300"
-                    style={{ background: 'var(--brand-yellow)' }}
-                  />
                 </a>
               ))}
 
@@ -374,62 +169,24 @@ export default function HeaderBar({
                 <div className="relative" ref={userDropdownRef}>
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded transition-colors"
-                    style={{
-                      background: 'var(--panel-bg)',
-                      border: '1px solid var(--panel-border)',
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        'rgba(255, 255, 255, 0.05)')
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = 'var(--panel-bg)')
-                    }
+                    className="flex items-center gap-2 px-3 py-2 rounded-full border border-[var(--border)] hover:bg-[var(--surface-hover)] transition-colors"
                   >
-                    <div
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                      style={{
-                        background: 'var(--brand-yellow)',
-                        color: 'var(--brand-black)',
-                      }}
-                    >
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-[var(--google-blue)] text-white">
                       {user.email[0].toUpperCase()}
                     </div>
-                    <span
-                      className="text-sm"
-                      style={{ color: 'var(--brand-light-gray)' }}
-                    >
+                    <span className="text-sm text-[var(--text-primary)]">
                       {user.email}
                     </span>
-                    <ChevronDown
-                      className="w-4 h-4"
-                      style={{ color: 'var(--brand-light-gray)' }}
-                    />
+                    <ChevronDown className="w-4 h-4 text-[var(--text-secondary)]" />
                   </button>
 
                   {userDropdownOpen && (
-                    <div
-                      className="absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg overflow-hidden z-50"
-                      style={{
-                        background: 'var(--brand-dark-gray)',
-                        border: '1px solid var(--panel-border)',
-                      }}
-                    >
-                      <div
-                        className="px-3 py-2 border-b"
-                        style={{ borderColor: 'var(--panel-border)' }}
-                      >
-                        <div
-                          className="text-xs"
-                          style={{ color: 'var(--text-secondary)' }}
-                        >
+                    <div className="absolute right-0 top-full mt-2 w-48 rounded-lg shadow-[var(--shadow-dropdown)] bg-[var(--surface)] border border-[var(--border-light)] overflow-hidden z-50">
+                      <div className="px-4 py-3 border-b border-[var(--border-light)]">
+                        <div className="text-xs text-[var(--text-secondary)]">
                           {t('loggedInAs', language)}
                         </div>
-                        <div
-                          className="text-sm font-medium"
-                          style={{ color: 'var(--brand-light-gray)' }}
-                        >
+                        <div className="text-sm font-medium text-[var(--text-primary)] truncate">
                           {user.email}
                         </div>
                       </div>
@@ -439,11 +196,7 @@ export default function HeaderBar({
                             onLogout()
                             setUserDropdownOpen(false)
                           }}
-                          className="w-full px-3 py-2 text-sm font-semibold transition-colors hover:opacity-80 text-center"
-                          style={{
-                            background: 'var(--binance-red-bg)',
-                            color: 'var(--binance-red)',
-                          }}
+                          className="w-full px-4 py-3 text-sm font-medium text-[var(--google-red)] hover:bg-red-50 transition-colors text-left"
                         >
                           {t('exitLogin', language)}
                         </button>
@@ -456,21 +209,16 @@ export default function HeaderBar({
               /* Show login/register buttons when not logged in and not on login/register pages */
               currentPage !== 'login' &&
               currentPage !== 'register' && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <a
                     href="/login"
-                    className="px-3 py-2 text-sm font-medium transition-colors rounded"
-                    style={{ color: 'var(--brand-light-gray)' }}
+                    className="px-4 py-2 text-sm font-medium text-[var(--google-blue)] hover:bg-blue-50 rounded-md transition-colors"
                   >
                     {t('signIn', language)}
                   </a>
                   <a
                     href="/register"
-                    className="px-4 py-2 rounded font-semibold text-sm transition-colors hover:opacity-90"
-                    style={{
-                      background: 'var(--brand-yellow)',
-                      color: 'var(--brand-black)',
-                    }}
+                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--google-blue)] hover:bg-blue-600 rounded-md transition-colors shadow-sm"
                   >
                     {t('signUp', language)}
                   </a>
@@ -478,49 +226,36 @@ export default function HeaderBar({
               )
             )}
 
-            {/* Language Toggle - Always at the rightmost */}
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-[var(--surface-hover)] transition-colors text-[var(--text-secondary)]"
+              title={isAuto ? t('autoTheme', language) : t('toggleTheme', language)}
+            >
+              {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            </button>
+
+            {/* Language Toggle */}
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded transition-colors"
-                style={{ color: 'var(--brand-light-gray)' }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background =
-                    'rgba(255, 255, 255, 0.05)')
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = 'transparent')
-                }
+                className="flex items-center gap-1 px-2 py-2 rounded-md hover:bg-[var(--surface-hover)] transition-colors"
               >
                 <span className="text-lg">
                   {language === 'zh' ? '🇨🇳' : '🇺🇸'}
                 </span>
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4 text-[var(--text-secondary)]" />
               </button>
 
               {languageDropdownOpen && (
-                <div
-                  className="absolute right-0 top-full mt-2 w-32 rounded-lg shadow-lg overflow-hidden z-50"
-                  style={{
-                    background: 'var(--brand-dark-gray)',
-                    border: '1px solid var(--panel-border)',
-                  }}
-                >
+                <div className="absolute right-0 top-full mt-2 w-32 rounded-lg shadow-[var(--shadow-dropdown)] bg-[var(--surface)] border border-[var(--border-light)] overflow-hidden z-50">
                   <button
                     onClick={() => {
                       onLanguageChange?.('zh')
                       setLanguageDropdownOpen(false)
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-2 transition-colors ${
-                      language === 'zh' ? '' : 'hover:opacity-80'
-                    }`}
-                    style={{
-                      color: 'var(--brand-light-gray)',
-                      background:
-                        language === 'zh'
-                          ? 'rgba(240, 185, 11, 0.1)'
-                          : 'transparent',
-                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors hover:bg-[var(--surface-hover)] ${language === 'zh' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
+                      }`}
                   >
                     <span className="text-base">🇨🇳</span>
                     <span className="text-sm">中文</span>
@@ -530,16 +265,8 @@ export default function HeaderBar({
                       onLanguageChange?.('en')
                       setLanguageDropdownOpen(false)
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-2 transition-colors ${
-                      language === 'en' ? '' : 'hover:opacity-80'
-                    }`}
-                    style={{
-                      color: 'var(--brand-light-gray)',
-                      background:
-                        language === 'en'
-                          ? 'rgba(240, 185, 11, 0.1)'
-                          : 'transparent',
-                    }}
+                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors hover:bg-[var(--surface-hover)] ${language === 'en' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
+                      }`}
                   >
                     <span className="text-base">🇺🇸</span>
                     <span className="text-sm">English</span>
@@ -553,8 +280,7 @@ export default function HeaderBar({
         {/* Mobile Menu Button */}
         <motion.button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden"
-          style={{ color: 'var(--brand-light-gray)' }}
+          className="md:hidden text-[var(--text-secondary)]"
           whileTap={{ scale: 0.9 }}
         >
           {mobileMenuOpen ? (
@@ -574,75 +300,31 @@ export default function HeaderBar({
             : { height: 0, opacity: 0 }
         }
         transition={{ duration: 0.3 }}
-        className="md:hidden overflow-hidden"
-        style={{
-          background: 'var(--brand-dark-gray)',
-          borderTop: '1px solid rgba(240, 185, 11, 0.1)',
-        }}
+        className="md:hidden overflow-hidden bg-[var(--surface)] border-t border-[var(--border-light)]"
       >
-        <div className="px-4 py-4 space-y-3">
+        <div className="px-4 py-4 space-y-2">
           {/* New Navigation Tabs */}
           {isLoggedIn ? (
             <button
               onClick={() => {
-                console.log(
-                  '移动端 实时 button clicked, onPageChange:',
-                  onPageChange
-                )
                 onPageChange?.('competition')
                 setMobileMenuOpen(false)
               }}
-              className="block text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-              style={{
-                color:
-                  currentPage === 'competition'
-                    ? 'var(--brand-yellow)'
-                    : 'var(--brand-light-gray)',
-                padding: '12px 16px',
-                borderRadius: '8px',
-                position: 'relative',
-                width: '100%',
-                textAlign: 'left',
-              }}
+              className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'competition'
+                ? 'bg-blue-50 text-[var(--google-blue)]'
+                : 'text-[var(--text-primary)]'
+                }`}
             >
-              {/* Background for selected state */}
-              {currentPage === 'competition' && (
-                <span
-                  className="absolute inset-0 rounded-lg"
-                  style={{
-                    background: 'rgba(240, 185, 11, 0.15)',
-                    zIndex: -1,
-                  }}
-                />
-              )}
-
               {t('realtimeNav', language)}
             </button>
           ) : (
             <a
               href="/competition"
-              className="block text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500"
-              style={{
-                color:
-                  currentPage === 'competition'
-                    ? 'var(--brand-yellow)'
-                    : 'var(--brand-light-gray)',
-                padding: '12px 16px',
-                borderRadius: '8px',
-                position: 'relative',
-              }}
+              className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'competition'
+                ? 'bg-blue-50 text-[var(--google-blue)]'
+                : 'text-[var(--text-primary)]'
+                }`}
             >
-              {/* Background for selected state */}
-              {currentPage === 'competition' && (
-                <span
-                  className="absolute inset-0 rounded-lg"
-                  style={{
-                    background: 'rgba(240, 185, 11, 0.15)',
-                    zIndex: -1,
-                  }}
-                />
-              )}
-
               {t('realtimeNav', language)}
             </a>
           )}
@@ -658,30 +340,11 @@ export default function HeaderBar({
                   }
                   setMobileMenuOpen(false)
                 }}
-                className="block text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500 hover:text-yellow-500"
-                style={{
-                  color:
-                    currentPage === 'traders'
-                      ? 'var(--brand-yellow)'
-                      : 'var(--brand-light-gray)',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  position: 'relative',
-                  width: '100%',
-                  textAlign: 'left',
-                }}
+                className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'traders'
+                  ? 'bg-blue-50 text-[var(--google-blue)]'
+                  : 'text-[var(--text-primary)]'
+                  }`}
               >
-                {/* Background for selected state */}
-                {currentPage === 'traders' && (
-                  <span
-                    className="absolute inset-0 rounded-lg"
-                    style={{
-                      background: 'rgba(240, 185, 11, 0.15)',
-                      zIndex: -1,
-                    }}
-                  />
-                )}
-
                 {t('configNav', language)}
               </button>
               <button
@@ -693,66 +356,12 @@ export default function HeaderBar({
                   }
                   setMobileMenuOpen(false)
                 }}
-                className="block text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500 hover:text-yellow-500"
-                style={{
-                  color:
-                    currentPage === 'trader'
-                      ? 'var(--brand-yellow)'
-                      : 'var(--brand-light-gray)',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  position: 'relative',
-                  width: '100%',
-                  textAlign: 'left',
-                }}
+                className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'trader'
+                  ? 'bg-blue-50 text-[var(--google-blue)]'
+                  : 'text-[var(--text-primary)]'
+                  }`}
               >
-                {/* Background for selected state */}
-                {currentPage === 'trader' && (
-                  <span
-                    className="absolute inset-0 rounded-lg"
-                    style={{
-                      background: 'rgba(240, 185, 11, 0.15)',
-                      zIndex: -1,
-                    }}
-                  />
-                )}
-
                 {t('dashboardNav', language)}
-              </button>
-              <button
-                onClick={() => {
-                  if (onPageChange) {
-                    onPageChange('faq')
-                  } else {
-                    navigate('/faq')
-                  }
-                  setMobileMenuOpen(false)
-                }}
-                className="block text-sm font-bold transition-all duration-300 relative focus:outline-2 focus:outline-yellow-500 hover:text-yellow-500"
-                style={{
-                  color:
-                    currentPage === 'faq'
-                      ? 'var(--brand-yellow)'
-                      : 'var(--brand-light-gray)',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  position: 'relative',
-                  width: '100%',
-                  textAlign: 'left',
-                }}
-              >
-                {/* Background for selected state */}
-                {currentPage === 'faq' && (
-                  <span
-                    className="absolute inset-0 rounded-lg"
-                    style={{
-                      background: 'rgba(240, 185, 11, 0.15)',
-                      zIndex: -1,
-                    }}
-                  />
-                )}
-
-                {t('faqNav', language)}
               </button>
             </>
           )}
@@ -784,85 +393,50 @@ export default function HeaderBar({
                     ? 'noopener noreferrer'
                     : undefined
                 }
-                className="block text-sm py-2"
-                style={{ color: 'var(--brand-light-gray)' }}
+                className="block px-4 py-3 text-sm font-medium text-[var(--text-secondary)]"
               >
                 {item.label}
               </a>
             ))}
 
           {/* Language Toggle */}
-          <div className="py-2">
-            <div className="flex items-center gap-2 mb-2">
-              <span
-                className="text-xs"
-                style={{ color: 'var(--brand-light-gray)' }}
-              >
-                {t('language', language)}:
-              </span>
-            </div>
-            <div className="space-y-1">
+          <div className="px-4 py-3 border-t border-[var(--border-light)] mt-2">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => {
                   onLanguageChange?.('zh')
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors ${
-                  language === 'zh'
-                    ? 'bg-yellow-500 text-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${language === 'zh' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
+                  }`}
               >
-                <span className="text-lg">🇨🇳</span>
-                <span className="text-sm">中文</span>
+                <span>🇨🇳</span> 中文
               </button>
               <button
                 onClick={() => {
                   onLanguageChange?.('en')
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors ${
-                  language === 'en'
-                    ? 'bg-yellow-500 text-black'
-                    : 'text-gray-400 hover:text-white'
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${language === 'en' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
+                  }`}
               >
-                <span className="text-lg">🇺🇸</span>
-                <span className="text-sm">English</span>
+                <span>🇺🇸</span> English
               </button>
             </div>
           </div>
 
-          {/* User info and logout for mobile when logged in */}
+          {/* User Info and Logout for Mobile */}
           {isLoggedIn && user && (
-            <div
-              className="mt-4 pt-4"
-              style={{ borderTop: '1px solid var(--panel-border)' }}
-            >
-              <div
-                className="flex items-center gap-2 px-3 py-2 mb-2 rounded"
-                style={{ background: 'var(--panel-bg)' }}
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{
-                    background: 'var(--brand-yellow)',
-                    color: 'var(--brand-black)',
-                  }}
-                >
+            <div className="pt-4 mt-4 border-t border-[var(--border-light)]">
+              <div className="flex items-center gap-3 px-2 mb-4">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--google-blue)] text-white">
                   {user.email[0].toUpperCase()}
                 </div>
                 <div>
-                  <div
-                    className="text-xs"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
+                  <div className="text-xs text-[var(--text-secondary)]">
                     {t('loggedInAs', language)}
                   </div>
-                  <div
-                    className="text-sm"
-                    style={{ color: 'var(--brand-light-gray)' }}
-                  >
+                  <div className="text-sm font-medium text-[var(--text-primary)]">
                     {user.email}
                   </div>
                 </div>
@@ -873,11 +447,7 @@ export default function HeaderBar({
                     onLogout()
                     setMobileMenuOpen(false)
                   }}
-                  className="w-full px-4 py-2 rounded text-sm font-semibold transition-colors text-center"
-                  style={{
-                    background: 'var(--binance-red-bg)',
-                    color: 'var(--binance-red)',
-                  }}
+                  className="w-full px-4 py-2 text-sm font-medium text-[var(--google-red)] bg-red-50 rounded-md hover:bg-red-100 transition-colors"
                 >
                   {t('exitLogin', language)}
                 </button>
@@ -885,37 +455,25 @@ export default function HeaderBar({
             </div>
           )}
 
-          {/* Show login/register buttons when not logged in and not on login/register pages */}
-          {!isLoggedIn &&
-            currentPage !== 'login' &&
-            currentPage !== 'register' && (
-              <div className="space-y-2 mt-2">
-                <a
-                  href="/login"
-                  className="block w-full px-4 py-2 rounded text-sm font-medium text-center transition-colors"
-                  style={{
-                    color: 'var(--brand-light-gray)',
-                    border: '1px solid var(--brand-light-gray)',
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t('signIn', language)}
-                </a>
-                <a
-                  href="/register"
-                  className="block w-full px-4 py-2 rounded font-semibold text-sm text-center transition-colors"
-                  style={{
-                    background: 'var(--brand-yellow)',
-                    color: 'var(--brand-black)',
-                  }}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t('signUp', language)}
-                </a>
-              </div>
-            )}
+          {/* Login/Register for Mobile */}
+          {!isLoggedIn && currentPage !== 'login' && currentPage !== 'register' && (
+            <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-[var(--border-light)]">
+              <a
+                href="/login"
+                className="flex items-center justify-center px-4 py-2 text-sm font-medium text-[var(--google-blue)] bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+              >
+                {t('signIn', language)}
+              </a>
+              <a
+                href="/register"
+                className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--google-blue)] rounded-md hover:bg-blue-600 transition-colors shadow-sm"
+              >
+                {t('signUp', language)}
+              </a>
+            </div>
+          )}
         </div>
       </motion.div>
-    </nav>
+    </nav >
   )
 }
