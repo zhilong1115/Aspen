@@ -27,7 +27,7 @@ var (
 
 // Get 获取指定代币的市场数据
 func Get(symbol string) (*Data, error) {
-	var klines3m, klines4h []Kline
+	var klines3m, klines4h, klines30m []Kline
 	var err error
 	// 标准化symbol
 	symbol = Normalize(symbol)
@@ -41,6 +41,13 @@ func Get(symbol string) (*Data, error) {
 	klines4h, err = WSMonitorCli.GetCurrentKlines(symbol, "4h") // 多获取用于计算指标
 	if err != nil {
 		return nil, fmt.Errorf("获取4小时K线失败: %v", err)
+	}
+
+	// 获取30分钟K线数据（择时用）
+	klines30m, err = WSMonitorCli.GetCurrentKlines(symbol, "30m")
+	if err != nil {
+		log.Printf("获取30分钟K线失败: %v", err)
+		klines30m = []Kline{}
 	}
 
 	// 检查数据是否为空
@@ -94,9 +101,20 @@ func Get(symbol string) (*Data, error) {
 
 	// ——— 来自 Pine 脚本的新增指标计算（1—10） ———
 	currentTSI, currentTSISignal := calculateTSI(klines3m, 35, 35, 13)
+	tsi4h, tsi4hSignal := calculateTSI(klines4h, 35, 35, 13)
+	var tsi30m, tsi30mSignal float64
+	if len(klines30m) > 0 {
+		tsi30m, tsi30mSignal = calculateTSI(klines30m, 35, 35, 13)
+	}
 	kemadTrend, kemaVal, kemadATR := calculateKEMAD(klines3m)
 	vgbTrend, vgbAvg, vgbUpper, vgbLower, vgbScore := calculateVolatilityGaussianBands(klines3m, 20, 2.0)
 	sslExit, sslBaseline, sslUpperK, sslLowerK := calculateSSLHybridExit(klines3m, 20, 60)
+	sslExit4h, sslBaseline4h, sslUpperK4h, sslLowerK4h := calculateSSLHybridExit(klines4h, 20, 60)
+	var sslExit30m int
+	var sslBaseline30m, sslUpperK30m, sslLowerK30m float64
+	if len(klines30m) > 0 {
+		sslExit30m, sslBaseline30m, sslUpperK30m, sslLowerK30m = calculateSSLHybridExit(klines30m, 20, 60)
+	}
 	zlTrend, zlZLEMA, zlVol := calculateZeroLagTrendSignals(klines3m, 34)
 	qqeTrend, qqeFastTL, qqeUpper, qqeLower := calculateQQEModHybrid(klines3m)
 	rfKalman, rfTrend, rfKTrend, rfCombined := calculateRangeFilteredTrend(klines3m)
@@ -117,43 +135,55 @@ func Get(symbol string) (*Data, error) {
 		IntradaySeries:    intradayData,
 		LongerTermContext: longerTermData,
 		// 新增 1—10 指标汇总
-		CurrentTSI:        currentTSI,
-		CurrentTSISignal:  currentTSISignal,
-		KEMADTrend:        kemadTrend,
-		KEMADEMA:          kemaVal,
-		KEMADATR:          kemadATR,
-		VGBTrend:          vgbTrend,
-		VGBAvg:            vgbAvg,
-		VGBUpper:          vgbUpper,
-		VGBLower:          vgbLower,
-		VGBScore:          vgbScore,
-		SSLExitSignal:     sslExit,
-		SSLBaseline:       sslBaseline,
-		SSLUpperK:         sslUpperK,
-		SSLLowerK:         sslLowerK,
-		ZeroLagTrend:      zlTrend,
-		ZeroLagZLEMA:      zlZLEMA,
-		ZeroLagVolatility: zlVol,
-		QQETrend:          qqeTrend,
-		QQEFastTL:         qqeFastTL,
-		QQEUpper:          qqeUpper,
-		QQELower:          qqeLower,
-		RangeKalman:       rfKalman,
-		RangeTrend:        rfTrend,
-		RangeKTrend:       rfKTrend,
-		RangeCombinedTrend: rfCombined,
-		DPSDTrend:         dpsdTrend,
-		DPSDPT:            dpsdPT,
-		DPSDEMA:           dpsdEMA,
-		DPSDPerUp:         dpsdPerUp,
-		DPSDPerDown:       dpsdPerDown,
-		UltimateRSI:       ursi,
-		UltimateRSISignal: ursiSig,
+		CurrentTSI:            currentTSI,
+		CurrentTSISignal:      currentTSISignal,
+		KEMADTrend:            kemadTrend,
+		KEMADEMA:              kemaVal,
+		KEMADATR:              kemadATR,
+		VGBTrend:              vgbTrend,
+		VGBAvg:                vgbAvg,
+		VGBUpper:              vgbUpper,
+		VGBLower:              vgbLower,
+		VGBScore:              vgbScore,
+		SSLExitSignal:         sslExit,
+		SSLBaseline:           sslBaseline,
+		SSLUpperK:             sslUpperK,
+		SSLLowerK:             sslLowerK,
+		ZeroLagTrend:          zlTrend,
+		ZeroLagZLEMA:          zlZLEMA,
+		ZeroLagVolatility:     zlVol,
+		QQETrend:              qqeTrend,
+		QQEFastTL:             qqeFastTL,
+		QQEUpper:              qqeUpper,
+		QQELower:              qqeLower,
+		RangeKalman:           rfKalman,
+		RangeTrend:            rfTrend,
+		RangeKTrend:           rfKTrend,
+		RangeCombinedTrend:    rfCombined,
+		DPSDTrend:             dpsdTrend,
+		DPSDPT:                dpsdPT,
+		DPSDEMA:               dpsdEMA,
+		DPSDPerUp:             dpsdPerUp,
+		DPSDPerDown:           dpsdPerDown,
+		UltimateRSI:           ursi,
+		UltimateRSISignal:     ursiSig,
 		UltimateRSIOverbought: ursiOB,
 		UltimateRSIOversold:   ursiOS,
-		RSIBuySignal:      rsiBuy10,
-		RSISellSignal:     rsiSell10,
-		RSIValue:          rsiVal10,
+		RSIBuySignal:          rsiBuy10,
+		RSISellSignal:         rsiSell10,
+		RSIValue:              rsiVal10,
+		TSI4hValue:            tsi4h,
+		TSI4hSignal:           tsi4hSignal,
+		TSI30mValue:           tsi30m,
+		TSI30mSignal:          tsi30mSignal,
+		SSL4hExitSignal:       sslExit4h,
+		SSL4hBaseline:         sslBaseline4h,
+		SSL4hUpperK:           sslUpperK4h,
+		SSL4hLowerK:           sslLowerK4h,
+		SSL30mExitSignal:      sslExit30m,
+		SSL30mBaseline:        sslBaseline30m,
+		SSL30mUpperK:          sslUpperK30m,
+		SSL30mLowerK:          sslLowerK30m,
 	}, nil
 }
 
@@ -401,10 +431,10 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 			RetCode int    `json:"retCode"`
 			RetMsg  string `json:"retMsg"`
 			Result  struct {
-				Category    string `json:"category"`
-				Symbol      string `json:"symbol"`
+				Category     string `json:"category"`
+				Symbol       string `json:"symbol"`
 				OpenInterest string `json:"openInterest"`
-				Timestamp   string `json:"timestamp"`
+				Timestamp    string `json:"timestamp"`
 			} `json:"result"`
 		}
 		if err := json.Unmarshal(body, &response); err != nil {
@@ -485,10 +515,10 @@ func getFundingRate(symbol string) (float64, error) {
 			RetMsg  string `json:"retMsg"`
 			Result  struct {
 				List []struct {
-					Symbol        string `json:"symbol"`
-					FundingRate   string `json:"fundingRate"`
-					MarkPrice     string `json:"markPrice"`
-					IndexPrice    string `json:"indexPrice"`
+					Symbol      string `json:"symbol"`
+					FundingRate string `json:"fundingRate"`
+					MarkPrice   string `json:"markPrice"`
+					IndexPrice  string `json:"indexPrice"`
 				} `json:"list"`
 			} `json:"result"`
 		}
@@ -1031,6 +1061,11 @@ func Format(data *Data) string {
 		data.VGBTrend, data.VGBAvg, data.VGBUpper, data.VGBLower, data.VGBScore))
 	sb.WriteString(fmt.Sprintf("SSL Hybrid Exit: signal=%d, baseline=%.3f, upperK=%.3f, lowerK=%.3f\n",
 		data.SSLExitSignal, data.SSLBaseline, data.SSLUpperK, data.SSLLowerK))
+	sb.WriteString("Timeframe indicators (4h, 30m):\n")
+	sb.WriteString(fmt.Sprintf("tsi_4h_value=%.2f, tsi_4h_signal=%.2f\n", data.TSI4hValue, data.TSI4hSignal))
+	sb.WriteString(fmt.Sprintf("tsi_30m_value=%.2f, tsi_30m_signal=%.2f\n", data.TSI30mValue, data.TSI30mSignal))
+	sb.WriteString(fmt.Sprintf("ssl_4h_exit=%d, ssl_4h_baseline=%.3f, ssl_4h_upperK=%.3f, ssl_4h_lowerK=%.3f\n", data.SSL4hExitSignal, data.SSL4hBaseline, data.SSL4hUpperK, data.SSL4hLowerK))
+	sb.WriteString(fmt.Sprintf("ssl_30m_exit=%d, ssl_30m_baseline=%.3f, ssl_30m_upperK=%.3f, ssl_30m_lowerK=%.3f\n\n", data.SSL30mExitSignal, data.SSL30mBaseline, data.SSL30mUpperK, data.SSL30mLowerK))
 	sb.WriteString(fmt.Sprintf("Zero‑Lag Trend: trend=%d, zlema=%.3f, volatility=%.3f\n",
 		data.ZeroLagTrend, data.ZeroLagZLEMA, data.ZeroLagVolatility))
 	sb.WriteString(fmt.Sprintf("QQE MOD Hybrid: trend=%d, fastTL=%.3f, upper=%.3f, lower=%.3f\n",

@@ -53,6 +53,18 @@ type Data struct {
 	RSIBuySignal          bool
 	RSISellSignal         bool
 	RSIValue              float64
+	TSI4hValue            float64
+	TSI4hSignal           float64
+	TSI30mValue           float64
+	TSI30mSignal          float64
+	SSL4hExitSignal       int
+	SSL4hBaseline         float64
+	SSL4hUpperK           float64
+	SSL4hLowerK           float64
+	SSL30mExitSignal      int
+	SSL30mBaseline        float64
+	SSL30mUpperK          float64
+	SSL30mLowerK          float64
 }
 
 // OIData Open Interest数据
