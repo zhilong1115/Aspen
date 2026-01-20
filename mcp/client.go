@@ -1,6 +1,7 @@
 package mcp
 
 import (
+	"atrade/metrics"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -164,6 +165,9 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 		return "", fmt.Errorf("AI API密钥未设置，请先调用 SetDeepSeekAPIKey()、SetQwenAPIKey()、SetOpenRouterAPIKey() 或 SetCustomAPI()")
 	}
 
+	// 创建指标记录器
+	metricsRecorder := metrics.NewAIMetricsRecorder(string(client.Provider), client.Model)
+
 	// 重试配置
 	maxRetries := 3
 	var lastErr error
@@ -171,6 +175,7 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		if attempt > 1 {
 			fmt.Printf("⚠️  AI API调用失败，正在重试 (%d/%d)...\n", attempt, maxRetries)
+			metricsRecorder.RecordRetry()
 		}
 
 		result, err := client.callOnce(systemPrompt, userPrompt)
@@ -178,12 +183,15 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 			if attempt > 1 {
 				fmt.Printf("✓ AI API重试成功\n")
 			}
+			// 记录成功
+			metricsRecorder.RecordSuccess()
 			return result, nil
 		}
 
 		lastErr = err
 		// 如果不是网络错误，不重试
 		if !isRetryableError(err) {
+			metricsRecorder.RecordFailure("error")
 			return "", err
 		}
 
@@ -193,6 +201,13 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 			fmt.Printf("⏳ 等待%v后重试...\n", waitTime)
 			time.Sleep(waitTime)
 		}
+	}
+
+	// 记录最终失败
+	if strings.Contains(strings.ToLower(lastErr.Error()), "timeout") {
+		metricsRecorder.RecordFailure("timeout")
+	} else {
+		metricsRecorder.RecordFailure("failed")
 	}
 
 	return "", fmt.Errorf("重试%d次后仍然失败: %w", maxRetries, lastErr)
@@ -272,8 +287,8 @@ func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) 
 	case ProviderOpenRouter:
 		// OpenRouter 使用 Bearer 认证，并需要设置 HTTP-Referer 和 X-Title 头部（可选但推荐）
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
-		req.Header.Set("HTTP-Referer", "https://github.com/nofx") // 可选：用于统计
-		req.Header.Set("X-Title", "NOFX Trading Bot")             // 可选：用于标识应用
+		req.Header.Set("HTTP-Referer", "https://github.com/atrade") // 可选：用于统计
+		req.Header.Set("X-Title", "ATrade Trading Bot")             // 可选：用于标识应用
 	default:
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
 	}
@@ -325,24 +340,48 @@ func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) 
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		// 记录失败指标
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "failed").Inc()
 		return "", fmt.Errorf("API返回错误 (status %d): %s", resp.StatusCode, string(body))
 	}
 
-	// 解析响应
+	// 解析响应（包含token使用量）
 	var result struct {
 		Choices []struct {
 			Message struct {
 				Content string `json:"content"`
 			} `json:"message"`
 		} `json:"choices"`
+		Usage struct {
+			PromptTokens     int `json:"prompt_tokens"`
+			CompletionTokens int `json:"completion_tokens"`
+			TotalTokens      int `json:"total_tokens"`
+		} `json:"usage"`
 	}
 
 	if err := json.Unmarshal(body, &result); err != nil {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "parse_error").Inc()
 		return "", fmt.Errorf("解析响应失败: %w", err)
 	}
 
 	if len(result.Choices) == 0 {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "empty_response").Inc()
 		return "", fmt.Errorf("API返回空响应")
+	}
+
+	// 记录Token使用量指标
+	if result.Usage.PromptTokens > 0 || result.Usage.CompletionTokens > 0 {
+		metrics.AITokensTotal.WithLabelValues(string(client.Provider), client.Model, "prompt").Add(float64(result.Usage.PromptTokens))
+		metrics.AITokensTotal.WithLabelValues(string(client.Provider), client.Model, "completion").Add(float64(result.Usage.CompletionTokens))
+		
+		// 估算并记录成本
+		cost := metrics.EstimateTokenCost(string(client.Provider), client.Model, result.Usage.PromptTokens, result.Usage.CompletionTokens)
+		if cost > 0 {
+			metrics.AIEstimatedCost.WithLabelValues(string(client.Provider), client.Model).Add(cost)
+		}
+		
+		log.Printf("📊 [MCP] Token使用: prompt=%d, completion=%d, total=%d, 估算成本=$%.6f",
+			result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens, cost)
 	}
 
 	return result.Choices[0].Message.Content, nil

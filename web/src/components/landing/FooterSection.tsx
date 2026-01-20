@@ -15,10 +15,10 @@ export default function FooterSection({ language }: FooterSectionProps) {
       <div className="max-w-[1200px] mx-auto px-6 py-10">
         {/* Brand */}
         <div className="flex items-center gap-3 mb-8">
-          <img src="/icons/nofx.svg" alt="NOFX Logo" className="w-8 h-8" />
+          <img src="/icons/atrade.svg" alt="ATrade Logo" className="w-8 h-8" />
           <div>
             <div className="text-lg font-bold" style={{ color: '#EAECEF' }}>
-              NOFX
+              ATrade
             </div>
             <div className="text-xs" style={{ color: '#848E9C' }}>
               {t('futureStandardAI', language)}
@@ -39,7 +39,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://github.com/tinkle-community/nofx"
+                  href="https://github.com/tinkle-community/atrade"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -49,7 +49,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://t.me/nofx_dev_community"
+                  href="https://t.me/atrade_dev_community"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -59,7 +59,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://x.com/nofx_ai"
+                  href="https://x.com/atrade_ai"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -80,7 +80,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://github.com/tinkle-community/nofx/blob/main/README.md"
+                  href="https://github.com/tinkle-community/atrade/blob/main/README.md"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -90,7 +90,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://github.com/tinkle-community/nofx/issues"
+                  href="https://github.com/tinkle-community/atrade/issues"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -100,7 +100,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://github.com/tinkle-community/nofx/pulls"
+                  href="https://github.com/tinkle-community/atrade/pulls"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -131,7 +131,7 @@ export default function FooterSection({ language }: FooterSectionProps) {
               <li>
                 <a
                   className="hover:text-[#F0B90B]"
-                  href="https://www.maxweb.red/join?ref=NOFXAI"
+                  href="https://www.maxweb.red/join?ref=ATradeAI"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"nofx/config"
+	"atrade/config"
 	"os"
 
 	"github.com/sirupsen/logrus"

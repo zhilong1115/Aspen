@@ -1,16 +1,16 @@
 package main
 
 import (
+	"atrade/api"
+	"atrade/auth"
+	"atrade/config"
+	"atrade/crypto"
+	"atrade/manager"
+	"atrade/market"
+	"atrade/pool"
 	"encoding/json"
 	"fmt"
 	"log"
-	"nofx/api"
-	"nofx/auth"
-	"nofx/config"
-	"nofx/crypto"
-	"nofx/manager"
-	"nofx/market"
-	"nofx/pool"
 	"os"
 	"os/signal"
 	"strconv"
@@ -335,13 +335,13 @@ func main() {
 	// 获取API服务器端口（优先级：环境变量 > 数据库配置 > 默认值）
 	apiPort := 8080 // 默认端口
 
-	// 1. 优先从环境变量 NOFX_BACKEND_PORT 读取
-	if envPort := strings.TrimSpace(os.Getenv("NOFX_BACKEND_PORT")); envPort != "" {
+	// 1. 优先从环境变量 ATRADE_BACKEND_PORT 读取
+	if envPort := strings.TrimSpace(os.Getenv("ATRADE_BACKEND_PORT")); envPort != "" {
 		if port, err := strconv.Atoi(envPort); err == nil && port > 0 {
 			apiPort = port
-			log.Printf("🔌 使用环境变量端口: %d (NOFX_BACKEND_PORT)", apiPort)
+			log.Printf("🔌 使用环境变量端口: %d (ATRADE_BACKEND_PORT)", apiPort)
 		} else {
-			log.Printf("⚠️  环境变量 NOFX_BACKEND_PORT 无效: %s", envPort)
+			log.Printf("⚠️  环境变量 ATRADE_BACKEND_PORT 无效: %s", envPort)
 		}
 	} else if apiPortStr != "" {
 		// 2. 从数据库配置读取（config.json 同步过来的）

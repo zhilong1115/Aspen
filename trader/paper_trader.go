@@ -3,7 +3,7 @@ package trader
 import (
 	"fmt"
 	"log"
-	"nofx/market"
+	"atrade/market"
 	"strconv"
 	"strings"
 	"sync"

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"nofx/decision"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/pool"
+	"atrade/decision"
+	"atrade/logger"
+	"atrade/market"
+	"atrade/pool"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/suite"

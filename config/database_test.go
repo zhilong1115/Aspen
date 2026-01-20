@@ -1,7 +1,7 @@
 package config
 
 import (
-	"nofx/crypto"
+	"atrade/crypto"
 	"os"
 	"testing"
 	"time"

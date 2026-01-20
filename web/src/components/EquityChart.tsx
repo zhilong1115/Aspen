@@ -295,7 +295,7 @@ export function EquityChart({ traderId }: EquityChartProps) {
           position: 'relative',
         }}
       >
-        {/* NOFX Watermark */}
+        {/* ATrade Watermark */}
         <div
           style={{
             position: 'absolute',
@@ -309,7 +309,7 @@ export function EquityChart({ traderId }: EquityChartProps) {
             fontFamily: 'monospace',
           }}
         >
-          NOFX
+          ATrade
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart

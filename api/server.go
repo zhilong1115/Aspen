@@ -1,19 +1,20 @@
 package api
 
 import (
+	"atrade/auth"
+	"atrade/config"
+	"atrade/crypto"
+	"atrade/decision"
+	"atrade/hook"
+	"atrade/manager"
+	"atrade/metrics"
+	"atrade/trader"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"nofx/auth"
-	"nofx/config"
-	"nofx/crypto"
-	"nofx/decision"
-	"nofx/hook"
-	"nofx/manager"
-	"nofx/trader"
 	"strconv"
 	"strings"
 	"time"
@@ -41,6 +42,12 @@ func NewServer(traderManager *manager.TraderManager, database *config.Database, 
 
 	// 启用CORS
 	router.Use(corsMiddleware())
+
+	// 启用Metrics中间件
+	router.Use(metrics.GinMiddleware())
+
+	// 初始化metrics
+	metrics.Init()
 
 	// 创建加密处理器
 	cryptoHandler := NewCryptoHandler(cryptoService)
@@ -77,6 +84,9 @@ func corsMiddleware() gin.HandlerFunc {
 
 // setupRoutes 设置路由
 func (s *Server) setupRoutes() {
+	// Prometheus metrics端点（根路径，不需要认证）
+	s.router.GET("/metrics", metrics.Handler())
+
 	// API路由组
 	api := s.router.Group("/api")
 	{
@@ -1667,6 +1677,12 @@ func (s *Server) authMiddleware() gin.HandlerFunc {
 		// 将用户信息存储到上下文中
 		c.Set("user_id", claims.UserID)
 		c.Set("email", claims.Email)
+
+		// 异步更新用户最后活跃时间（不阻塞请求）
+		go func(userID string) {
+			s.database.UpdateUserLastActive(userID)
+		}(claims.UserID)
+
 		c.Next()
 	}
 }
@@ -1750,6 +1766,7 @@ func (s *Server) handleRegister(c *gin.Context) {
 			return
 		}
 		// 用户已完成验证，拒绝重复注册
+		metrics.RecordUserRegistration("duplicate")
 		c.JSON(http.StatusConflict, gin.H{"error": "邮箱已被注册"})
 		return
 	}
@@ -1780,9 +1797,13 @@ func (s *Server) handleRegister(c *gin.Context) {
 
 	err = s.database.CreateUser(user)
 	if err != nil {
+		metrics.RecordUserRegistration("failed")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建用户失败: " + err.Error()})
 		return
 	}
+
+	// 记录注册成功
+	metrics.RecordUserRegistration("success")
 
 	// 如果是内测模式，标记内测码为已使用
 	betaModeStr2, _ := s.database.GetSystemConfig("beta_mode")
@@ -1875,12 +1896,14 @@ func (s *Server) handleLogin(c *gin.Context) {
 	// 获取用户信息
 	user, err := s.database.GetUserByEmail(req.Email)
 	if err != nil {
+		metrics.RecordUserLogin("failed")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "邮箱或密码错误"})
 		return
 	}
 
 	// 验证密码
 	if !auth.CheckPassword(req.Password, user.PasswordHash) {
+		metrics.RecordUserLogin("failed")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "邮箱或密码错误"})
 		return
 	}
@@ -1895,7 +1918,8 @@ func (s *Server) handleLogin(c *gin.Context) {
 		return
 	}
 
-	// 返回需要OTP验证的状态
+	// 返回需要OTP验证的状态（登录流程继续到OTP验证）
+	metrics.RecordUserLogin("otp_required")
 	c.JSON(http.StatusOK, gin.H{
 		"user_id":      user.ID,
 		"email":        user.Email,
@@ -1925,9 +1949,17 @@ func (s *Server) handleVerifyOTP(c *gin.Context) {
 
 	// 验证OTP
 	if !auth.VerifyOTP(user.OTPSecret, req.OTPCode) {
+		metrics.RecordUserOTPVerification(false)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "验证码错误"})
 		return
 	}
+
+	// 记录OTP验证成功和登录成功
+	metrics.RecordUserOTPVerification(true)
+	metrics.RecordUserLogin("success")
+
+	// 更新用户最后活跃时间
+	s.database.UpdateUserLastActive(user.ID)
 
 	// 生成JWT token
 	token, err := auth.GenerateJWT(user.ID, user.Email)
@@ -2066,6 +2098,9 @@ func (s *Server) Start() error {
 	log.Printf("  • GET  /api/performance?trader_id=xxx - 指定trader的AI学习表现分析")
 	log.Println()
 
+	// 启动用户统计指标收集器（每分钟更新一次）
+	go s.startUserStatsCollector()
+
 	// 创建 http.Server 以支持 graceful shutdown
 	s.httpServer = &http.Server{
 		Addr:    addr,
@@ -2073,6 +2108,38 @@ func (s *Server) Start() error {
 	}
 
 	return s.httpServer.ListenAndServe()
+}
+
+// startUserStatsCollector 启动用户统计指标收集器
+func (s *Server) startUserStatsCollector() {
+	// 首次立即更新
+	s.updateUserStatsMetrics()
+
+	// 每分钟更新一次
+	ticker := time.NewTicker(1 * time.Minute)
+	for range ticker.C {
+		s.updateUserStatsMetrics()
+	}
+}
+
+// updateUserStatsMetrics 更新用户统计指标
+func (s *Server) updateUserStatsMetrics() {
+	stats, err := s.database.GetUserStats()
+	if err != nil {
+		log.Printf("⚠️ 获取用户统计失败: %v", err)
+		return
+	}
+
+	metrics.SetUserStats(metrics.UserStats{
+		TotalUsers:          stats.TotalUsers,
+		VerifiedUsers:       stats.VerifiedUsers,
+		DailyActiveUsers:    stats.DailyActiveUsers,
+		WeeklyActiveUsers:   stats.WeeklyActiveUsers,
+		MonthlyActiveUsers:  stats.MonthlyActiveUsers,
+		TotalTraders:        stats.TotalTraders,
+		RunningTraders:      stats.RunningTraders,
+		NewRegistrations24h: stats.NewRegistrations24h,
+	})
 }
 
 // Shutdown 优雅关闭 API 服务器

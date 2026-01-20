@@ -1,8 +1,8 @@
-# 🚀 Getting Started with NOFX
+# 🚀 Getting Started with ATrade
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-This section contains all the documentation you need to get NOFX up and running.
+This section contains all the documentation you need to get ATrade up and running.
 
 ## 📋 Deployment Options
 
@@ -44,7 +44,7 @@ cp config.json.example config.json
 
 **Quick Start:**
 ```bash
-go build -o nofx
+go build -o atrade
 cd web && npm install && npm run build
 pm2 start ecosystem.config.js
 ```
@@ -103,7 +103,7 @@ For single-tenant/self-hosted usage, you can enable strict admin-only access:
 }
 ```
 2) Set environment variables (Docker compose already wired):
-- `NOFX_ADMIN_PASSWORD` — admin password (plaintext; hashed on startup)
+- `ATrade_ADMIN_PASSWORD` — admin password (plaintext; hashed on startup)
 
 3) Login at `/login` using the admin password. All non-essential endpoints are blocked to unauthenticated users while admin mode is enabled.
 
@@ -136,8 +136,8 @@ For single-tenant/self-hosted usage, you can enable strict admin-only access:
 
 **Need more help?**
 - 📖 [FAQ](../guides/faq.zh-CN.md)
-- 💬 [Telegram Community](https://t.me/nofx_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/nofx/issues)
+- 💬 [Telegram Community](https://t.me/atrade_dev_community)
+- 🐛 [GitHub Issues](https://github.com/tinkle-community/atrade/issues)
 
 ---
 

@@ -1,6 +1,7 @@
 package market
 
 import (
+	"atrade/metrics"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -67,6 +68,10 @@ func (m *WSMonitor) Initialize(coins []string) error {
 	}
 
 	log.Printf("找到 %d 个交易对", len(m.symbols))
+	
+	// 记录订阅的币种数量
+	metrics.SetSubscribedSymbols(len(m.symbols))
+	
 	// 初始化历史数据
 	if err := m.initializeHistoricalData(); err != nil {
 		log.Printf("初始化历史数据失败: %v", err)

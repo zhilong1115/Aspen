@@ -1,8 +1,8 @@
 # 🌍 International Documentation / 国际化文档
 
-NOFX documentation is available in multiple languages.
+ATrade documentation is available in multiple languages.
 
-NOFX 文档提供多种语言版本。
+ATrade 文档提供多种语言版本。
 
 ---
 
@@ -130,7 +130,7 @@ faq.zh-CN.md                 → Chinese FAQ
 
 ## 🌐 Request a New Language / 请求新语言
 
-### Want NOFX in your language? / 希望 NOFX 支持你的语言？
+### Want ATrade in your language? / 希望 ATrade 支持你的语言？
 
 **Steps / 步骤:**
 
@@ -171,9 +171,9 @@ faq.zh-CN.md                 → Chinese FAQ
 | 🇺🇦 Ukrainian | Community | Active |
 
 **Want to join the team? / 想加入团队？**
-- Contact on [Telegram](https://t.me/nofx_dev_community)
+- Contact on [Telegram](https://t.me/atrade_dev_community)
 - Open an issue on GitHub
-- DM [@nofx_ai](https://x.com/nofx_ai) on Twitter
+- DM [@atrade_ai](https://x.com/atrade_ai) on Twitter
 
 ---
 
@@ -218,8 +218,8 @@ faq.zh-CN.md                 → Chinese FAQ
 ## 🆘 Translation Help / 翻译帮助
 
 **Questions? / 有问题？**
-- 💬 Ask in [Telegram Community](https://t.me/nofx_dev_community)
-- 🐙 Open a [GitHub Issue](https://github.com/tinkle-community/nofx/issues)
+- 💬 Ask in [Telegram Community](https://t.me/atrade_dev_community)
+- 🐙 Open a [GitHub Issue](https://github.com/tinkle-community/atrade/issues)
 - 📧 Contact maintainers
 
 **Resources / 资源:**

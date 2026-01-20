@@ -83,8 +83,8 @@ export function LoginPage() {
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
             <img
-              src="/icons/nofx.svg"
-              alt="NoFx Logo"
+              src="/icons/atrade.svg"
+              alt="ATrade Logo"
               className="w-16 h-16 object-contain"
             />
           </div>
@@ -92,7 +92,7 @@ export function LoginPage() {
             className="text-2xl font-bold"
             style={{ color: 'var(--brand-light-gray)' }}
           >
-            登录 NOFX
+            登录 ATrade
           </h1>
           <p
             className="text-sm mt-2"

@@ -141,9 +141,9 @@ export default function HeaderBar({
                   key={item.key}
                   href={
                     item.key === 'GitHub'
-                      ? 'https://github.com/tinkle-community/nofx'
+                      ? 'https://github.com/tinkle-community/atrade'
                       : item.key === 'community'
-                        ? 'https://t.me/nofx_dev_community'
+                        ? 'https://t.me/atrade_dev_community'
                         : `#${item.key === 'features' ? 'features' : 'how-it-works'}`
                   }
                   target={
@@ -378,9 +378,9 @@ export default function HeaderBar({
                 key={item.key}
                 href={
                   item.key === 'GitHub'
-                    ? 'https://github.com/tinkle-community/nofx'
+                    ? 'https://github.com/tinkle-community/atrade'
                     : item.key === 'community'
-                      ? 'https://t.me/nofx_dev_community'
+                      ? 'https://t.me/atrade_dev_community'
                       : `#${item.key === 'features' ? 'features' : 'how-it-works'}`
                 }
                 target={

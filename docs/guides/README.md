@@ -1,8 +1,8 @@
-# 📘 NOFX User Guides
+# 📘 ATrade User Guides
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-Comprehensive guides to help you use NOFX effectively.
+Comprehensive guides to help you use ATrade effectively.
 
 ---
 
@@ -129,9 +129,9 @@ Run multiple AI models simultaneously:
 ## 🆘 Need Help?
 
 **Can't find what you need?**
-- 💬 [Telegram Community](https://t.me/nofx_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/nofx/issues)
-- 🐦 [Twitter @nofx_ai](https://x.com/nofx_ai)
+- 💬 [Telegram Community](https://t.me/atrade_dev_community)
+- 🐛 [GitHub Issues](https://github.com/tinkle-community/atrade/issues)
+- 🐦 [Twitter @atrade_ai](https://x.com/atrade_ai)
 
 ---
 

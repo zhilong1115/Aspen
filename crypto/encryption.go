@@ -224,7 +224,7 @@ func (em *EncryptionManager) DecryptWithPrivateKey(encryptedBase64 string) (stri
 // loadOrGenerateMasterKey 加載或生成數據庫主密鑰
 func (em *EncryptionManager) loadOrGenerateMasterKey() error {
 	// 優先從環境變數加載
-	if envKey := os.Getenv("NOFX_MASTER_KEY"); envKey != "" {
+	if envKey := os.Getenv("ATRADE_MASTER_KEY"); envKey != "" {
 		decoded, err := base64.StdEncoding.DecodeString(envKey)
 		if err == nil && len(decoded) == 32 {
 			em.masterKey = decoded
@@ -266,7 +266,7 @@ func (em *EncryptionManager) loadOrGenerateMasterKey() error {
 
 	log.Println("✅ 主密鑰已生成並保存")
 	log.Printf("📁 主密鑰文件位置: %s (權限: 0600)", masterKeyFile)
-	log.Println("🔐 生產環境請設置環境變數: NOFX_MASTER_KEY=<從文件讀取>")
+	log.Println("🔐 生產環境請設置環境變數: ATRADE_MASTER_KEY=<從文件讀取>")
 	log.Println("⚠️  請妥善保管 .secrets 目錄，切勿將密鑰提交到版本控制系統")
 	return nil
 }

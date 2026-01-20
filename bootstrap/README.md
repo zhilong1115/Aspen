@@ -26,8 +26,8 @@ Bootstrap 是一个模块化的初始化框架，允许各个模块通过注册�
 package proxy
 
 import (
-	"nofx/bootstrap"
-	"nofx/config"
+	"atrade/bootstrap"
+	"atrade/config"
 )
 
 func init() {
@@ -58,13 +58,13 @@ package main
 
 import (
 	"log"
-	"nofx/bootstrap"
-	"nofx/config"
+	"atrade/bootstrap"
+	"atrade/config"
 
 	// 导入需要初始化的模块（触发 init() 注册）
-	_ "nofx/proxy"
-	_ "nofx/market"
-	_ "nofx/trader"
+	_ "atrade/proxy"
+	_ "atrade/market"
+	_ "atrade/trader"
 )
 
 func main() {
@@ -251,7 +251,7 @@ package database
 
 import (
 	"database/sql"
-	"nofx/bootstrap"
+	"atrade/bootstrap"
 )
 
 func init() {
@@ -282,8 +282,8 @@ func initDatabase(ctx *bootstrap.Context) error {
 package proxy
 
 import (
-	"nofx/bootstrap"
-	"nofx/config"
+	"atrade/bootstrap"
+	"atrade/config"
 )
 
 func init() {
@@ -313,7 +313,7 @@ func initProxy(ctx *bootstrap.Context) error {
 package trader
 
 import (
-	"nofx/bootstrap"
+	"atrade/bootstrap"
 )
 
 func init() {

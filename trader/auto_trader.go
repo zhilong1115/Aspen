@@ -1,15 +1,16 @@
 package trader
 
 import (
+	"atrade/decision"
+	"atrade/logger"
+	"atrade/market"
+	"atrade/mcp"
+	"atrade/metrics"
+	"atrade/pool"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math"
-	"nofx/decision"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/mcp"
-	"nofx/pool"
 	"strings"
 	"sync"
 	"time"
@@ -91,6 +92,7 @@ type AutoTrader struct {
 	trader                Trader // 使用Trader接口（支持多平台）
 	mcpClient             *mcp.Client
 	decisionLogger        *logger.DecisionLogger // 决策日志记录器
+	metricsRecorder       *metrics.TradingMetricsRecorder // 交易指标记录器
 	initialBalance        float64
 	dailyPnL              float64
 	customPrompt          string   // 自定义交易策略prompt
@@ -255,6 +257,7 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		trader:                trader,
 		mcpClient:             mcpClient,
 		decisionLogger:        decisionLogger,
+		metricsRecorder:       metrics.NewTradingMetricsRecorder(config.ID, config.Exchange),
 		initialBalance:        config.InitialBalance,
 		systemPromptTemplate:  systemPromptTemplate,
 		defaultCoins:          config.DefaultCoins,
@@ -646,6 +649,22 @@ func (at *AutoTrader) runCycle() error {
 		log.Printf("⚠ 保存决策记录失败: %v", err)
 	}
 
+	// 10. 记录交易指标
+	at.metricsRecorder.RecordCycle(record.Success)
+	at.metricsRecorder.RecordEquity(record.AccountState.TotalBalance)
+	at.metricsRecorder.RecordPnL(0, record.AccountState.TotalUnrealizedProfit, record.AccountState.TotalUnrealizedProfit)
+	at.metricsRecorder.RecordPositions(record.AccountState.PositionCount)
+	at.metricsRecorder.RecordMarginUsed(record.AccountState.MarginUsedPct)
+
+	// 计算并记录回撤
+	if at.initialBalance > 0 && record.AccountState.TotalBalance > 0 {
+		drawdown := (at.initialBalance - record.AccountState.TotalBalance) / at.initialBalance * 100
+		if drawdown < 0 {
+			drawdown = 0 // 盈利时回撤为0
+		}
+		at.metricsRecorder.RecordDrawdown(drawdown)
+	}
+
 	return nil
 }
 
@@ -815,27 +834,35 @@ func (at *AutoTrader) buildTradingContext() (*decision.Context, error) {
 
 // executeDecisionWithRecord 执行AI决策并记录详细信息
 func (at *AutoTrader) executeDecisionWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	switch decision.Action {
+	var err error
+	action := decision.Action
+
+	switch action {
 	case "open_long":
-		return at.executeOpenLongWithRecord(decision, actionRecord)
+		err = at.executeOpenLongWithRecord(decision, actionRecord)
 	case "open_short":
-		return at.executeOpenShortWithRecord(decision, actionRecord)
+		err = at.executeOpenShortWithRecord(decision, actionRecord)
 	case "close_long":
-		return at.executeCloseLongWithRecord(decision, actionRecord)
+		err = at.executeCloseLongWithRecord(decision, actionRecord)
 	case "close_short":
-		return at.executeCloseShortWithRecord(decision, actionRecord)
+		err = at.executeCloseShortWithRecord(decision, actionRecord)
 	case "update_stop_loss":
-		return at.executeUpdateStopLossWithRecord(decision, actionRecord)
+		err = at.executeUpdateStopLossWithRecord(decision, actionRecord)
 	case "update_take_profit":
-		return at.executeUpdateTakeProfitWithRecord(decision, actionRecord)
+		err = at.executeUpdateTakeProfitWithRecord(decision, actionRecord)
 	case "partial_close":
-		return at.executePartialCloseWithRecord(decision, actionRecord)
+		err = at.executePartialCloseWithRecord(decision, actionRecord)
 	case "hold", "wait":
 		// 无需执行，仅记录
 		return nil
 	default:
-		return fmt.Errorf("未知的action: %s", decision.Action)
+		return fmt.Errorf("未知的action: %s", action)
 	}
+
+	// 记录订单指标
+	at.metricsRecorder.RecordOrder(action, err == nil)
+
+	return err
 }
 
 // executeOpenLongWithRecord 执行开多仓并记录详细信息

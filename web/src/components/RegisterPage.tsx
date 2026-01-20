@@ -112,8 +112,8 @@ export function RegisterPage() {
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
             <img
-              src="/icons/nofx.svg"
-              alt="NoFx Logo"
+              src="/icons/atrade.svg"
+              alt="ATrade Logo"
               className="w-16 h-16 object-contain"
             />
           </div>

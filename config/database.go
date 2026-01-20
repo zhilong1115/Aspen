@@ -1,14 +1,14 @@
 package config
 
 import (
+	"atrade/crypto"
+	"atrade/market"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"log"
-	"nofx/crypto"
-	"nofx/market"
 	"os"
 	"slices"
 	"strings"
@@ -174,6 +174,7 @@ func (d *Database) createTables() error {
 			password_hash TEXT NOT NULL,
 			otp_secret TEXT,
 			otp_verified BOOLEAN DEFAULT 0,
+			last_active_at DATETIME,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)`,
@@ -438,13 +439,14 @@ func (d *Database) migrateExchangesTable() error {
 
 // User 用户配置
 type User struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"` // 不返回到前端
-	OTPSecret    string    `json:"-"` // 不返回到前端
-	OTPVerified  bool      `json:"otp_verified"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID           string     `json:"id"`
+	Email        string     `json:"email"`
+	PasswordHash string     `json:"-"` // 不返回到前端
+	OTPSecret    string     `json:"-"` // 不返回到前端
+	OTPVerified  bool       `json:"otp_verified"`
+	LastActiveAt *time.Time `json:"last_active_at,omitempty"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
 // AIModelConfig AI模型配置
@@ -617,6 +619,67 @@ func (d *Database) GetAllUsers() ([]string, error) {
 func (d *Database) UpdateUserOTPVerified(userID string, verified bool) error {
 	_, err := d.db.Exec(`UPDATE users SET otp_verified = ? WHERE id = ?`, verified, userID)
 	return err
+}
+
+// UpdateUserLastActive 更新用户最后活跃时间
+func (d *Database) UpdateUserLastActive(userID string) error {
+	_, err := d.db.Exec(`UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?`, userID)
+	return err
+}
+
+// UserStats 用户统计信息
+type UserStats struct {
+	TotalUsers          int `json:"total_users"`
+	VerifiedUsers       int `json:"verified_users"`
+	DailyActiveUsers    int `json:"daily_active_users"`
+	WeeklyActiveUsers   int `json:"weekly_active_users"`
+	MonthlyActiveUsers  int `json:"monthly_active_users"`
+	TotalTraders        int `json:"total_traders"`
+	RunningTraders      int `json:"running_traders"`
+	NewRegistrations24h int `json:"new_registrations_24h"`
+}
+
+// GetUserStats 获取用户统计信息（用于metrics）
+func (d *Database) GetUserStats() (*UserStats, error) {
+	stats := &UserStats{}
+
+	// 总用户数
+	d.db.QueryRow(`SELECT COUNT(*) FROM users`).Scan(&stats.TotalUsers)
+
+	// 已验证用户数
+	d.db.QueryRow(`SELECT COUNT(*) FROM users WHERE otp_verified = 1`).Scan(&stats.VerifiedUsers)
+
+	// DAU - 24小时内活跃
+	d.db.QueryRow(`
+		SELECT COUNT(*) FROM users 
+		WHERE last_active_at >= datetime('now', '-1 day')
+	`).Scan(&stats.DailyActiveUsers)
+
+	// WAU - 7天内活跃
+	d.db.QueryRow(`
+		SELECT COUNT(*) FROM users 
+		WHERE last_active_at >= datetime('now', '-7 days')
+	`).Scan(&stats.WeeklyActiveUsers)
+
+	// MAU - 30天内活跃
+	d.db.QueryRow(`
+		SELECT COUNT(*) FROM users 
+		WHERE last_active_at >= datetime('now', '-30 days')
+	`).Scan(&stats.MonthlyActiveUsers)
+
+	// 总Trader数
+	d.db.QueryRow(`SELECT COUNT(*) FROM traders`).Scan(&stats.TotalTraders)
+
+	// 运行中的Trader数
+	d.db.QueryRow(`SELECT COUNT(*) FROM traders WHERE is_running = 1`).Scan(&stats.RunningTraders)
+
+	// 24小时内新注册
+	d.db.QueryRow(`
+		SELECT COUNT(*) FROM users 
+		WHERE created_at >= datetime('now', '-1 day')
+	`).Scan(&stats.NewRegistrations24h)
+
+	return stats, nil
 }
 
 // UpdateUserPassword 更新用户密码

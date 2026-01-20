@@ -1,14 +1,14 @@
 services:
   # Backend service (API and core logic)
-  nofx:
+  atrade:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.backend
-    container_name: nofx-trading
+    container_name: atrade-backend
     restart: unless-stopped
     stop_grace_period: 30s  # 允许应用有 30 秒时间优雅关闭
     ports:
-      - "${NOFX_BACKEND_PORT:-8080}:8080"
+      - "${ATRADE_BACKEND_PORT:-8080}:8080"
     volumes:
       - ./config.json:/app/config.json:ro
       - ./config.db:/app/config.db
@@ -18,12 +18,12 @@ services:
       - ./secrets:/app/secrets:ro  # RSA密钥文件
       - /etc/localtime:/etc/localtime:ro  # Sync host time
     environment:
-      - TZ=${NOFX_TIMEZONE:-Asia/Shanghai}  # Set timezone
+      - TZ=${ATRADE_TIMEZONE:-Asia/Shanghai}  # Set timezone
       - AI_MAX_TOKENS=16384  # AI响应的最大token数（默认2000，建议4000-8000）
       - DATA_ENCRYPTION_KEY=${DATA_ENCRYPTION_KEY}  # 数据库加密密钥
       - JWT_SECRET=${JWT_SECRET}  # JWT认证密钥
     networks:
-      - nofx-network
+      - atrade-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
@@ -32,18 +32,18 @@ services:
       start_period: 60s
 
   # Frontend service (static serving and proxy)
-  nofx-frontend:
+  atrade-frontend:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.frontend
-    container_name: nofx-frontend
+    container_name: atrade-frontend
     restart: unless-stopped
     ports:
-      - "${NOFX_FRONTEND_PORT:-3000}:80"
+      - "${ATRADE_FRONTEND_PORT:-3000}:80"
     networks:
-      - nofx-network
+      - atrade-network
     depends_on:
-      - nofx
+      - atrade
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -51,6 +51,54 @@ services:
       retries: 3
       start_period: 5s
 
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: atrade-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - atrade-network
+    depends_on:
+      - atrade
+
+  # Grafana for metrics visualization
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: atrade-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
+      # 匿名访问控制（本地开发设为true，生产环境设为false）
+      - GF_AUTH_ANONYMOUS_ENABLED=${GRAFANA_ANONYMOUS:-true}
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    networks:
+      - atrade-network
+    depends_on:
+      - prometheus
+
 networks:
-  nofx-network:
+  atrade-network:
     driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data:

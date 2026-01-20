@@ -1,6 +1,7 @@
 package market
 
 import (
+	"atrade/metrics"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -30,6 +31,8 @@ func NewCombinedStreamsClient(batchSize int) *CombinedStreamsClient {
 }
 
 func (c *CombinedStreamsClient) Connect() error {
+	wsMetrics := metrics.NewWSMetricsRecorder("combined")
+
 	dialer := websocket.Dialer{
 		HandshakeTimeout: 10 * time.Second,
 	}
@@ -45,6 +48,7 @@ func (c *CombinedStreamsClient) Connect() error {
 	log.Printf("📡 [WebSocket] 连接到数据源: %s", string(GetCurrentDataSource()))
 	conn, _, err := dialer.Dial(wsURL, nil)
 	if err != nil {
+		wsMetrics.RecordConnection(false)
 		return fmt.Errorf("组合流WebSocket连接失败 (%s): %v", string(GetCurrentDataSource()), err)
 	}
 
@@ -52,6 +56,7 @@ func (c *CombinedStreamsClient) Connect() error {
 	c.conn = conn
 	c.mu.Unlock()
 
+	wsMetrics.RecordConnection(true)
 	log.Printf("✅ [WebSocket] 组合流连接成功: %s", string(GetCurrentDataSource()))
 	go c.readMessages()
 
@@ -186,6 +191,8 @@ func (c *CombinedStreamsClient) sendJSON(msg interface{}) error {
 }
 
 func (c *CombinedStreamsClient) readMessages() {
+	wsMetrics := metrics.NewWSMetricsRecorder("combined")
+
 	for {
 		select {
 		case <-c.done:
@@ -203,9 +210,13 @@ func (c *CombinedStreamsClient) readMessages() {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
 				log.Printf("读取组合流消息失败: %v", err)
+				wsMetrics.RecordDisconnect("error")
 				c.handleReconnect()
 				return
 			}
+
+			// 记录消息指标
+			wsMetrics.RecordMessage()
 
 			c.handleCombinedMessage(message)
 		}
@@ -488,6 +499,9 @@ func (c *CombinedStreamsClient) handleReconnect() {
 	if !c.reconnect {
 		return
 	}
+
+	wsMetrics := metrics.NewWSMetricsRecorder("combined")
+	wsMetrics.RecordReconnect()
 
 	log.Println("组合流尝试重新连接...")
 	time.Sleep(3 * time.Second)

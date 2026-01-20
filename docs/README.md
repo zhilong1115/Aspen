@@ -1,14 +1,14 @@
-# 📚 NOFX Documentation Center / 文档中心
+# 📚 ATrade Documentation Center / 文档中心
 
-Welcome to the NOFX documentation! This page helps you find the right documentation quickly.
+Welcome to the ATrade documentation! This page helps you find the right documentation quickly.
 
-欢迎来到 NOFX 文档中心！本页面帮助您快速找到所需文档。
+欢迎来到 ATrade 文档中心！本页面帮助您快速找到所需文档。
 
 ---
 
 ## 🚀 Getting Started / 快速开始
 
-**New to NOFX? Start here!**
+**New to ATrade? Start here!**
 
 | Document | Description | 描述 |
 |----------|-------------|------|
@@ -32,7 +32,7 @@ Welcome to the NOFX documentation! This page helps you find the right documentat
 
 ## 📘 User Guides / 使用指南
 
-**Learn how to use NOFX effectively**
+**Learn how to use ATrade effectively**
 
 | Document | Description | 描述 |
 |----------|-------------|------|
@@ -59,9 +59,9 @@ Welcome to the NOFX documentation! This page helps you find the right documentat
 | [Aster Bounty](community/bounty-aster.md) | Aster DEX integration bounty | Aster DEX 集成悬赏 |
 
 **Get Involved:**
-- 💬 [Telegram Community](https://t.me/nofx_dev_community)
-- 🐦 [Twitter @nofx_ai](https://x.com/nofx_ai)
-- 🐛 [Report Issues](https://github.com/tinkle-community/nofx/issues)
+- 💬 [Telegram Community](https://t.me/atrade_dev_community)
+- 🐦 [Twitter @atrade_ai](https://x.com/atrade_ai)
+- 🐛 [Report Issues](https://github.com/tinkle-community/atrade/issues)
 
 ---
 
@@ -94,7 +94,7 @@ Welcome to the NOFX documentation! This page helps you find the right documentat
 
 ## 🗺️ Roadmap / 路线图
 
-**NOFX's strategic development plan and market expansion**
+**ATrade's strategic development plan and market expansion**
 
 | Document | Description | 描述 |
 |----------|-------------|------|
@@ -125,12 +125,12 @@ Welcome to the NOFX documentation! This page helps you find the right documentat
 
 ### I want to...
 - 🚀 **Get started quickly** → [Getting Started](getting-started/README.md) / [快速开始](getting-started/README.zh-CN.md)
-- 🐛 **Report a bug** → [GitHub Issues](https://github.com/tinkle-community/nofx/issues/new)
-- 💡 **Suggest a feature** → [Feature Request](https://github.com/tinkle-community/nofx/issues/new?template=feature_request.md)
+- 🐛 **Report a bug** → [GitHub Issues](https://github.com/tinkle-community/atrade/issues/new)
+- 💡 **Suggest a feature** → [Feature Request](https://github.com/tinkle-community/atrade/issues/new?template=feature_request.md)
 - 🔒 **Report security issue** → [Security Policy](../SECURITY.md)
 - 💰 **Claim a bounty** → [Bounty Guide](community/bounty-guide.md)
 - 🤝 **Contribute code** → [Contributing Guide](../CONTRIBUTING.md)
-- 💬 **Ask questions** → [Telegram Community](https://t.me/nofx_dev_community)
+- 💬 **Ask questions** → [Telegram Community](https://t.me/atrade_dev_community)
 
 ### I'm looking for...
 - 🏗️ **System architecture** → [Architecture (EN)](architecture/README.md) / [架构文档](architecture/README.zh-CN.md)
@@ -166,9 +166,9 @@ Welcome to the NOFX documentation! This page helps you find the right documentat
 **Can't find what you're looking for?**
 
 1. **Search GitHub Issues** - Someone might have asked already
-2. **Join Telegram** - [NOFX Developer Community](https://t.me/nofx_dev_community)
-3. **Ask on Twitter** - Mention [@nofx_ai](https://x.com/nofx_ai)
-4. **Create an Issue** - [New Issue](https://github.com/tinkle-community/nofx/issues/new)
+2. **Join Telegram** - [ATrade Developer Community](https://t.me/atrade_dev_community)
+3. **Ask on Twitter** - Mention [@atrade_ai](https://x.com/atrade_ai)
+4. **Create an Issue** - [New Issue](https://github.com/tinkle-community/atrade/issues/new)
 
 ---
 
