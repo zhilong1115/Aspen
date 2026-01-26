@@ -4,9 +4,18 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        // QuantFlow palette
+        qf: {
+          green: '#00C805',
+          red: '#FF5000',
+          black: '#000000',
+          gray: '#1F1F1F',
+        },
+        // Keep google colors for backward compat
         google: {
           blue: '#1a73e8',
           red: '#ea4335',

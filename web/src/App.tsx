@@ -10,17 +10,12 @@ function LoadingScreen() {
   const { language } = useLanguage()
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center"
-      style={{ background: '#0B0E11' }}
-    >
+    <div className="min-h-screen flex items-center justify-center bg-black">
       <div className="text-center">
-        <img
-          src="/icons/atrade.svg"
-          alt="ATrade Logo"
-          className="w-16 h-16 mx-auto mb-4 animate-pulse"
-        />
-        <p style={{ color: '#EAECEF' }}>{t('loading', language)}</p>
+        <div className="w-16 h-16 bg-[#00C805] rounded-2xl mx-auto mb-4 flex items-center justify-center animate-pulse">
+          <span className="text-black text-2xl font-bold">A</span>
+        </div>
+        <p className="text-white">{t('loading', language)}</p>
       </div>
     </div>
   )

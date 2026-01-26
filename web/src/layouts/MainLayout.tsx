@@ -1,8 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
-import { ReactNode } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
-import { Container } from '../components/Container'
-import HeaderBar from '../components/HeaderBar'
+import { Activity, BarChart3, Globe, Layers, User } from 'lucide-react'
+import { ReactNode, useEffect, useState } from 'react'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { PageTransition } from '../components/ui/PageTransition'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -13,67 +12,176 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { language, setLanguage } = useLanguage()
-  const { user, logout } = useAuth()
+  const { language } = useLanguage()
+  const { user: _user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  )
 
-  // 根据路径自动判断当前页面
-  const getCurrentPage = (): 'competition' | 'traders' | 'trader' | 'faq' => {
-    if (location.pathname === '/faq') return 'faq'
-    if (location.pathname === '/traders') return 'traders'
-    if (location.pathname === '/dashboard') return 'trader'
-    if (location.pathname === '/competition') return 'competition'
-    return 'competition' // 默认
-  }
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--text-primary)]">
-      <HeaderBar
-        isLoggedIn={!!user}
-        currentPage={getCurrentPage()}
-        language={language}
-        onLanguageChange={setLanguage}
-        user={user}
-        onLogout={logout}
-        onPageChange={() => {
-          // React Router handles navigation now
-        }}
-      />
+    <div className="min-h-screen w-full bg-black text-white font-sans flex flex-col">
+      {/* Top Navigation */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isDesktop
+            ? 'bg-black/90 backdrop-blur-md h-20 border-b border-neutral-900'
+            : 'bg-black h-14'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <div className="w-8 h-8 bg-[#00C805] rounded-lg flex items-center justify-center">
+              <Activity size={20} className="text-black" />
+            </div>
+            <span className="font-bold text-xl tracking-tighter hidden md:block text-white">
+              ATrade
+            </span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            <NavBtn
+              label={t('dashboardNav', language)}
+              active={isActive('/dashboard')}
+              onClick={() => navigate('/dashboard')}
+            />
+            <NavBtn
+              label={t('configNav', language)}
+              active={isActive('/traders')}
+              onClick={() => navigate('/traders')}
+            />
+            <NavBtn
+              label={t('realtimeNav', language)}
+              active={isActive('/competition')}
+              onClick={() => navigate('/competition')}
+            />
+            <NavBtn
+              label={t('profile', language) || 'Profile'}
+              active={isActive('/profile')}
+              onClick={() => navigate('/profile')}
+            />
+          </div>
+
+          {/* Mobile Profile Icon */}
+          {!isDesktop && (
+            <button
+              onClick={() => navigate('/profile')}
+              className="p-2"
+            >
+              <User
+                size={24}
+                className={
+                  isActive('/profile') ? 'text-[#00C805]' : 'text-white'
+                }
+              />
+            </button>
+          )}
+        </div>
+      </nav>
 
       {/* Main Content */}
-      <Container as="main" className="py-6 pt-24">
-        <AnimatePresence mode="wait">
-          <PageTransition key={location.pathname}>
-            {children || <Outlet />}
-          </PageTransition>
-        </AnimatePresence>
-      </Container>
+      <main
+        className={`flex-1 ${isDesktop ? 'mt-20' : 'mt-14'} ${!isDesktop ? 'mb-20' : ''} overflow-y-auto`}
+      >
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <AnimatePresence mode="wait">
+            <PageTransition key={location.pathname}>
+              {children || <Outlet />}
+            </PageTransition>
+          </AnimatePresence>
+        </div>
+      </main>
 
-      {/* Footer */}
-      <footer className="mt-16 border-t border-[var(--border-light)] bg-[var(--surface)]">
-        <Container className="py-6 text-center text-sm text-[var(--text-secondary)]">
-          <p>{t('footerTitle', language)}</p>
-          <p className="mt-1">{t('footerWarning', language)}</p>
-          <div className="mt-4">
-            <a
-              href="https://github.com/tinkle-community/atrade"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-3 py-2 rounded text-sm font-semibold transition-all hover:scale-105 btn-outline"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-              >
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-              </svg>
-              GitHub
-            </a>
+      {/* Mobile Bottom Navigation */}
+      {!isDesktop && (
+        <div className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 pb-safe pt-2 z-50">
+          <div className="flex justify-around items-center h-16">
+            <MobNavBtn
+              icon={<BarChart3 size={22} />}
+              label={t('dashboardNav', language)}
+              active={isActive('/dashboard')}
+              onClick={() => navigate('/dashboard')}
+            />
+            <MobNavBtn
+              icon={<Layers size={22} />}
+              label={t('configNav', language)}
+              active={isActive('/traders')}
+              onClick={() => navigate('/traders')}
+            />
+            <MobNavBtn
+              icon={<Globe size={22} />}
+              label={t('realtimeNav', language)}
+              active={isActive('/competition')}
+              onClick={() => navigate('/competition')}
+            />
+            <MobNavBtn
+              icon={<User size={22} />}
+              label={t('profile', language) || 'Me'}
+              active={isActive('/profile')}
+              onClick={() => navigate('/profile')}
+            />
           </div>
-        </Container>
-      </footer>
+        </div>
+      )}
     </div>
+  )
+}
+
+function NavBtn({
+  label,
+  active,
+  onClick,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`text-sm font-bold transition-colors ${
+        active ? 'text-[#00C805]' : 'text-gray-400 hover:text-white'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
+function MobNavBtn({
+  icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: React.ReactNode
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center gap-1 w-20 transition-all ${
+        active ? 'text-[#00C805] scale-110' : 'text-gray-500'
+      }`}
+    >
+      {icon}
+      <span className="text-[10px] font-bold">{label}</span>
+    </button>
   )
 }

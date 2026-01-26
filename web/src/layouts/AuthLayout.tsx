@@ -1,7 +1,7 @@
 import { AnimatePresence } from 'framer-motion'
+import { Activity } from 'lucide-react'
 import { ReactNode } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { Container } from '../components/Container'
 import { PageTransition } from '../components/ui/PageTransition'
 import { useLanguage } from '../contexts/LanguageContext'
 
@@ -14,17 +14,19 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--text-primary)]">
-      {/* Simple Header with Logo and Language Selector */}
-      <nav className="fixed top-0 w-full z-50 bg-[var(--surface)]/95 backdrop-blur-sm border-b border-[var(--border-light)]">
-        <Container className="flex items-center justify-between h-16">
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <nav className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-neutral-900">
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <img src="/icons/atrade.svg" alt="ATrade Logo" className="w-8 h-8" />
-            <span className="text-xl font-bold text-[var(--google-blue)]">
+            <div className="w-8 h-8 bg-[#00C805] rounded-lg flex items-center justify-center">
+              <Activity size={20} className="text-black" />
+            </div>
+            <span className="font-bold text-xl tracking-tighter text-white">
               ATrade
             </span>
           </Link>
@@ -33,15 +35,15 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
-              className="px-3 py-1.5 rounded text-sm font-medium transition-colors btn-outline"
+              className="px-3 py-1.5 rounded-full text-sm font-medium transition-colors border border-neutral-700 text-gray-300 hover:border-neutral-500 hover:text-white"
             >
               {language === 'zh' ? 'English' : '中文'}
             </button>
           </div>
-        </Container>
+        </div>
       </nav>
 
-      {/* Content with top padding to avoid overlap with fixed header */}
+      {/* Content */}
       <div className="pt-16">
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname}>

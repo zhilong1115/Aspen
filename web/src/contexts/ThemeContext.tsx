@@ -12,8 +12,9 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setTheme] = useState<Theme>('light')
-    const [isAuto, setIsAuto] = useState(true)
+    // Default to dark theme (QuantFlow style)
+    const [theme, setTheme] = useState<Theme>('dark')
+    const [isAuto, setIsAuto] = useState(false)
 
     // Check time for auto theme
     useEffect(() => {
@@ -21,7 +22,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
         const checkTime = () => {
             const hour = new Date().getHours()
-            // Light mode: 6 AM to 6 PM (18:00)
             const isLight = hour >= 6 && hour < 18
             setTheme(isLight ? 'light' : 'dark')
         }
@@ -35,13 +35,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (theme === 'dark') {
             document.documentElement.classList.add('dark')
+            document.documentElement.classList.remove('light-mode')
         } else {
             document.documentElement.classList.remove('dark')
+            document.documentElement.classList.add('light-mode')
         }
     }, [theme])
 
     const toggleTheme = () => {
-        setIsAuto(false) // Disable auto mode when manually toggled
+        setIsAuto(false)
         setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
     }
 

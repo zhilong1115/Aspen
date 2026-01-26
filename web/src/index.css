@@ -6,131 +6,165 @@
 @tailwind utilities;
 
 :root {
-  /* Google Brand Colors */
-  --google-blue: #1a73e8;
-  --google-red: #ea4335;
-  --google-yellow: #fbbc04;
-  --google-green: #34a853;
+  /* QuantFlow Brand Colors */
+  --qf-green: #00C805;
+  --qf-red: #FF5000;
+  --qf-black: #000000;
 
-  /* Surface Colors (Light Mode Default) */
-  --background: #F9F9F9;
-  /* Off-white/Beige */
-  --surface: #FFFFFF;
-  --surface-hover: #f1f3f4;
-  --surface-active: #e8eaed;
+  /* Google Brand Colors (kept for backward compat) */
+  --google-blue: #1a73e8;
+  --google-red: #FF5000;
+  --google-yellow: #00C805;
+  --google-green: #00C805;
+
+  /* Surface Colors - Dark by default (QuantFlow style) */
+  --background: #000000;
+  --surface: #171717;
+  --surface-hover: #262626;
+  --surface-active: #333333;
 
   /* Text Colors */
-  --text-primary: #1F1F1F;
-  --text-secondary: #444746;
-  --text-tertiary: #747775;
-  --text-disabled: #c7c7c7;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A3A3A3;
+  --text-tertiary: #737373;
+  --text-disabled: #525252;
 
   /* Borders & Dividers */
-  --border: #e0e3e7;
-  --border-light: #f0f4f9;
+  --border: #262626;
+  --border-light: #171717;
 
   /* Shadows */
-  --shadow-card: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-  --shadow-card-hover: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
-  --shadow-dropdown: 0 2px 6px 2px rgba(60, 64, 67, 0.15);
-
-  /* Chart Colors */
-  --chart-grid: #e0e3e7;
-  --chart-text: #444746;
-  --chart-up: #188038;
-  --chart-down: #d93025;
-
-  font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light;
-  color: var(--text-primary);
-  background-color: var(--background);
-
-  /* Soft Colors (Pastel/Apple-style -> Google Style Pills) */
-  --surface-soft: #e8f0fe;
-  --surface-soft-blue: #e8f0fe;
-  --surface-soft-green: #e6f4ea;
-  --surface-soft-yellow: #fef7e0;
-  --surface-soft-purple: #f3e8fd;
-
-  /* Glassmorphism -> Clean White Card */
-  --glass-bg: #ffffff;
-  --glass-border: #e0e3e7;
-  --glass-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
-}
-
-/* Dark Mode */
-.dark {
-  /* Surface Colors */
-  --background: #1F1F1F;
-  /* Light Gray (not black) */
-  --surface: #2D2D2D;
-  /* Lighter Gray */
-  --surface-hover: #3c4043;
-  --surface-active: #4a4d50;
-
-  /* Text Colors */
-  --text-primary: #E3E3E3;
-  --text-secondary: #C4C7C5;
-  --text-tertiary: #A8C7FA;
-  /* Google Blue tint for tertiary in dark mode */
-  --text-disabled: #5f6368;
-
-  /* Borders & Dividers */
-  --border: #444746;
-  --border-light: #3c4043;
-
-  /* Shadows (Subtler in dark mode) */
   --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
   --shadow-card-hover: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
   --shadow-dropdown: 0 2px 6px 2px rgba(0, 0, 0, 0.3);
 
   /* Chart Colors */
-  --chart-grid: #444746;
-  --chart-text: #C4C7C5;
-  --chart-up: #81c995;
-  /* Lighter green */
-  --chart-down: #f28b82;
-  /* Lighter red */
+  --chart-grid: #262626;
+  --chart-text: #A3A3A3;
+  --chart-up: #00C805;
+  --chart-down: #FF5000;
 
-  /* Soft Colors (Adjusted for Dark Mode) */
-  --surface-soft: #3c4043;
-  --surface-soft-blue: rgba(168, 199, 250, 0.1);
-  --surface-soft-green: rgba(129, 201, 149, 0.1);
-  --surface-soft-yellow: rgba(253, 214, 99, 0.1);
-  --surface-soft-purple: rgba(215, 174, 251, 0.1);
+  /* Legacy Binance vars (mapped to new theme) */
+  --brand-yellow: #00C805;
+  --brand-black: #000000;
+  --brand-light-gray: #FFFFFF;
+  --panel-bg: #171717;
+  --panel-border: #262626;
+  --panel-bg-hover: #262626;
+  --binance-red: #FF5000;
+  --binance-red-bg: rgba(255, 80, 0, 0.1);
+
+  font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--background);
+
+  /* Soft Colors */
+  --surface-soft: rgba(255, 255, 255, 0.05);
+  --surface-soft-blue: rgba(0, 200, 5, 0.1);
+  --surface-soft-green: rgba(0, 200, 5, 0.1);
+  --surface-soft-yellow: rgba(0, 200, 5, 0.1);
+  --surface-soft-purple: rgba(168, 85, 247, 0.1);
 
   /* Glassmorphism */
-  --glass-bg: #2D2D2D;
-  --glass-border: #444746;
+  --glass-bg: #171717;
+  --glass-border: #262626;
   --glass-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+}
 
+/* Light Mode Override (when toggled) */
+.light-mode {
+  --background: #F9F9F9;
+  --surface: #FFFFFF;
+  --surface-hover: #f1f3f4;
+  --surface-active: #e8eaed;
+  --text-primary: #1F1F1F;
+  --text-secondary: #444746;
+  --text-tertiary: #747775;
+  --text-disabled: #c7c7c7;
+  --border: #e0e3e7;
+  --border-light: #f0f4f9;
+  --shadow-card: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  --shadow-card-hover: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+  --shadow-dropdown: 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+  --chart-grid: #e0e3e7;
+  --chart-text: #444746;
+  --chart-up: #00C805;
+  --chart-down: #FF5000;
+  --surface-soft: #e8f0fe;
+  --surface-soft-blue: #e8f0fe;
+  --surface-soft-green: #e6f4ea;
+  --surface-soft-yellow: #fef7e0;
+  --surface-soft-purple: #f3e8fd;
+  --glass-bg: #ffffff;
+  --glass-border: #e0e3e7;
+  --glass-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  color-scheme: light;
+}
+
+/* Dark mode class kept for backward compatibility */
+.dark {
+  --background: #000000;
+  --surface: #171717;
+  --surface-hover: #262626;
+  --surface-active: #333333;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A3A3A3;
+  --text-tertiary: #737373;
+  --text-disabled: #525252;
+  --border: #262626;
+  --border-light: #171717;
+  --shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --shadow-card-hover: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 4px 8px 3px rgba(0, 0, 0, 0.15);
+  --shadow-dropdown: 0 2px 6px 2px rgba(0, 0, 0, 0.3);
+  --chart-grid: #262626;
+  --chart-text: #A3A3A3;
+  --chart-up: #00C805;
+  --chart-down: #FF5000;
+  --surface-soft: rgba(255, 255, 255, 0.05);
+  --surface-soft-blue: rgba(0, 200, 5, 0.1);
+  --surface-soft-green: rgba(0, 200, 5, 0.1);
+  --surface-soft-yellow: rgba(0, 200, 5, 0.1);
+  --surface-soft-purple: rgba(168, 85, 247, 0.1);
+  --glass-bg: #171717;
+  --glass-border: #262626;
+  --glass-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
   color-scheme: dark;
 }
 
 .glass {
   background: var(--surface);
   backdrop-filter: blur(12px);
-  /* Keep existing blur for glass effect */
   -webkit-backdrop-filter: blur(12px);
-  /* Keep existing blur for glass effect */
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: 12px;
-  /* Slightly smaller radius */
 }
 
 .glass-card {
   background: var(--surface);
   backdrop-filter: blur(16px);
-  /* Keep existing blur for glass effect */
   -webkit-backdrop-filter: blur(16px);
-  /* Keep existing blur for glass effect */
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   border-radius: 12px;
+}
+
+/* Stat card - QuantFlow style */
+.stat-card {
+  background: #171717;
+  border: 1px solid #262626;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: #404040;
+  transform: translateY(-1px);
 }
 
 body {
@@ -146,10 +180,19 @@ body {
   margin: 0 auto;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Scrollbar - Minimalist */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -157,12 +200,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #dadce0;
-  border-radius: 4px;
+  background: #404040;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #bdc1c6;
+  background: #525252;
+}
+
+/* pb-safe for iOS safe area */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* Animations */
@@ -171,10 +219,31 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -182,11 +251,19 @@ body {
   animation: fadeIn 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
+.animate-slide-in {
+  animation: slideIn 0.5s cubic-bezier(0.4, 0.0, 0.2, 1) both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
 /* Google Style Card */
 .google-card {
   background: var(--surface);
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
   transition: box-shadow 0.2s cubic-bezier(0.4, 0.0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
@@ -196,41 +273,39 @@ body {
   z-index: 1;
 }
 
-/* Buttons */
+/* Buttons - QuantFlow style */
 .btn-primary {
-  background-color: var(--google-blue);
-  color: white;
+  background-color: #00C805;
+  color: #000000;
   border: none;
-  border-radius: 4px;
-  padding: 8px 24px;
+  border-radius: 9999px;
+  padding: 10px 24px;
   font-family: 'Google Sans', sans-serif;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .btn-primary:hover {
-  background-color: #1967d2;
-  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+  background-color: #00b004;
+  box-shadow: 0 4px 12px rgba(0, 200, 5, 0.3);
 }
 
 .btn-outline {
   background-color: transparent;
-  color: var(--google-blue);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 7px 23px;
-  /* 1px less for border */
+  color: #FFFFFF;
+  border: 1px solid #404040;
+  border-radius: 9999px;
+  padding: 9px 23px;
   font-family: 'Google Sans', sans-serif;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s, border-color 0.2s;
 }
 
 .btn-outline:hover {
-  background-color: rgba(26, 115, 232, 0.04);
-  border-color: var(--border);
-  color: #174ea6;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: #737373;
 }
 
 /* Sonner (Toast) Overrides */
@@ -239,18 +314,18 @@ body {
 }
 
 [data-sonner-toast] {
-  background: var(--surface) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-primary) !important;
+  background: #171717 !important;
+  border: 1px solid #262626 !important;
+  color: #FFFFFF !important;
   box-shadow: var(--shadow-dropdown) !important;
 }
 
 [data-sonner-toast] [data-title] {
-  color: var(--text-primary) !important;
+  color: #FFFFFF !important;
 }
 
 [data-sonner-toast] [data-description] {
-  color: var(--text-secondary) !important;
+  color: #A3A3A3 !important;
 }
 
 /* Monospace */
@@ -277,9 +352,16 @@ body {
 
 /* Status Colors */
 .text-profit {
-  color: var(--chart-up);
+  color: #00C805;
 }
 
 .text-loss {
-  color: var(--chart-down);
+  color: #FF5000;
+}
+
+/* Binance card backward compat */
+.binance-card {
+  background: #171717;
+  border: 1px solid #262626;
+  border-radius: 12px;
 }

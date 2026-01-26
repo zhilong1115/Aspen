@@ -6,13 +6,14 @@ import { RegisterPage } from '../components/RegisterPage'
 import { ResetPasswordPage } from '../components/ResetPasswordPage'
 import AuthLayout from '../layouts/AuthLayout'
 import MainLayout from '../layouts/MainLayout'
-import { LandingPage } from '../pages/LandingPage'
+import { ProfilePage } from '../pages/ProfilePage'
+import { RootRedirect } from '../pages/RootRedirect'
 import TraderDashboard from '../pages/TraderDashboard'
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <LandingPage />,
+    element: <RootRedirect />,
   },
   // Auth routes - using AuthLayout
   {
@@ -36,7 +37,6 @@ export const router = createBrowserRouter([
   {
     element: <MainLayout />,
     children: [
-
       {
         path: '/competition',
         element: <CompetitionPage />,
@@ -48,6 +48,10 @@ export const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <TraderDashboard />,
+      },
+      {
+        path: '/profile',
+        element: <ProfilePage />,
       },
     ],
   },
