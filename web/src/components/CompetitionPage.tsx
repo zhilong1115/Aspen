@@ -148,7 +148,7 @@ export function CompetitionPage() {
           <div
             className="text-sm font-semibold"
             style={{
-              color: (leader?.total_pnl ?? 0) >= 0 ? '#0ECB81' : '#F6465D',
+              color: (leader?.total_pnl ?? 0) >= 0 ? '#00C805' : '#FF5000',
             }}
           >
             {(leader?.total_pnl ?? 0) >= 0 ? '+' : ''}
@@ -214,7 +214,7 @@ export function CompetitionPage() {
                           style={{
                             color:
                               index === 0
-                                ? '#F0B90B'
+                                ? '#00C805'
                                 : index === 1
                                   ? '#C0C0C0'
                                   : '#CD7F32',
@@ -257,8 +257,8 @@ export function CompetitionPage() {
                           style={{
                             color:
                               (trader.total_pnl ?? 0) >= 0
-                                ? '#0ECB81'
-                                : '#F6465D',
+                                ? '#00C805'
+                                : '#FF5000',
                           }}
                         >
                           {(trader.total_pnl ?? 0) >= 0 ? '+' : ''}
@@ -357,7 +357,7 @@ export function CompetitionPage() {
                       className="text-lg md:text-2xl font-bold mono mb-1"
                       style={{
                         color:
-                          (trader.total_pnl ?? 0) >= 0 ? '#0ECB81' : '#F6465D',
+                          (trader.total_pnl ?? 0) >= 0 ? '#00C805' : '#FF5000',
                       }}
                     >
                       {trader.total_pnl_pct != null &&
@@ -368,7 +368,7 @@ export function CompetitionPage() {
                     {hasValidData && isWinning && gap > 0 && (
                       <div
                         className="text-xs font-semibold"
-                        style={{ color: '#0ECB81' }}
+                        style={{ color: '#00C805' }}
                       >
                         {t('leadingBy', language, { gap: gap.toFixed(2) })}
                       </div>
@@ -376,7 +376,7 @@ export function CompetitionPage() {
                     {hasValidData && !isWinning && gap < 0 && (
                       <div
                         className="text-xs font-semibold"
-                        style={{ color: '#F6465D' }}
+                        style={{ color: '#FF5000' }}
                       >
                         {t('behindBy', language, {
                           gap: Math.abs(gap).toFixed(2),
