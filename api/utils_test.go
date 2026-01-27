@@ -89,14 +89,15 @@ func TestSanitizeModelConfigForLog(t *testing.T) {
 
 func TestSanitizeExchangeConfigForLog(t *testing.T) {
 	exchanges := map[string]struct {
-		Enabled               bool   `json:"enabled"`
-		APIKey                string `json:"api_key"`
-		SecretKey             string `json:"secret_key"`
-		Testnet               bool   `json:"testnet"`
-		HyperliquidWalletAddr string `json:"hyperliquid_wallet_addr"`
-		AsterUser             string `json:"aster_user"`
-		AsterSigner           string `json:"aster_signer"`
-		AsterPrivateKey       string `json:"aster_private_key"`
+		Enabled                 bool    `json:"enabled"`
+		APIKey                  string  `json:"api_key"`
+		SecretKey               string  `json:"secret_key"`
+		Testnet                 bool    `json:"testnet"`
+		HyperliquidWalletAddr   string  `json:"hyperliquid_wallet_addr"`
+		AsterUser               string  `json:"aster_user"`
+		AsterSigner             string  `json:"aster_signer"`
+		AsterPrivateKey         string  `json:"aster_private_key"`
+		PaperTradingInitialUSDC float64 `json:"paper_trading_initial_usdc"`
 	}{
 		"binance": {
 			Enabled:   true,
