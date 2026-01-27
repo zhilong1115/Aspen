@@ -1,8 +1,8 @@
-# 📘 ATrade 使用指南
+# 📘 Aspen 使用指南
 
 **语言:** [English](README.md) | [中文](README.zh-CN.md)
 
-帮助您有效使用 ATrade 的综合指南。
+帮助您有效使用 Aspen 的综合指南。
 
 ---
 
@@ -128,9 +128,9 @@ sudo apt-get install libta-lib0-dev
 ## 🆘 需要帮助？
 
 **找不到您需要的内容？**
-- 💬 [Telegram 社区](https://t.me/atrade_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/atrade/issues)
-- 🐦 [Twitter @atrade_ai](https://x.com/atrade_ai)
+- 💬 [Telegram 社区](https://t.me/aspen_dev_community)
+- 🐛 [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+- 🐦 [Twitter @aspen_ai](https://x.com/aspen_ai)
 
 ---
 

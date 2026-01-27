@@ -4,7 +4,7 @@
 **To be discussed** - Open to proposals from contributors
 
 ## 📋 Overview
-We're looking for contributors to add Hyperliquid exchange support to ATrade AI Trading System. Currently supports Binance Futures, seeking to expand to Hyperliquid perpetual contracts.
+We're looking for contributors to add Hyperliquid exchange support to Aspen AI Trading System. Currently supports Binance Futures, seeking to expand to Hyperliquid perpetual contracts.
 
 ## 🎯 Task Requirements
 
@@ -58,7 +58,7 @@ We're looking for contributors to add Hyperliquid exchange support to ATrade AI 
 - API Documentation: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api
 - SDK Examples: https://github.com/hyperliquid-dex
 
-**ATrade Architecture:**
+**Aspen Architecture:**
 - See `trader/binance_futures.go` as reference implementation
 - Main trading logic: `trader/auto_trader.go`
 - Configuration: `config.json` structure
@@ -128,7 +128,7 @@ type ExchangeClient interface {
 ## 🤝 Support & Questions
 
 - Ask questions in this issue's comments
-- Join our Telegram: [ATrade Developer Community](https://t.me/atrade_dev_community)
+- Join our Telegram: [Aspen Developer Community](https://t.me/aspen_dev_community)
 - Reference existing code: `trader/binance_futures.go`
 
 ## ⚠️ Important Notes

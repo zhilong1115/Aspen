@@ -1,12 +1,12 @@
 package trader
 
 import (
-	"atrade/decision"
-	"atrade/logger"
-	"atrade/market"
-	"atrade/mcp"
-	"atrade/metrics"
-	"atrade/pool"
+	"aspen/decision"
+	"aspen/logger"
+	"aspen/market"
+	"aspen/mcp"
+	"aspen/metrics"
+	"aspen/pool"
 	"encoding/json"
 	"fmt"
 	"log"

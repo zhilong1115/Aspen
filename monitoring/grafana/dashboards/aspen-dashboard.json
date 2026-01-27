@@ -47,7 +47,7 @@
       "pluginVersion": "10.0.0",
       "targets": [
         {
-          "expr": "rate(process_cpu_seconds_total{job=\"atrade\"}[1m]) * 100",
+          "expr": "rate(process_cpu_seconds_total{job=\"aspen\"}[1m]) * 100",
           "legendFormat": "CPU %",
           "refId": "A"
         }
@@ -84,7 +84,7 @@
       },
       "targets": [
         {
-          "expr": "go_memstats_alloc_bytes{job=\"atrade\"}",
+          "expr": "go_memstats_alloc_bytes{job=\"aspen\"}",
           "legendFormat": "Memory",
           "refId": "A"
         }
@@ -118,7 +118,7 @@
       },
       "targets": [
         {
-          "expr": "atrade_active_traders",
+          "expr": "aspen_active_traders",
           "legendFormat": "Traders",
           "refId": "A"
         }
@@ -152,7 +152,7 @@
       },
       "targets": [
         {
-          "expr": "atrade_subscribed_symbols",
+          "expr": "aspen_subscribed_symbols",
           "legendFormat": "Symbols",
           "refId": "A"
         }
@@ -186,7 +186,7 @@
       },
       "targets": [
         {
-          "expr": "time() - atrade_app_start_timestamp_seconds",
+          "expr": "time() - aspen_app_start_timestamp_seconds",
           "legendFormat": "Uptime",
           "refId": "A"
         }
@@ -220,7 +220,7 @@
       },
       "targets": [
         {
-          "expr": "go_goroutines{job=\"atrade\"}",
+          "expr": "go_goroutines{job=\"aspen\"}",
           "legendFormat": "Goroutines",
           "refId": "A"
         }
@@ -270,7 +270,7 @@
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "sum(rate(atrade_ai_requests_total[5m])) by (provider, model)",
+          "expr": "sum(rate(aspen_ai_requests_total[5m])) by (provider, model)",
           "legendFormat": "{{provider}}/{{model}}",
           "refId": "A"
         }
@@ -312,12 +312,12 @@
       "options": { "legend": { "calcs": ["mean", "p95", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(atrade_ai_request_duration_seconds_bucket[5m])) by (le, provider, model))",
+          "expr": "histogram_quantile(0.95, sum(rate(aspen_ai_request_duration_seconds_bucket[5m])) by (le, provider, model))",
           "legendFormat": "p95 {{provider}}/{{model}}",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(atrade_ai_request_duration_seconds_bucket[5m])) by (le, provider, model))",
+          "expr": "histogram_quantile(0.50, sum(rate(aspen_ai_request_duration_seconds_bucket[5m])) by (le, provider, model))",
           "legendFormat": "p50 {{provider}}/{{model}}",
           "refId": "B"
         }
@@ -359,7 +359,7 @@
       "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "sum(increase(atrade_ai_tokens_total[1h])) by (provider, model, type)",
+          "expr": "sum(increase(aspen_ai_tokens_total[1h])) by (provider, model, type)",
           "legendFormat": "{{provider}}/{{model}} - {{type}}",
           "refId": "A"
         }
@@ -396,7 +396,7 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(atrade_ai_estimated_cost_usd[24h]))",
+          "expr": "sum(increase(aspen_ai_estimated_cost_usd[24h]))",
           "legendFormat": "Daily Cost",
           "refId": "A"
         }
@@ -431,7 +431,7 @@
       },
       "targets": [
         {
-          "expr": "sum(atrade_ai_requests_total) by (status)",
+          "expr": "sum(aspen_ai_requests_total) by (status)",
           "legendFormat": "{{status}}",
           "refId": "A"
         }
@@ -481,7 +481,7 @@
       "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "atrade_trading_equity_usdt",
+          "expr": "aspen_trading_equity_usdt",
           "legendFormat": "{{trader_id}}",
           "refId": "A"
         }
@@ -523,7 +523,7 @@
       "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "atrade_trading_pnl_usdt{type=\"total\"}",
+          "expr": "aspen_trading_pnl_usdt{type=\"total\"}",
           "legendFormat": "{{trader_id}} - Total PnL",
           "refId": "A"
         }
@@ -560,7 +560,7 @@
       },
       "targets": [
         {
-          "expr": "max(atrade_trading_drawdown_pct) by (trader_id)",
+          "expr": "max(aspen_trading_drawdown_pct) by (trader_id)",
           "legendFormat": "{{trader_id}}",
           "refId": "A"
         }
@@ -595,7 +595,7 @@
       },
       "targets": [
         {
-          "expr": "sum(atrade_trading_positions) by (trader_id)",
+          "expr": "sum(aspen_trading_positions) by (trader_id)",
           "legendFormat": "{{trader_id}}",
           "refId": "A"
         }
@@ -632,7 +632,7 @@
       },
       "targets": [
         {
-          "expr": "atrade_trading_margin_used_pct",
+          "expr": "aspen_trading_margin_used_pct",
           "legendFormat": "{{trader_id}}",
           "refId": "A"
         }
@@ -664,7 +664,7 @@
       },
       "targets": [
         {
-          "expr": "sum(atrade_trading_orders_total) by (action)",
+          "expr": "sum(aspen_trading_orders_total) by (action)",
           "legendFormat": "{{action}}",
           "refId": "A"
         }
@@ -714,7 +714,7 @@
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "sum(rate(atrade_http_requests_total[5m])) by (path)",
+          "expr": "sum(rate(aspen_http_requests_total[5m])) by (path)",
           "legendFormat": "{{path}}",
           "refId": "A"
         }
@@ -756,7 +756,7 @@
       "options": { "legend": { "calcs": ["mean", "p95", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(atrade_http_request_duration_seconds_bucket[5m])) by (le, path))",
+          "expr": "histogram_quantile(0.95, sum(rate(aspen_http_request_duration_seconds_bucket[5m])) by (le, path))",
           "legendFormat": "p95 {{path}}",
           "refId": "A"
         }
@@ -793,7 +793,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(atrade_http_requests_total{status=~\"5..\"}[5m])) / sum(rate(atrade_http_requests_total[5m])) * 100",
+          "expr": "sum(rate(aspen_http_requests_total{status=~\"5..\"}[5m])) / sum(rate(aspen_http_requests_total[5m])) * 100",
           "legendFormat": "Error Rate",
           "refId": "A"
         }
@@ -828,7 +828,7 @@
       },
       "targets": [
         {
-          "expr": "atrade_http_requests_in_flight",
+          "expr": "aspen_http_requests_in_flight",
           "legendFormat": "In Flight",
           "refId": "A"
         }
@@ -860,7 +860,7 @@
       },
       "targets": [
         {
-          "expr": "sum(atrade_http_requests_total) by (status)",
+          "expr": "sum(aspen_http_requests_total) by (status)",
           "legendFormat": "{{status}}",
           "refId": "A"
         }
@@ -910,7 +910,7 @@
       "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "atrade_ws_active_connections",
+          "expr": "aspen_ws_active_connections",
           "legendFormat": "{{type}}",
           "refId": "A"
         }
@@ -952,7 +952,7 @@
       "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
         {
-          "expr": "sum(increase(atrade_ws_messages_total[5m])) by (type)",
+          "expr": "sum(increase(aspen_ws_messages_total[5m])) by (type)",
           "legendFormat": "{{type}}",
           "refId": "A"
         }
@@ -989,12 +989,12 @@
       },
       "targets": [
         {
-          "expr": "sum(atrade_ws_disconnects_total) by (type, reason)",
+          "expr": "sum(aspen_ws_disconnects_total) by (type, reason)",
           "legendFormat": "{{type}} - {{reason}}",
           "refId": "A"
         },
         {
-          "expr": "sum(atrade_ws_reconnects_total) by (type)",
+          "expr": "sum(aspen_ws_reconnects_total) by (type)",
           "legendFormat": "{{type}} - reconnects",
           "refId": "B"
         }
@@ -1006,13 +1006,13 @@
   "refresh": "10s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["atrade", "trading", "ai"],
+  "tags": ["aspen", "trading", "ai"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "",
-  "title": "ATrade Trading Bot Dashboard",
-  "uid": "atrade-main",
+  "title": "Aspen Trading Bot Dashboard",
+  "uid": "aspen-main",
   "version": 1,
   "weekStart": ""
 }

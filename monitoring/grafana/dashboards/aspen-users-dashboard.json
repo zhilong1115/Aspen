@@ -35,7 +35,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_users_total", "legendFormat": "Total Users", "refId": "A" }],
+      "targets": [{ "expr": "aspen_users_total", "legendFormat": "Total Users", "refId": "A" }],
       "title": "Total Users",
       "type": "stat"
     },
@@ -59,7 +59,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_users_verified", "legendFormat": "Verified", "refId": "A" }],
+      "targets": [{ "expr": "aspen_users_verified", "legendFormat": "Verified", "refId": "A" }],
       "title": "Verified Users",
       "type": "stat"
     },
@@ -83,7 +83,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_users_active_daily", "legendFormat": "DAU", "refId": "A" }],
+      "targets": [{ "expr": "aspen_users_active_daily", "legendFormat": "DAU", "refId": "A" }],
       "title": "DAU (Daily Active)",
       "type": "stat"
     },
@@ -107,7 +107,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_users_active_weekly", "legendFormat": "WAU", "refId": "A" }],
+      "targets": [{ "expr": "aspen_users_active_weekly", "legendFormat": "WAU", "refId": "A" }],
       "title": "WAU (Weekly Active)",
       "type": "stat"
     },
@@ -131,7 +131,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_users_active_monthly", "legendFormat": "MAU", "refId": "A" }],
+      "targets": [{ "expr": "aspen_users_active_monthly", "legendFormat": "MAU", "refId": "A" }],
       "title": "MAU (Monthly Active)",
       "type": "stat"
     },
@@ -155,7 +155,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_user_new_registrations_daily", "legendFormat": "New (24h)", "refId": "A" }],
+      "targets": [{ "expr": "aspen_user_new_registrations_daily", "legendFormat": "New (24h)", "refId": "A" }],
       "title": "New Users (24h)",
       "type": "stat"
     },
@@ -200,9 +200,9 @@
       "id": 10,
       "options": { "legend": { "calcs": ["lastNotNull", "mean"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "expr": "atrade_users_active_daily", "legendFormat": "DAU", "refId": "A" },
-        { "expr": "atrade_users_active_weekly", "legendFormat": "WAU", "refId": "B" },
-        { "expr": "atrade_users_active_monthly", "legendFormat": "MAU", "refId": "C" }
+        { "expr": "aspen_users_active_daily", "legendFormat": "DAU", "refId": "A" },
+        { "expr": "aspen_users_active_weekly", "legendFormat": "WAU", "refId": "B" },
+        { "expr": "aspen_users_active_monthly", "legendFormat": "MAU", "refId": "C" }
       ],
       "title": "Active Users (DAU/WAU/MAU)",
       "type": "timeseries"
@@ -240,8 +240,8 @@
       "id": 11,
       "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "expr": "atrade_users_total", "legendFormat": "Total Users", "refId": "A" },
-        { "expr": "atrade_users_verified", "legendFormat": "Verified Users", "refId": "B" }
+        { "expr": "aspen_users_total", "legendFormat": "Total Users", "refId": "A" },
+        { "expr": "aspen_users_verified", "legendFormat": "Verified Users", "refId": "B" }
       ],
       "title": "User Growth",
       "type": "timeseries"
@@ -287,7 +287,7 @@
       "id": 20,
       "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "expr": "sum(increase(atrade_user_registrations_total[1h])) by (status)", "legendFormat": "{{status}}", "refId": "A" }
+        { "expr": "sum(increase(aspen_user_registrations_total[1h])) by (status)", "legendFormat": "{{status}}", "refId": "A" }
       ],
       "title": "Registrations (Hourly)",
       "type": "timeseries"
@@ -325,7 +325,7 @@
       "id": 21,
       "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "expr": "sum(increase(atrade_user_logins_total[1h])) by (status)", "legendFormat": "{{status}}", "refId": "A" }
+        { "expr": "sum(increase(aspen_user_logins_total[1h])) by (status)", "legendFormat": "{{status}}", "refId": "A" }
       ],
       "title": "Logins (Hourly)",
       "type": "timeseries"
@@ -363,7 +363,7 @@
       "id": 22,
       "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "expr": "sum(increase(atrade_user_otp_verifications_total[1h])) by (status)", "legendFormat": "{{status}}", "refId": "A" }
+        { "expr": "sum(increase(aspen_user_otp_verifications_total[1h])) by (status)", "legendFormat": "{{status}}", "refId": "A" }
       ],
       "title": "OTP Verifications (Hourly)",
       "type": "timeseries"
@@ -396,7 +396,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_user_traders_total", "legendFormat": "Total Traders", "refId": "A" }],
+      "targets": [{ "expr": "aspen_user_traders_total", "legendFormat": "Total Traders", "refId": "A" }],
       "title": "Total Traders",
       "type": "stat"
     },
@@ -420,7 +420,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_user_traders_running", "legendFormat": "Running", "refId": "A" }],
+      "targets": [{ "expr": "aspen_user_traders_running", "legendFormat": "Running", "refId": "A" }],
       "title": "Running Traders",
       "type": "stat"
     },
@@ -457,8 +457,8 @@
       "id": 32,
       "options": { "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
       "targets": [
-        { "expr": "atrade_user_traders_total", "legendFormat": "Total", "refId": "A" },
-        { "expr": "atrade_user_traders_running", "legendFormat": "Running", "refId": "B" }
+        { "expr": "aspen_user_traders_total", "legendFormat": "Total", "refId": "A" },
+        { "expr": "aspen_user_traders_running", "legendFormat": "Running", "refId": "B" }
       ],
       "title": "Traders Over Time",
       "type": "timeseries"
@@ -495,7 +495,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "(atrade_users_verified / atrade_users_total) * 100", "legendFormat": "Verification Rate", "refId": "A" }],
+      "targets": [{ "expr": "(aspen_users_verified / aspen_users_total) * 100", "legendFormat": "Verification Rate", "refId": "A" }],
       "title": "Verification Rate",
       "type": "stat"
     },
@@ -523,7 +523,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "(atrade_users_active_daily / atrade_users_total) * 100", "legendFormat": "DAU/Total %", "refId": "A" }],
+      "targets": [{ "expr": "(aspen_users_active_daily / aspen_users_total) * 100", "legendFormat": "DAU/Total %", "refId": "A" }],
       "title": "DAU Rate",
       "type": "stat"
     },
@@ -551,7 +551,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "(atrade_users_active_daily / atrade_users_active_weekly) * 100", "legendFormat": "DAU/WAU %", "refId": "A" }],
+      "targets": [{ "expr": "(aspen_users_active_daily / aspen_users_active_weekly) * 100", "legendFormat": "DAU/WAU %", "refId": "A" }],
       "title": "DAU/WAU Stickiness",
       "type": "stat"
     },
@@ -575,7 +575,7 @@
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
-      "targets": [{ "expr": "atrade_user_traders_total / atrade_users_verified", "legendFormat": "Traders/User", "refId": "A" }],
+      "targets": [{ "expr": "aspen_user_traders_total / aspen_users_verified", "legendFormat": "Traders/User", "refId": "A" }],
       "title": "Avg Traders per User",
       "type": "stat"
     }
@@ -583,13 +583,13 @@
   "refresh": "30s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["atrade", "users", "analytics"],
+  "tags": ["aspen", "users", "analytics"],
   "templating": { "list": [] },
   "time": { "from": "now-24h", "to": "now" },
   "timepicker": {},
   "timezone": "",
-  "title": "ATrade User Analytics",
-  "uid": "atrade-users",
+  "title": "Aspen User Analytics",
+  "uid": "aspen-users",
   "version": 1,
   "weekStart": ""
 }

@@ -1,10 +1,10 @@
 services:
   # Backend service (API and core logic)
-  atrade:
+  aspen:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.backend
-    container_name: atrade-backend
+    container_name: aspen-backend
     restart: unless-stopped
     stop_grace_period: 30s  # 允许应用有 30 秒时间优雅关闭
     ports:
@@ -23,7 +23,7 @@ services:
       - DATA_ENCRYPTION_KEY=${DATA_ENCRYPTION_KEY}  # 数据库加密密钥
       - JWT_SECRET=${JWT_SECRET}  # JWT认证密钥
     networks:
-      - atrade-network
+      - aspen-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
@@ -32,18 +32,18 @@ services:
       start_period: 60s
 
   # Frontend service (static serving and proxy)
-  atrade-frontend:
+  aspen-frontend:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.frontend
-    container_name: atrade-frontend
+    container_name: aspen-frontend
     restart: unless-stopped
     ports:
       - "${ATRADE_FRONTEND_PORT:-3000}:80"
     networks:
-      - atrade-network
+      - aspen-network
     depends_on:
-      - atrade
+      - aspen
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
@@ -54,7 +54,7 @@ services:
   # Prometheus for metrics collection
   prometheus:
     image: prom/prometheus:v2.47.0
-    container_name: atrade-prometheus
+    container_name: aspen-prometheus
     restart: unless-stopped
     ports:
       - "${PROMETHEUS_PORT:-9090}:9090"
@@ -67,14 +67,14 @@ services:
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
     networks:
-      - atrade-network
+      - aspen-network
     depends_on:
-      - atrade
+      - aspen
 
   # Grafana for metrics visualization
   grafana:
     image: grafana/grafana:10.1.0
-    container_name: atrade-grafana
+    container_name: aspen-grafana
     restart: unless-stopped
     ports:
       - "${GRAFANA_PORT:-3001}:3000"
@@ -91,12 +91,12 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=${GRAFANA_ANONYMOUS:-true}
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     networks:
-      - atrade-network
+      - aspen-network
     depends_on:
       - prometheus
 
 networks:
-  atrade-network:
+  aspen-network:
     driver: bridge
 
 volumes:

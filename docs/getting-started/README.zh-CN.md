@@ -1,6 +1,6 @@
-# 🚀 ATrade 快速开始
+# 🚀 Aspen 快速开始
 
-本节包含让 ATrade 运行起来所需的所有文档。
+本节包含让 Aspen 运行起来所需的所有文档。
 
 ## 📋 部署选项
 
@@ -42,7 +42,7 @@ cp config.json.example config.json
 
 **快速开始：**
 ```bash
-go build -o atrade
+go build -o aspen
 cd web && npm install && npm run build
 pm2 start ecosystem.config.js
 ```
@@ -117,8 +117,8 @@ pm2 start ecosystem.config.js
 
 **需要更多帮助？**
 - 📖 [常见问题](../guides/faq.zh-CN.md)
-- 💬 [Telegram 社区](https://t.me/atrade_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/atrade/issues)
+- 💬 [Telegram 社区](https://t.me/aspen_dev_community)
+- 🐛 [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
 
 ---
 

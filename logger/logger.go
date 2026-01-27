@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"atrade/config"
+	"aspen/config"
 	"os"
 
 	"github.com/sirupsen/logrus"

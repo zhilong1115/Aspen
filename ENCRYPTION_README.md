@@ -39,7 +39,7 @@ None (backward compatible, no breaking changes)
 ### 1. Initialize Encryption Manager (main.go)
 
 ```go
-import "atrade/crypto"
+import "aspen/crypto"
 
 func main() {
     // Initialize secure storage

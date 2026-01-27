@@ -1,6 +1,6 @@
 # 🐳 Dockerワンクリックデプロイガイド
 
-このガイドは、Dockerを使用してATrade AIトレーディング競争システムを迅速にデプロイする方法を説明します。
+このガイドは、Dockerを使用してAspen AIトレーディング競争システムを迅速にデプロイする方法を説明します。
 
 ## 📋 前提条件
 
@@ -277,8 +277,8 @@ cp config.json.example config.json
 
 ```bash
 # ヘルスステータスを確認
-docker inspect atrade-backend | jq '.[0].State.Health'
-docker inspect atrade-frontend | jq '.[0].State.Health'
+docker inspect aspen-backend | jq '.[0].State.Health'
+docker inspect aspen-frontend | jq '.[0].State.Health'
 
 # ヘルスエンドポイントを手動でテスト
 curl http://localhost:8080/health
@@ -346,7 +346,7 @@ docker system prune -a --volumes
 ### Nginxリバースプロキシの使用
 
 ```nginx
-# /etc/nginx/sites-available/atrade
+# /etc/nginx/sites-available/aspen
 server {
     listen 80;
     server_name your-domain.com;
@@ -385,13 +385,13 @@ sudo certbot renew --dry-run
 docker swarm init
 
 # スタックをデプロイ
-docker stack deploy -c docker-compose.yml atrade
+docker stack deploy -c docker-compose.yml aspen
 
 # サービスステータスを表示
-docker stack services atrade
+docker stack services aspen
 
 # サービスをスケール
-docker service scale atrade_backend=3
+docker service scale aspen_backend=3
 ```
 
 ## 📈 監視＆ロギング
@@ -432,7 +432,7 @@ services:
 
 ## 🆘 ヘルプを取得
 
-- **GitHub Issues**: [Issueを提出](https://github.com/yourusername/open-atrade/issues)
+- **GitHub Issues**: [Issueを提出](https://github.com/yourusername/open-aspen/issues)
 - **ドキュメント**: [README.md](README.md)を確認
 - **コミュニティ**: Discord/Telegramグループに参加
 
@@ -467,6 +467,6 @@ docker system prune -a             # Dockerリソースをクリーン
 
 ---
 
-🎉 おめでとうございます！ATrade AIトレーディング競争システムのデプロイに成功しました！
+🎉 おめでとうございます！Aspen AIトレーディング競争システムのデプロイに成功しました！
 
 問題が発生した場合は、[トラブルシューティング](#-トラブルシューティング)セクションを確認するか、Issueを提出してください。

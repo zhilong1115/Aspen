@@ -95,14 +95,14 @@ const path = require('path');
 module.exports = {
   apps: [
     {
-      name: 'atrade-backend',
-      script: './atrade',           // Go 二进制文件
+      name: 'aspen-backend',
+      script: './aspen',           // Go 二进制文件
       cwd: __dirname,             // 动态获取当前目录
       autorestart: true,
       max_memory_restart: '500M'
     },
     {
-      name: 'atrade-frontend',
+      name: 'aspen-frontend',
       script: 'npm',
       args: 'run dev',            // Vite 开发服务器
       cwd: path.join(__dirname, 'web'), // 动态拼接路径
@@ -174,8 +174,8 @@ pm2 unstartup
 ### 查看详细信息
 
 ```bash
-pm2 info atrade-backend   # 后端详情
-pm2 info atrade-frontend  # 前端详情
+pm2 info aspen-backend   # 后端详情
+pm2 info aspen-frontend  # 前端详情
 ```
 
 ### 清空日志
@@ -199,8 +199,8 @@ lsof -i :8080  # 后端端口
 lsof -i :3000  # 前端端口
 
 # 3. 手动编译测试
-go build -o atrade
-./atrade
+go build -o aspen
+./aspen
 ```
 
 ### 后端无法启动
@@ -213,10 +213,10 @@ go build -o atrade
 ls -l trading.db
 
 # 检查权限
-chmod +x atrade
+chmod +x aspen
 
 # 手动运行看报错
-./atrade
+./aspen
 ```
 
 ### 前端无法访问
@@ -239,7 +239,7 @@ npm run dev
 
 ```javascript
 {
-  name: 'atrade-frontend',
+  name: 'aspen-frontend',
   script: 'npm',
   args: 'run preview',  // 改为 preview（需先 npm run build）
   env: {
@@ -252,8 +252,8 @@ npm run dev
 
 ```javascript
 {
-  name: 'atrade-backend',
-  script: './atrade',
+  name: 'aspen-backend',
+  script: './aspen',
   instances: 2,  // 启动 2 个实例
   exec_mode: 'cluster'
 }

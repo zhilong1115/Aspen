@@ -83,7 +83,7 @@ If you prefer to do it manually:
 
 ```bash
 # Add upstream if not already added
-git remote add upstream https://github.com/tinkle-community/atrade.git
+git remote add upstream https://github.com/tinkle-community/aspen.git
 
 # Fetch latest changes
 git fetch upstream
@@ -254,8 +254,8 @@ If the migration script doesn't work:
 
 **Stuck on migration?**
 - Comment on your PR
-- Ask in [Telegram](https://t.me/atrade_dev_community)
-- Open a [Discussion](https://github.com/tinkle-community/atrade/discussions)
+- Ask in [Telegram](https://t.me/aspen_dev_community)
+- Open a [Discussion](https://github.com/tinkle-community/aspen/discussions)
 
 **We're here to help you succeed!** 🚀
 
@@ -269,4 +269,4 @@ Once migrated:
 3. ✅ Wait for maintainer review
 4. ✅ Celebrate when merged! 🎉
 
-**Thank you for contributing to ATrade!**
+**Thank you for contributing to Aspen!**

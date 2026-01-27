@@ -1,6 +1,6 @@
 # 🐳 Docker One-Click Deployment Guide
 
-This guide will help you quickly deploy the ATrade AI Trading Competition System using Docker.
+This guide will help you quickly deploy the Aspen AI Trading Competition System using Docker.
 
 ## 📋 Prerequisites
 
@@ -276,8 +276,8 @@ kill -9 <PID>
 
 ```bash
 # Check health status
-docker inspect atrade-backend | jq '.[0].State.Health'
-docker inspect atrade-frontend | jq '.[0].State.Health'
+docker inspect aspen-backend | jq '.[0].State.Health'
+docker inspect aspen-frontend | jq '.[0].State.Health'
 
 # Manually test health endpoints
 curl http://localhost:8080/api/health
@@ -347,7 +347,7 @@ docker system prune -a --volumes
 ### Using Nginx Reverse Proxy
 
 ```nginx
-# /etc/nginx/sites-available/atrade
+# /etc/nginx/sites-available/aspen
 server {
     listen 80;
     server_name your-domain.com;
@@ -386,13 +386,13 @@ sudo certbot renew --dry-run
 docker swarm init
 
 # Deploy stack
-docker stack deploy -c docker-compose.yml atrade
+docker stack deploy -c docker-compose.yml aspen
 
 # View service status
-docker stack services atrade
+docker stack services aspen
 
 # Scale services
-docker service scale atrade_backend=3
+docker service scale aspen_backend=3
 ```
 
 ## 📈 Monitoring & Logging
@@ -433,7 +433,7 @@ services:
 
 ## 🆘 Get Help
 
-- **GitHub Issues**: [Submit an issue](https://github.com/yourusername/open-atrade/issues)
+- **GitHub Issues**: [Submit an issue](https://github.com/yourusername/open-aspen/issues)
 - **Documentation**: Check [README.md](README.md)
 - **Community**: Join our Discord/Telegram group
 
@@ -468,6 +468,6 @@ docker system prune -a             # Clean Docker resources
 
 ---
 
-🎉 Congratulations! You've successfully deployed the ATrade AI Trading Competition System!
+🎉 Congratulations! You've successfully deployed the Aspen AI Trading Competition System!
 
 If you encounter any issues, please check the [Troubleshooting](#-troubleshooting) section or submit an issue.

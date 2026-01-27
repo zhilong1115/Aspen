@@ -1,7 +1,7 @@
 package mcp
 
 import (
-	"atrade/metrics"
+	"aspen/metrics"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -287,8 +287,8 @@ func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) 
 	case ProviderOpenRouter:
 		// OpenRouter 使用 Bearer 认证，并需要设置 HTTP-Referer 和 X-Title 头部（可选但推荐）
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
-		req.Header.Set("HTTP-Referer", "https://github.com/atrade") // 可选：用于统计
-		req.Header.Set("X-Title", "ATrade Trading Bot")             // 可选：用于标识应用
+		req.Header.Set("HTTP-Referer", "https://github.com/aspen") // 可选：用于统计
+		req.Header.Set("X-Title", "Aspen Trading Bot")             // 可选：用于标识应用
 	default:
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", client.APIKey))
 	}

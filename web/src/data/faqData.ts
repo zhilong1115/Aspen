@@ -37,9 +37,9 @@ export const faqCategories: FAQCategory[] = [
     icon: BookOpen,
     items: [
       {
-        id: 'what-is-atrade',
-        questionKey: 'faqWhatIsATrade',
-        answerKey: 'faqWhatIsATradeAnswer',
+        id: 'what-is-aspen',
+        questionKey: 'faqWhatIsAspen',
+        answerKey: 'faqWhatIsAspenAnswer',
       },
       {
         id: 'supported-exchanges',

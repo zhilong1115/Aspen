@@ -1,14 +1,14 @@
 package api
 
 import (
-	"atrade/auth"
-	"atrade/config"
-	"atrade/crypto"
-	"atrade/decision"
-	"atrade/hook"
-	"atrade/manager"
-	"atrade/metrics"
-	"atrade/trader"
+	"aspen/auth"
+	"aspen/config"
+	"aspen/crypto"
+	"aspen/decision"
+	"aspen/hook"
+	"aspen/manager"
+	"aspen/metrics"
+	"aspen/trader"
 	"context"
 	"encoding/json"
 	"fmt"

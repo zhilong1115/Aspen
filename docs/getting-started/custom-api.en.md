@@ -2,7 +2,7 @@
 
 ## Features
 
-ATrade now supports using any OpenAI-compatible API format, including:
+Aspen now supports using any OpenAI-compatible API format, including:
 - OpenAI official API (gpt-4o, gpt-4-turbo, etc.)
 - OpenRouter (access to multiple models)
 - Locally deployed models (Ollama, LM Studio, etc.)

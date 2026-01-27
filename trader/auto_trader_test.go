@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"atrade/decision"
-	"atrade/logger"
-	"atrade/market"
-	"atrade/pool"
+	"aspen/decision"
+	"aspen/logger"
+	"aspen/market"
+	"aspen/pool"
 
 	"github.com/agiledragon/gomonkey/v2"
 	"github.com/stretchr/testify/suite"

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"atrade/crypto"
+	"aspen/crypto"
 	"os"
 	"testing"
 	"time"

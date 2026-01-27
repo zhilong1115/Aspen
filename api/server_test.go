@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"atrade/config"
+	"aspen/config"
 )
 
 // TestUpdateTraderRequest_SystemPromptTemplate 测试更新交易员时 SystemPromptTemplate 字段是否存在

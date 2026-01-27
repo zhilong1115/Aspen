@@ -20,7 +20,7 @@ export default function Home(){
               探索加密世界
             </Heading>
             <Text fontSize={{ base:'16px', md:'20px' }} color="fgMuted" maxW="480px">
-              在 ATrade 发现、交易与分享策略，让 AI 为你的资产保驾护航
+              在 Aspen 发现、交易与分享策略，让 AI 为你的资产保驾护航
             </Text>
             <HStack spacing={4}>
               <Link to="/trade">

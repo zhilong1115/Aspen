@@ -1,14 +1,14 @@
-# 🏗️ ATrade 架构文档
+# 🏗️ Aspen 架构文档
 
 **语言:** [English](README.md) | [中文](README.zh-CN.md)
 
-为希望了解 ATrade 内部实现的开发者提供的技术文档。
+为希望了解 Aspen 内部实现的开发者提供的技术文档。
 
 ---
 
 ## 📋 概述
 
-ATrade 是一个全栈 AI 交易平台：
+Aspen 是一个全栈 AI 交易平台：
 - **后端：** Go (Gin 框架, SQLite)
 - **前端：** React/TypeScript (Vite, TailwindCSS)
 - **架构：** 微服务启发的模块化设计
@@ -18,7 +18,7 @@ ATrade 是一个全栈 AI 交易平台：
 ## 📁 项目结构
 
 ```
-atrade/
+aspen/
 ├── main.go                          # 程序入口（多交易员管理器）
 ├── config.json                      # ~~多交易员配置~~ (现通过Web界面)
 ├── trading.db                       # SQLite 数据库（交易员、模型、交易所）
@@ -486,8 +486,8 @@ trader/binance_futures_test.go
 
 ```bash
 # 后端
-go build -o atrade
-./atrade
+go build -o aspen
+./aspen
 
 # 前端
 cd web
@@ -555,11 +555,11 @@ cd web && npm run build
 
 **想要贡献？**
 - 阅读[贡献指南](../../CONTRIBUTING.md)
-- 查看[开放问题](https://github.com/tinkle-community/atrade/issues)
-- 加入 [Telegram 社区](https://t.me/atrade_dev_community)
+- 查看[开放问题](https://github.com/tinkle-community/aspen/issues)
+- 加入 [Telegram 社区](https://t.me/aspen_dev_community)
 
 **需要澄清？**
-- 开启 [GitHub 讨论](https://github.com/tinkle-community/atrade/discussions)
+- 开启 [GitHub 讨论](https://github.com/tinkle-community/aspen/discussions)
 - 在 Telegram 提问
 
 ---

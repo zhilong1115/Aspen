@@ -1,13 +1,13 @@
 package main
 
 import (
-	"atrade/api"
-	"atrade/auth"
-	"atrade/config"
-	"atrade/crypto"
-	"atrade/manager"
-	"atrade/market"
-	"atrade/pool"
+	"aspen/api"
+	"aspen/auth"
+	"aspen/config"
+	"aspen/crypto"
+	"aspen/manager"
+	"aspen/market"
+	"aspen/pool"
 	"encoding/json"
 	"fmt"
 	"log"

@@ -1,4 +1,4 @@
-# Prometheus configuration for ATrade Trading Bot
+# Prometheus configuration for Aspen Trading Bot
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -9,10 +9,10 @@ alerting:
 rule_files: []
 
 scrape_configs:
-  # ATrade Backend metrics
-  - job_name: 'atrade'
+  # Aspen Backend metrics
+  - job_name: 'aspen'
     static_configs:
-      - targets: ['atrade:8080']
+      - targets: ['aspen:8080']
     metrics_path: '/metrics'
     scrape_interval: 10s
 

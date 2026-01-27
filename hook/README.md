@@ -99,7 +99,7 @@ type NewAsterTraderResult struct {
 // proxy/init.go
 package proxy
 
-import "atrade/hook"
+import "aspen/hook"
 
 func InitHooks(enabled bool) {
     if !enabled {

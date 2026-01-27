@@ -1,6 +1,6 @@
 package bootstrap
 
-import "atrade/config"
+import "aspen/config"
 
 type InitHook func(config *config.Config) error
 

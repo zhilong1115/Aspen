@@ -95,14 +95,14 @@ const path = require('path');
 module.exports = {
   apps: [
     {
-      name: 'atrade-backend',
-      script: './atrade',           // Go binary
+      name: 'aspen-backend',
+      script: './aspen',           // Go binary
       cwd: __dirname,             // Dynamically get current directory
       autorestart: true,
       max_memory_restart: '500M'
     },
     {
-      name: 'atrade-frontend',
+      name: 'aspen-frontend',
       script: 'npm',
       args: 'run dev',            // Vite dev server
       cwd: path.join(__dirname, 'web'), // Dynamically join path
@@ -174,8 +174,8 @@ pm2 unstartup
 ### View Detailed Information
 
 ```bash
-pm2 info atrade-backend   # Backend details
-pm2 info atrade-frontend  # Frontend details
+pm2 info aspen-backend   # Backend details
+pm2 info aspen-frontend  # Frontend details
 ```
 
 ### Clear Logs
@@ -199,8 +199,8 @@ lsof -i :8080  # Backend port
 lsof -i :3000  # Frontend port
 
 # 3. Manual compile test
-go build -o atrade
-./atrade
+go build -o aspen
+./aspen
 ```
 
 ### Backend Won't Start
@@ -213,10 +213,10 @@ go build -o atrade
 ls -l trading.db
 
 # Check permissions
-chmod +x atrade
+chmod +x aspen
 
 # Run manually to see errors
-./atrade
+./aspen
 ```
 
 ### Frontend Not Accessible
@@ -239,7 +239,7 @@ Modify `pm2.config.js`:
 
 ```javascript
 {
-  name: 'atrade-frontend',
+  name: 'aspen-frontend',
   script: 'npm',
   args: 'run preview',  // Change to preview (requires npm run build first)
   env: {
@@ -252,8 +252,8 @@ Modify `pm2.config.js`:
 
 ```javascript
 {
-  name: 'atrade-backend',
-  script: './atrade',
+  name: 'aspen-backend',
+  script: './aspen',
   instances: 2,  // Start 2 instances
   exec_mode: 'cluster'
 }

@@ -1,14 +1,14 @@
-# 🏗️ ATrade Architecture Documentation
+# 🏗️ Aspen Architecture Documentation
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-Technical documentation for developers who want to understand ATrade internals.
+Technical documentation for developers who want to understand Aspen internals.
 
 ---
 
 ## 📋 Overview
 
-ATrade is a full-stack AI trading platform with:
+Aspen is a full-stack AI trading platform with:
 - **Backend:** Go (Gin framework, SQLite)
 - **Frontend:** React/TypeScript (Vite, TailwindCSS)
 - **Architecture:** Microservice-inspired modular design
@@ -18,7 +18,7 @@ ATrade is a full-stack AI trading platform with:
 ## 📁 Project Structure
 
 ```
-atrade/
+aspen/
 ├── main.go                          # Program entry (multi-trader manager)
 ├── config.json                      # ~~Multi-trader config~~ (Now via web interface)
 ├── trading.db                       # SQLite database (traders, models, exchanges)
@@ -486,8 +486,8 @@ trader/binance_futures_test.go
 
 ```bash
 # Backend
-go build -o atrade
-./atrade
+go build -o aspen
+./aspen
 
 # Frontend
 cd web
@@ -555,11 +555,11 @@ cd web && npm run build
 
 **Want to contribute?**
 - Read [Contributing Guide](../../CONTRIBUTING.md)
-- Check [Open Issues](https://github.com/tinkle-community/atrade/issues)
-- Join [Telegram Community](https://t.me/atrade_dev_community)
+- Check [Open Issues](https://github.com/tinkle-community/aspen/issues)
+- Join [Telegram Community](https://t.me/aspen_dev_community)
 
 **Need clarification?**
-- Open a [GitHub Discussion](https://github.com/tinkle-community/atrade/discussions)
+- Open a [GitHub Discussion](https://github.com/tinkle-community/aspen/discussions)
 - Ask in Telegram
 
 ---

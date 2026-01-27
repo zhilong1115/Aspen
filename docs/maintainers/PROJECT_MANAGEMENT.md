@@ -2,7 +2,7 @@
 
 **Language:** [English](PROJECT_MANAGEMENT.md) | [中文](PROJECT_MANAGEMENT.zh-CN.md)
 
-This guide explains how we manage the ATrade project, track progress, and prioritize work.
+This guide explains how we manage the Aspen project, track progress, and prioritize work.
 
 ---
 
@@ -12,7 +12,7 @@ This guide explains how we manage the ATrade project, track progress, and priori
 
 We use **GitHub Projects (Beta)** with these boards:
 
-#### 1. **ATrade Development Board**
+#### 1. **Aspen Development Board**
 
 **Columns:**
 ```
@@ -316,10 +316,10 @@ We use GitHub Actions for automation:
 
 ### External (Community)
 
-- **Telegram:** [@atrade_dev_community](https://t.me/atrade_dev_community)
+- **Telegram:** [@aspen_dev_community](https://t.me/aspen_dev_community)
 - **GitHub Issues:** Bug reports, feature requests
 - **GitHub Discussions:** General questions, ideas
-- **Twitter:** [@atrade_ai](https://x.com/atrade_ai) - Announcements
+- **Twitter:** [@aspen_ai](https://x.com/aspen_ai) - Announcements
 
 ---
 

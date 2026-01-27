@@ -246,8 +246,8 @@ Don't panic! We're here to help.
   - Merge conflicts → Rebase on latest `dev`
 
 **Need help?** Just ask! Comment in your PR or reach out:
-- [GitHub Discussions](https://github.com/tinkle-community/atrade/discussions)
-- [Telegram Community](https://t.me/atrade_dev_community)
+- [GitHub Discussions](https://github.com/tinkle-community/aspen/discussions)
+- [Telegram Community](https://t.me/aspen_dev_community)
 
 ---
 
@@ -323,13 +323,13 @@ This new system helps YOU by:
 
 ### Helpful Links
 - [Conventional Commits](https://www.conventionalcommits.org/) - Commit format
-- [Good First Issues](https://github.com/tinkle-community/atrade/labels/good%20first%20issue) - Beginner-friendly tasks
+- [Good First Issues](https://github.com/tinkle-community/aspen/labels/good%20first%20issue) - Beginner-friendly tasks
 - [Bounty Program](../bounty-guide.md) - Get paid to contribute
 
 ### Get Help
-- [GitHub Discussions](https://github.com/tinkle-community/atrade/discussions) - Ask questions
-- [Telegram](https://t.me/atrade_dev_community) - Community chat
-- [Twitter](https://x.com/atrade_ai) - Updates and announcements
+- [GitHub Discussions](https://github.com/tinkle-community/aspen/discussions) - Ask questions
+- [Telegram](https://t.me/aspen_dev_community) - Community chat
+- [Twitter](https://x.com/aspen_ai) - Updates and announcements
 
 ---
 
@@ -341,7 +341,7 @@ This is a new system and we want YOUR input:
 - 🤔 What concerns do you have?
 - 💡 How can we improve?
 
-Share in the [Migration Feedback Discussion](https://github.com/tinkle-community/atrade/discussions) (link TBD)
+Share in the [Migration Feedback Discussion](https://github.com/tinkle-community/aspen/discussions) (link TBD)
 
 ---
 

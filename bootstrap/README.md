@@ -26,8 +26,8 @@ Bootstrap 是一个模块化的初始化框架，允许各个模块通过注册�
 package proxy
 
 import (
-	"atrade/bootstrap"
-	"atrade/config"
+	"aspen/bootstrap"
+	"aspen/config"
 )
 
 func init() {
@@ -58,13 +58,13 @@ package main
 
 import (
 	"log"
-	"atrade/bootstrap"
-	"atrade/config"
+	"aspen/bootstrap"
+	"aspen/config"
 
 	// 导入需要初始化的模块（触发 init() 注册）
-	_ "atrade/proxy"
-	_ "atrade/market"
-	_ "atrade/trader"
+	_ "aspen/proxy"
+	_ "aspen/market"
+	_ "aspen/trader"
 )
 
 func main() {
@@ -251,7 +251,7 @@ package database
 
 import (
 	"database/sql"
-	"atrade/bootstrap"
+	"aspen/bootstrap"
 )
 
 func init() {
@@ -282,8 +282,8 @@ func initDatabase(ctx *bootstrap.Context) error {
 package proxy
 
 import (
-	"atrade/bootstrap"
-	"atrade/config"
+	"aspen/bootstrap"
+	"aspen/config"
 )
 
 func init() {
@@ -313,7 +313,7 @@ func initProxy(ctx *bootstrap.Context) error {
 package trader
 
 import (
-	"atrade/bootstrap"
+	"aspen/bootstrap"
 )
 
 func init() {

@@ -1,8 +1,8 @@
-# 📘 ATrade User Guides
+# 📘 Aspen User Guides
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-Comprehensive guides to help you use ATrade effectively.
+Comprehensive guides to help you use Aspen effectively.
 
 ---
 
@@ -129,9 +129,9 @@ Run multiple AI models simultaneously:
 ## 🆘 Need Help?
 
 **Can't find what you need?**
-- 💬 [Telegram Community](https://t.me/atrade_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/atrade/issues)
-- 🐦 [Twitter @atrade_ai](https://x.com/atrade_ai)
+- 💬 [Telegram Community](https://t.me/aspen_dev_community)
+- 🐛 [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+- 🐦 [Twitter @aspen_ai](https://x.com/aspen_ai)
 
 ---
 

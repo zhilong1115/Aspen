@@ -1,6 +1,6 @@
-# 👥 ATrade Community
+# 👥 Aspen Community
 
-Welcome to the ATrade community! This section contains everything you need to contribute and participate.
+Welcome to the Aspen community! This section contains everything you need to contribute and participate.
 
 ---
 
@@ -28,14 +28,14 @@ We're introducing a new PR management system to improve code quality and make co
    - [Security Policy](../../SECURITY.md) - Report vulnerabilities
 
 2. **Find Something to Work On**
-   - Browse [GitHub Issues](https://github.com/tinkle-community/atrade/issues)
+   - Browse [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
    - Look for `good first issue` label
    - Check out [bounty tasks](#-bounty-program)
 
 3. **Join the Community**
-   - 💬 [Telegram Developer Community](https://t.me/atrade_dev_community)
-   - 🐦 [Twitter @atrade_ai](https://x.com/atrade_ai)
-   - 🐙 [GitHub Discussions](https://github.com/tinkle-community/atrade/discussions)
+   - 💬 [Telegram Developer Community](https://t.me/aspen_dev_community)
+   - 🐦 [Twitter @aspen_ai](https://x.com/aspen_ai)
+   - 🐙 [GitHub Discussions](https://github.com/tinkle-community/aspen/discussions)
 
 ---
 
@@ -43,7 +43,7 @@ We're introducing a new PR management system to improve code quality and make co
 
 ### Active Bounties
 
-ATrade offers bounties for valuable contributions:
+Aspen offers bounties for valuable contributions:
 
 | Category | Reward Range | Examples |
 |----------|--------------|----------|
@@ -138,9 +138,9 @@ ATrade offers bounties for valuable contributions:
 
 | Platform | Purpose | Link |
 |----------|---------|------|
-| 💬 Telegram | Real-time chat, questions | [Join](https://t.me/atrade_dev_community) |
-| 🐙 GitHub | Issues, PRs, discussions | [Visit](https://github.com/tinkle-community/atrade) |
-| 🐦 Twitter | Announcements, updates | [@atrade_ai](https://x.com/atrade_ai) |
+| 💬 Telegram | Real-time chat, questions | [Join](https://t.me/aspen_dev_community) |
+| 🐙 GitHub | Issues, PRs, discussions | [Visit](https://github.com/tinkle-community/aspen) |
+| 🐦 Twitter | Announcements, updates | [@aspen_ai](https://x.com/aspen_ai) |
 
 ### Core Team
 
@@ -167,7 +167,7 @@ ATrade offers bounties for valuable contributions:
 **Want to organize an event?**
 - Contact core team on Telegram
 - Propose in GitHub Discussions
-- Tweet and tag @atrade_ai
+- Tweet and tag @aspen_ai
 
 ---
 
@@ -175,7 +175,7 @@ ATrade offers bounties for valuable contributions:
 
 ### For Contributors
 
-**Understanding ATrade:**
+**Understanding Aspen:**
 - [System Architecture](../architecture/README.md) *(coming soon)*
 - [API Reference](../architecture/api-reference.md) *(coming soon)*
 - [Database Schema](../architecture/database-schema.md) *(coming soon)*
@@ -228,10 +228,10 @@ ATrade offers bounties for valuable contributions:
 
 | Metric | Count |
 |--------|-------|
-| GitHub Stars | Check [repo](https://github.com/tinkle-community/atrade) |
+| GitHub Stars | Check [repo](https://github.com/tinkle-community/aspen) |
 | Contributors | 21+ |
-| Open Issues | Check [issues](https://github.com/tinkle-community/atrade/issues) |
-| Merged PRs | Check [pulls](https://github.com/tinkle-community/atrade/pulls?q=is%3Apr+is%3Amerged) |
+| Open Issues | Check [issues](https://github.com/tinkle-community/aspen/issues) |
+| Merged PRs | Check [pulls](https://github.com/tinkle-community/aspen/pulls?q=is%3Apr+is%3Amerged) |
 
 ---
 
@@ -240,7 +240,7 @@ ATrade offers bounties for valuable contributions:
 - **Want to contribute code?** → [Contributing Guide](../../CONTRIBUTING.md)
 - **Want to claim bounty?** → [Bounty Guide](bounty-guide.md)
 - **Found a security issue?** → [Security Policy](../../SECURITY.md)
-- **Have questions?** → [Telegram Community](https://t.me/atrade_dev_community)
+- **Have questions?** → [Telegram Community](https://t.me/aspen_dev_community)
 
 ---
 

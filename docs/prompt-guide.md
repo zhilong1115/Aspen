@@ -1248,7 +1248,7 @@ If using Mode 3, must include in custom Prompt:
 **Step 1: View Actual Output**
 ```bash
 # View system logs, find actual Prompt sent to AI
-docker logs atrade-trader | grep "User Prompt"
+docker logs aspen-trader | grep "User Prompt"
 ```
 
 **Step 2: Confirm Field Exists**
@@ -1393,7 +1393,7 @@ Chain of thought analysis
 **Investigation Steps**:
 1. View AI raw output in logs
    ```bash
-   docker logs atrade-trader | tail -100
+   docker logs aspen-trader | tail -100
    ```
 2. Check if XML tags `<reasoning>` and `<decision>` used
 3. Check if JSON format correct
@@ -1418,7 +1418,7 @@ Chain of thought analysis
 **Investigation Steps**:
 1. View specific validation error message
    ```bash
-   docker logs atrade-trader | grep "Validation failed"
+   docker logs aspen-trader | grep "Validation failed"
    ```
 2. Check if hard constraints violated
 
@@ -1447,7 +1447,7 @@ Chain of thought analysis
 **Investigation Steps**:
 1. View AI's chain of thought analysis (reasoning)
    ```bash
-   docker logs atrade-trader | grep -A 20 "<reasoning>"
+   docker logs aspen-trader | grep -A 20 "<reasoning>"
    ```
 2. Check for ambiguities in Prompt
 3. Check if market data meets your entry conditions
@@ -1483,7 +1483,7 @@ Chain of thought analysis
 
 ### Official Resources
 
-- **GitHub Issues**: https://github.com/NoFxAiOS/atrade/issues
+- **GitHub Issues**: https://github.com/NoFxAiOS/aspen/issues
 - **Official Documentation**: See project README
 - **Community Discussion**: GitHub Discussions
 

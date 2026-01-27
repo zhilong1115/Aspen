@@ -1,8 +1,8 @@
 package config
 
 import (
-	"atrade/crypto"
-	"atrade/market"
+	"aspen/crypto"
+	"aspen/market"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base32"

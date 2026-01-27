@@ -20,7 +20,7 @@ export default function NavBar(){
       <Flex align="center" justify="space-between" maxW="1440px" mx="auto" h="full">
         <HStack spacing={3}>
           <Box w={6} h={6} bg="brand.500" borderRadius="10px" />
-          <Text fontSize="16px" fontWeight={700} letterSpacing="-0.5px">ATrade</Text>
+          <Text fontSize="16px" fontWeight={700} letterSpacing="-0.5px">Aspen</Text>
         </HStack>
 
         <HStack spacing={6} display={{ base:'none', md:'flex' }}>
