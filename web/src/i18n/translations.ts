@@ -3,7 +3,7 @@ export type Language = 'en' | 'zh'
 export const translations = {
   en: {
     // Header
-    appTitle: 'ATrade',
+    appTitle: 'Aspen',
     subtitle: 'Multi-AI Model Trading Platform',
     aiTraders: 'AI Traders',
     details: 'Details',
@@ -17,13 +17,18 @@ export const translations = {
     view: 'View',
 
     // Navigation
+    portfolio: 'Portfolio',
+    overallPortfolio: 'Overall',
     realtimeNav: 'Live',
     configNav: 'Config',
+    aiStrategyNav: 'AI Strategy',
+    communityNav: 'Community',
     dashboardNav: 'Dashboard',
     faqNav: 'FAQ',
+    profile: 'Profile',
 
     // Footer
-    footerTitle: 'ATrade - AI Trading System',
+    footerTitle: 'Aspen - AI Trading System',
     footerWarning: '⚠️ Trading involves risk. Use at your own discretion.',
 
     // Stats Cards
@@ -143,7 +148,7 @@ export const translations = {
     modelConfiguration: 'Model Configuration',
     configured: 'Configured',
     notConfigured: 'Not Configured',
-    currentTraders: 'Current Traders',
+    currentTraders: 'My Traders',
     noTraders: 'No AI Traders',
     createFirstTrader: 'Create your first AI trader to get started',
     dashboardEmptyTitle: 'No Traders Configured',
@@ -500,20 +505,20 @@ export const translations = {
     heroTitle1: 'Read the Market.',
     heroTitle2: 'Write the Trade.',
     heroDescription:
-      'ATrade is the future standard for AI trading — an open, community-driven agentic trading OS. Supporting Binance, Aster DEX and other exchanges, self-hosted, multi-agent competition, let AI automatically make decisions, execute and optimize trades for you.',
+      'Aspen is the future standard for AI trading — an open, community-driven agentic trading OS. Supporting Binance, Aster DEX and other exchanges, self-hosted, multi-agent competition, let AI automatically make decisions, execute and optimize trades for you.',
     poweredBy:
       'Powered by Aster DEX and Binance, strategically invested by Amber.ac.',
 
     // Landing Page CTA
     readyToDefine: 'Ready to define the future of AI trading?',
     startWithCrypto:
-      'Starting with crypto markets, expanding to TradFi. ATrade is the infrastructure of AgentFi.',
+      'Starting with crypto markets, expanding to TradFi. Aspen is the infrastructure of AgentFi.',
     getStartedNow: 'Get Started Now',
     viewSourceCode: 'View Source Code',
 
     // Features Section
     coreFeatures: 'Core Features',
-    whyChooseNofx: 'Why Choose ATrade?',
+    whyChooseNofx: 'Why Choose Aspen?',
     openCommunityDriven:
       'Open source, transparent, community-driven AI trading OS',
     openSourceSelfHosted: '100% Open Source & Self-Hosted',
@@ -539,10 +544,10 @@ export const translations = {
     secureFeatures4: 'Trading log auditing',
 
     // About Section
-    aboutNofx: 'About ATrade',
-    whatIsNofx: 'What is ATrade?',
+    aboutNofx: 'About Aspen',
+    whatIsNofx: 'What is Aspen?',
     nofxNotAnotherBot:
-      "ATrade is not another trading bot, but the 'Linux' of AI trading —",
+      "Aspen is not another trading bot, but the 'Linux' of AI trading —",
     nofxDescription1:
       'a transparent, trustworthy open source OS that provides a unified',
     nofxDescription2:
@@ -560,7 +565,7 @@ export const translations = {
     startupMessages3: 'Web console http://localhost:3000',
 
     // How It Works Section
-    howToStart: 'How to Get Started with ATrade',
+    howToStart: 'How to Get Started with Aspen',
     fourSimpleSteps:
       'Four simple steps to start your AI automated trading journey',
     step1Title: 'Clone GitHub Repository',
@@ -577,7 +582,7 @@ export const translations = {
       'Monitor trading, submit PRs to improve framework. Join Telegram to share strategies.',
     importantRiskWarning: 'Important Risk Warning',
     riskWarningText:
-      'Dev branch is unstable, do not use funds you cannot afford to lose. ATrade is non-custodial, no official strategies. Trading involves risks, invest carefully.',
+      'Dev branch is unstable, do not use funds you cannot afford to lose. Aspen is non-custodial, no official strategies. Trading involves risks, invest carefully.',
 
     // Community Section (testimonials are kept as-is since they are quotes)
 
@@ -590,7 +595,7 @@ export const translations = {
     strategicInvestment: '(Strategic Investment)',
 
     // Login Modal
-    accessNofxPlatform: 'Access ATrade Platform',
+    accessNofxPlatform: 'Access Aspen Platform',
     loginRegisterPrompt:
       'Please login or register to access the full AI trading platform',
     registerNewAccount: 'Register New Account',
@@ -616,7 +621,7 @@ export const translations = {
 
     // FAQ Page
     faqTitle: 'Frequently Asked Questions',
-    faqSubtitle: 'Find answers to common questions about ATrade',
+    faqSubtitle: 'Find answers to common questions about Aspen',
     faqStillHaveQuestions: 'Still Have Questions?',
     faqContactUs: 'Join our community or check our GitHub for more help',
 
@@ -630,21 +635,21 @@ export const translations = {
     faqCategoryData: 'Data & Privacy',
 
     // FAQ Questions & Answers - General
-    faqWhatIsATrade: 'What is ATrade?',
+    faqWhatIsATrade: 'What is Aspen?',
     faqWhatIsATradeAnswer:
-      'ATrade is an AI-powered cryptocurrency trading bot that uses large language models (LLMs) to make trading decisions on futures markets.',
+      'Aspen is an AI-powered cryptocurrency trading bot that uses large language models (LLMs) to make trading decisions on futures markets.',
 
     faqSupportedExchanges: 'Which exchanges are supported?',
     faqSupportedExchangesAnswer:
       'Binance Futures, Hyperliquid, and Aster DEX are supported. More exchanges coming soon.',
 
-    faqIsProfitable: 'Is ATrade profitable?',
+    faqIsProfitable: 'Is Aspen profitable?',
     faqIsProfitableAnswer:
       'AI trading is experimental and not guaranteed to be profitable. Always start with small amounts and never invest more than you can afford to lose.',
 
     faqMultipleTraders: 'Can I run multiple traders simultaneously?',
     faqMultipleTradersAnswer:
-      'Yes! ATrade supports running multiple traders with different configurations, AI models, and trading strategies.',
+      'Yes! Aspen supports running multiple traders with different configurations, AI models, and trading strategies.',
 
     // Contributing & Community
     faqGithubProjectsTasks: 'How to use GitHub Projects and pick up tasks?',
@@ -662,7 +667,7 @@ export const translations = {
 
     faqNeedCoding: 'Do I need coding experience?',
     faqNeedCodingAnswer:
-      'No! ATrade has a web UI for all configuration. However, basic command line knowledge helps with setup and troubleshooting.',
+      'No! Aspen has a web UI for all configuration. However, basic command line knowledge helps with setup and troubleshooting.',
 
     faqGetApiKeys: 'How do I get API keys?',
     faqGetApiKeysAnswer:
@@ -670,7 +675,7 @@ export const translations = {
 
     faqUseSubaccount: 'Should I use a subaccount?',
     faqUseSubaccountAnswer:
-      'Recommended: Yes, use a subaccount dedicated to ATrade for better risk isolation. However, note that some subaccounts have restrictions (e.g., 5x max leverage on Binance).',
+      'Recommended: Yes, use a subaccount dedicated to Aspen for better risk isolation. However, note that some subaccounts have restrictions (e.g., 5x max leverage on Binance).',
 
     faqDockerDeployment: 'Docker deployment keeps failing',
     faqDockerDeploymentAnswer:
@@ -707,7 +712,7 @@ export const translations = {
 
     faqHighFees: 'Trading fees are too high',
     faqHighFeesAnswer:
-      'ATrade default 3-minute scan interval can cause frequent trading. Solutions: Increase decision interval to 5-10 minutes; Optimize system prompt to reduce overtrading; Adjust leverage to reduce position sizes.',
+      'Aspen default 3-minute scan interval can cause frequent trading. Solutions: Increase decision interval to 5-10 minutes; Optimize system prompt to reduce overtrading; Adjust leverage to reduce position sizes.',
 
     faqNoTakeProfit: "AI doesn't close profitable positions",
     faqNoTakeProfitAnswer:
@@ -732,7 +737,7 @@ export const translations = {
 
     faqDatabaseLocked: 'Database locked error',
     faqDatabaseLockedAnswer:
-      'Stop all ATrade processes with "docker compose down" or "pkill atrade", then restart with "docker compose up -d".',
+      'Stop all Aspen processes with "docker compose down" or "pkill atrade", then restart with "docker compose up -d".',
 
     faqAiLearningFailed: 'AI learning data failed to load',
     faqAiLearningFailedAnswer:
@@ -757,7 +762,7 @@ export const translations = {
 
     faqAiLearning: 'Does the AI learn from its mistakes?',
     faqAiLearningAnswer:
-      'Yes, to some extent. ATrade provides historical performance feedback in each decision prompt, allowing the AI to adjust its strategy.',
+      'Yes, to some extent. Aspen provides historical performance feedback in each decision prompt, allowing the AI to adjust its strategy.',
 
     faqOnlyShort: 'AI only opens short positions, no long positions',
     faqOnlyShortAnswer:
@@ -815,7 +820,7 @@ export const translations = {
   },
   zh: {
     // Header
-    appTitle: 'ATrade',
+    appTitle: 'Aspen',
     subtitle: '多AI模型交易平台',
     aiTraders: 'AI交易员',
     details: '详情',
@@ -829,13 +834,18 @@ export const translations = {
     view: '查看',
 
     // Navigation
+    portfolio: '投资组合',
+    overallPortfolio: '总览',
+    profile: '我的',
     realtimeNav: '实时',
     configNav: '配置',
+    aiStrategyNav: 'AI 策略',
+    communityNav: '社区',
     dashboardNav: '看板',
     faqNav: '常见问题',
 
     // Footer
-    footerTitle: 'ATrade - AI交易系统',
+    footerTitle: 'Aspen - AI交易系统',
     footerWarning: '⚠️ 交易有风险，请谨慎使用。',
 
     // Stats Cards
@@ -1275,19 +1285,19 @@ export const translations = {
     heroTitle1: 'Read the Market.',
     heroTitle2: 'Write the Trade.',
     heroDescription:
-      'ATrade 是 AI 交易的未来标准——一个开放、社区驱动的代理式交易操作系统。支持 Binance、Aster DEX 等交易所，自托管、多代理竞争，让 AI 为你自动决策、执行和优化交易。',
+      'Aspen 是 AI 交易的未来标准——一个开放、社区驱动的代理式交易操作系统。支持 Binance、Aster DEX 等交易所，自托管、多代理竞争，让 AI 为你自动决策、执行和优化交易。',
     poweredBy: '由 Aster DEX 和 Binance 提供支持，Amber.ac 战略投资。',
 
     // Landing Page CTA
     readyToDefine: '准备好定义 AI 交易的未来吗？',
     startWithCrypto:
-      '从加密市场起步，扩展到 TradFi。ATrade 是 AgentFi 的基础架构。',
+      '从加密市场起步，扩展到 TradFi。Aspen 是 AgentFi 的基础架构。',
     getStartedNow: '立即开始',
     viewSourceCode: '查看源码',
 
     // Features Section
     coreFeatures: '核心功能',
-    whyChooseNofx: '为什么选择 ATrade？',
+    whyChooseNofx: '为什么选择 Aspen？',
     openCommunityDriven: '开源、透明、社区驱动的 AI 交易操作系统',
     openSourceSelfHosted: '100% 开源与自托管',
     openSourceDesc: '你的框架，你的规则。非黑箱，支持自定义提示词和多模型。',
@@ -1309,9 +1319,9 @@ export const translations = {
     secureFeatures4: '交易日志审计',
 
     // About Section
-    aboutNofx: '关于 ATrade',
-    whatIsNofx: '什么是 ATrade？',
-    nofxNotAnotherBot: "ATrade 不是另一个交易机器人，而是 AI 交易的 'Linux' ——",
+    aboutNofx: '关于 Aspen',
+    whatIsNofx: '什么是 Aspen？',
+    nofxNotAnotherBot: "Aspen 不是另一个交易机器人，而是 AI 交易的 'Linux' ——",
     nofxDescription1: "一个透明、可信任的开源 OS，提供统一的 '决策-风险-执行'",
     nofxDescription2: '层，支持所有资产类别。',
     nofxDescription3:
@@ -1326,7 +1336,7 @@ export const translations = {
     startupMessages3: 'Web 控制台 http://localhost:3000',
 
     // How It Works Section
-    howToStart: '如何开始使用 ATrade',
+    howToStart: '如何开始使用 Aspen',
     fourSimpleSteps: '四个简单步骤，开启 AI 自动交易之旅',
     step1Title: '拉取 GitHub 仓库',
     step1Desc:
@@ -1341,7 +1351,7 @@ export const translations = {
     step4Desc: '监控交易，提交 PR 改进框架。加入 Telegram 分享策略。',
     importantRiskWarning: '重要风险提示',
     riskWarningText:
-      'dev 分支不稳定，勿用无法承受损失的资金。ATrade 非托管，无官方策略。交易有风险，投资需谨慎。',
+      'dev 分支不稳定，勿用无法承受损失的资金。Aspen 非托管，无官方策略。交易有风险，投资需谨慎。',
 
     // Community Section (testimonials are kept as-is since they are quotes)
 
@@ -1354,7 +1364,7 @@ export const translations = {
     strategicInvestment: '(战略投资)',
 
     // Login Modal
-    accessNofxPlatform: '访问 ATrade 平台',
+    accessNofxPlatform: '访问 Aspen 平台',
     loginRegisterPrompt: '请选择登录或注册以访问完整的 AI 交易平台',
     registerNewAccount: '注册新账号',
 
@@ -1376,7 +1386,7 @@ export const translations = {
 
     // FAQ Page
     faqTitle: '常见问题',
-    faqSubtitle: '查找关于 ATrade 的常见问题解答',
+    faqSubtitle: '查找关于 Aspen 的常见问题解答',
     faqStillHaveQuestions: '还有其他问题？',
     faqContactUs: '加入我们的社区或查看 GitHub 获取更多帮助',
 
@@ -1390,21 +1400,21 @@ export const translations = {
     faqCategoryData: '数据与隐私',
 
     // FAQ Questions & Answers - General
-    faqWhatIsATrade: 'ATrade 是什么？',
+    faqWhatIsATrade: 'Aspen 是什么？',
     faqWhatIsATradeAnswer:
-      'ATrade 是一个 AI 驱动的加密货币交易机器人，使用大语言模型（LLM）在期货市场进行交易决策。',
+      'Aspen 是一个 AI 驱动的加密货币交易机器人，使用大语言模型（LLM）在期货市场进行交易决策。',
 
     faqSupportedExchanges: '支持哪些交易所？',
     faqSupportedExchangesAnswer:
       '支持币安合约（Binance Futures）、Hyperliquid 和 Aster DEX。更多交易所开发中。',
 
-    faqIsProfitable: 'ATrade 能盈利吗？',
+    faqIsProfitable: 'Aspen 能盈利吗？',
     faqIsProfitableAnswer:
       'AI 交易是实验性的，不保证盈利。请始终用小额资金测试，不要投入超过您承受能力的资金。',
 
     faqMultipleTraders: '可以同时运行多个交易员吗？',
     faqMultipleTradersAnswer:
-      '可以！ATrade 支持运行多个交易员，每个可配置不同的 AI 模型和交易策略。',
+      '可以！Aspen 支持运行多个交易员，每个可配置不同的 AI 模型和交易策略。',
 
     // Contributing & Community
     faqGithubProjectsTasks: '如何在 GitHub Projects 中领取任务？',
@@ -1422,7 +1432,7 @@ export const translations = {
 
     faqNeedCoding: '需要编程经验吗？',
     faqNeedCodingAnswer:
-      '不需要！ATrade 有 Web 界面进行所有配置。但基础的命令行知识有助于安装和故障排查。',
+      '不需要！Aspen 有 Web 界面进行所有配置。但基础的命令行知识有助于安装和故障排查。',
 
     faqGetApiKeys: '如何获取 API 密钥？',
     faqGetApiKeysAnswer:
@@ -1430,7 +1440,7 @@ export const translations = {
 
     faqUseSubaccount: '应该使用子账户吗？',
     faqUseSubaccountAnswer:
-      '推荐：是的，使用专门的子账户运行 ATrade 可以更好地隔离风险。但请注意，某些子账户有限制（例如币安子账户最高 5 倍杠杆）。',
+      '推荐：是的，使用专门的子账户运行 Aspen 可以更好地隔离风险。但请注意，某些子账户有限制（例如币安子账户最高 5 倍杠杆）。',
 
     faqDockerDeployment: 'Docker 部署一直失败',
     faqDockerDeploymentAnswer:
@@ -1467,7 +1477,7 @@ export const translations = {
 
     faqHighFees: '交易手续费太高',
     faqHighFeesAnswer:
-      'ATrade 默认 3 分钟扫描间隔会导致频繁交易。解决方案：将决策间隔增加到 5-10 分钟；优化系统提示词减少过度交易；调整杠杆降低仓位大小。',
+      'Aspen 默认 3 分钟扫描间隔会导致频繁交易。解决方案：将决策间隔增加到 5-10 分钟；优化系统提示词减少过度交易；调整杠杆降低仓位大小。',
 
     faqNoTakeProfit: 'AI 不平掉盈利的仓位',
     faqNoTakeProfitAnswer:
@@ -1492,7 +1502,7 @@ export const translations = {
 
     faqDatabaseLocked: '数据库锁定错误',
     faqDatabaseLockedAnswer:
-      '使用 "docker compose down" 或 "pkill atrade" 停止所有 ATrade 进程，然后使用 "docker compose up -d" 重启。',
+      '使用 "docker compose down" 或 "pkill atrade" 停止所有 Aspen 进程，然后使用 "docker compose up -d" 重启。',
 
     faqAiLearningFailed: 'AI 学习数据加载失败',
     faqAiLearningFailedAnswer:
@@ -1517,7 +1527,7 @@ export const translations = {
 
     faqAiLearning: 'AI 会从错误中学习吗？',
     faqAiLearningAnswer:
-      '会的，在一定程度上。ATrade 在每次决策提示中提供历史表现反馈，允许 AI 调整策略。',
+      '会的，在一定程度上。Aspen 在每次决策提示中提供历史表现反馈，允许 AI 调整策略。',
 
     faqOnlyShort: 'AI 只开空单，不开多单',
     faqOnlyShortAnswer:

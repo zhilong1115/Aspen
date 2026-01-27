@@ -1,11 +1,12 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AITradersPage } from '../components/AITradersPage'
-import { CompetitionPage } from '../components/CompetitionPage'
+import { CommunityPage } from '../pages/CommunityPage'
 import { LoginPage } from '../components/LoginPage'
 import { RegisterPage } from '../components/RegisterPage'
 import { ResetPasswordPage } from '../components/ResetPasswordPage'
 import AuthLayout from '../layouts/AuthLayout'
 import MainLayout from '../layouts/MainLayout'
+import { PortfolioPage } from '../pages/PortfolioPage'
 import { ProfilePage } from '../pages/ProfilePage'
 import { RootRedirect } from '../pages/RootRedirect'
 import TraderDashboard from '../pages/TraderDashboard'
@@ -38,12 +39,20 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       {
-        path: '/competition',
-        element: <CompetitionPage />,
+        path: '/portfolio',
+        element: <PortfolioPage />,
+      },
+      {
+        path: '/community',
+        element: <CommunityPage />,
       },
       {
         path: '/traders',
         element: <AITradersPage />,
+      },
+      {
+        path: '/dashboard/:traderId',
+        element: <TraderDashboard />,
       },
       {
         path: '/dashboard',

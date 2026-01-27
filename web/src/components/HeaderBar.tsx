@@ -73,10 +73,10 @@ export default function HeaderBar({
           to="/"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
         >
-          <div className="flex items-center text-2xl font-bold tracking-tight" style={{ fontFamily: "'Google Sans', sans-serif" }}>
-            <span className="text-[var(--google-blue)]">A</span>
-            <span className="text-[var(--text-primary)]">Trade</span>
-          </div>
+          <img src="/icons/aspen.svg" alt="Aspen" className="w-8 h-8" />
+          <span className="text-2xl font-bold tracking-tight text-white" style={{ fontFamily: "'Google Sans', sans-serif" }}>
+            Aspen
+          </span>
           <span className="text-sm hidden sm:block text-[var(--text-secondary)] ml-1 font-medium border-l border-[var(--border)] pl-3 py-0.5">
             Agentic Trading OS
           </span>

@@ -113,6 +113,7 @@ func (s *Server) setupRoutes() {
 		// 公开的竞赛数据（无需认证）
 		api.GET("/traders", s.handlePublicTraderList)
 		api.GET("/competition", s.handlePublicCompetition)
+		api.GET("/community", s.handleCommunity)
 		api.GET("/top-traders", s.handleTopTraders)
 		api.GET("/equity-history", s.handleEquityHistory)
 		api.POST("/equity-history-batch", s.handleEquityHistoryBatch)
@@ -2246,6 +2247,19 @@ func (s *Server) handlePublicCompetition(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, competition)
+}
+
+// handleCommunity 获取社区排行榜数据（无需认证，含胜率、夏普等）
+func (s *Server) handleCommunity(c *gin.Context) {
+	community, err := s.traderManager.GetCommunityData()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": fmt.Sprintf("获取社区数据失败: %v", err),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, community)
 }
 
 // handleTopTraders 获取前5名交易员数据（无需认证，用于表现对比）

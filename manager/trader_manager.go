@@ -25,6 +25,7 @@ type CompetitionCache struct {
 type TraderManager struct {
 	traders          map[string]*trader.AutoTrader // key: trader ID
 	competitionCache *CompetitionCache
+	communityCache   *CompetitionCache
 	mu               sync.RWMutex
 }
 
@@ -33,6 +34,9 @@ func NewTraderManager() *TraderManager {
 	return &TraderManager{
 		traders: make(map[string]*trader.AutoTrader),
 		competitionCache: &CompetitionCache{
+			data: make(map[string]interface{}),
+		},
+		communityCache: &CompetitionCache{
 			data: make(map[string]interface{}),
 		},
 	}
@@ -734,6 +738,177 @@ func (tm *TraderManager) GetTopTradersData() (map[string]interface{}, error) {
 	}
 
 	return result, nil
+}
+
+// CommunityTraderProfile 社区交易员概况
+type CommunityTraderProfile struct {
+	TraderID       string  `json:"trader_id"`
+	TraderName     string  `json:"trader_name"`
+	AIModel        string  `json:"ai_model"`
+	TotalEquity    float64 `json:"total_equity"`
+	InitialBalance float64 `json:"initial_balance"`
+	TotalReturnPct float64 `json:"total_return_pct"`
+	TotalReturn    float64 `json:"total_return"`
+	WinRate        float64 `json:"win_rate"`
+	TotalTrades    int     `json:"total_trades"`
+	WinningTrades  int     `json:"winning_trades"`
+	LosingTrades   int     `json:"losing_trades"`
+	ProfitFactor   float64 `json:"profit_factor"`
+	SharpeRatio    float64 `json:"sharpe_ratio"`
+	IsRunning      bool    `json:"is_running"`
+}
+
+// GetCommunityData 获取社区排行榜数据（含胜率、夏普等performance指标）
+func (tm *TraderManager) GetCommunityData() (map[string]interface{}, error) {
+	// 检查缓存是否有效（30秒内）
+	tm.communityCache.mu.RLock()
+	if time.Since(tm.communityCache.timestamp) < 30*time.Second && len(tm.communityCache.data) > 0 {
+		cachedData := make(map[string]interface{})
+		for k, v := range tm.communityCache.data {
+			cachedData[k] = v
+		}
+		tm.communityCache.mu.RUnlock()
+		log.Printf("📋 返回社区数据缓存 (缓存时间: %.1fs)", time.Since(tm.communityCache.timestamp).Seconds())
+		return cachedData, nil
+	}
+	tm.communityCache.mu.RUnlock()
+
+	tm.mu.RLock()
+	allTraders := make([]*trader.AutoTrader, 0, len(tm.traders))
+	for _, t := range tm.traders {
+		allTraders = append(allTraders, t)
+	}
+	tm.mu.RUnlock()
+
+	log.Printf("🔄 重新获取社区数据，交易员数量: %d", len(allTraders))
+
+	// 并发获取每个交易员的数据（含performance分析）
+	type communityResult struct {
+		index   int
+		profile *CommunityTraderProfile
+	}
+
+	resultChan := make(chan communityResult, len(allTraders))
+
+	for i, t := range allTraders {
+		go func(index int, tr *trader.AutoTrader) {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+
+			profile := &CommunityTraderProfile{
+				TraderID:   tr.GetID(),
+				TraderName: tr.GetName(),
+				AIModel:    tr.GetAIModel(),
+			}
+
+			// Get status
+			status := tr.GetStatus()
+			if running, ok := status["is_running"].(bool); ok {
+				profile.IsRunning = running
+			}
+			if ib, ok := status["initial_balance"].(float64); ok {
+				profile.InitialBalance = ib
+			}
+
+			// Get account info (with timeout)
+			accountDone := make(chan struct{})
+			go func() {
+				defer close(accountDone)
+				account, err := tr.GetAccountInfo()
+				if err != nil {
+					log.Printf("⚠️ 社区数据: 获取交易员 %s 账户失败: %v", tr.GetID(), err)
+					return
+				}
+				if eq, ok := account["total_equity"].(float64); ok {
+					profile.TotalEquity = eq
+				}
+				if ib, ok := account["initial_balance"].(float64); ok && ib > 0 {
+					profile.InitialBalance = ib
+				}
+			}()
+
+			// Get performance analysis (with timeout)
+			perfDone := make(chan struct{})
+			go func() {
+				defer close(perfDone)
+				perf, err := tr.GetDecisionLogger().AnalyzePerformance(10000)
+				if err != nil {
+					log.Printf("⚠️ 社区数据: 获取交易员 %s 表现分析失败: %v", tr.GetID(), err)
+					return
+				}
+				profile.WinRate = perf.WinRate
+				profile.TotalTrades = perf.TotalTrades
+				profile.WinningTrades = perf.WinningTrades
+				profile.LosingTrades = perf.LosingTrades
+				profile.ProfitFactor = perf.ProfitFactor
+				profile.SharpeRatio = perf.SharpeRatio
+			}()
+
+			// Get latest equity from decision log (most accurate)
+			equityDone := make(chan struct{})
+			go func() {
+				defer close(equityDone)
+				records, err := tr.GetDecisionLogger().GetLatestRecords(1)
+				if err != nil || len(records) == 0 {
+					return
+				}
+				lastRecord := records[len(records)-1]
+				if lastRecord.AccountState.TotalBalance > 0 {
+					profile.TotalEquity = lastRecord.AccountState.TotalBalance
+				}
+			}()
+
+			// Wait for all goroutines or timeout
+			select {
+			case <-ctx.Done():
+				log.Printf("⏰ 社区数据: 获取交易员 %s 数据超时", tr.GetID())
+			case <-func() chan struct{} {
+				done := make(chan struct{})
+				go func() {
+					<-accountDone
+					<-perfDone
+					<-equityDone
+					close(done)
+				}()
+				return done
+			}():
+				// All done
+			}
+
+			// Compute returns
+			if profile.InitialBalance > 0 {
+				profile.TotalReturn = profile.TotalEquity - profile.InitialBalance
+				profile.TotalReturnPct = (profile.TotalReturn / profile.InitialBalance) * 100
+			}
+
+			resultChan <- communityResult{index: index, profile: profile}
+		}(i, t)
+	}
+
+	// Collect results
+	profiles := make([]*CommunityTraderProfile, len(allTraders))
+	for i := 0; i < len(allTraders); i++ {
+		result := <-resultChan
+		profiles[result.index] = result.profile
+	}
+
+	// Sort by total_return_pct descending
+	sort.Slice(profiles, func(i, j int) bool {
+		return profiles[i].TotalReturnPct > profiles[j].TotalReturnPct
+	})
+
+	communityData := map[string]interface{}{
+		"traders": profiles,
+		"count":   len(profiles),
+	}
+
+	// Update cache
+	tm.communityCache.mu.Lock()
+	tm.communityCache.data = communityData
+	tm.communityCache.timestamp = time.Now()
+	tm.communityCache.mu.Unlock()
+
+	return communityData, nil
 }
 
 // isUserTrader 检查trader是否属于指定用户

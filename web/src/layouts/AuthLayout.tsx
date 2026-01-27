@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'framer-motion'
-import { Activity } from 'lucide-react'
+
 import { ReactNode } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { PageTransition } from '../components/ui/PageTransition'
@@ -23,11 +23,9 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             to="/"
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-[#00C805] rounded-lg flex items-center justify-center">
-              <Activity size={20} className="text-black" />
-            </div>
+            <img src="/icons/aspen.svg" alt="Aspen" className="w-8 h-8" />
             <span className="font-bold text-xl tracking-tighter text-white">
-              ATrade
+              Aspen
             </span>
           </Link>
 

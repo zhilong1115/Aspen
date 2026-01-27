@@ -1,19 +1,23 @@
+import { motion } from 'framer-motion'
 import {
-  Bot,
-  Brain,
   Check,
   ChevronDown,
-  PieChart,
-  RefreshCw,
+  TrendingDown,
   TrendingUp,
   X,
   XCircle,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useCallback, useMemo, useState } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import useSWR from 'swr'
-import AILearning from '../components/AILearning'
-import { EquityChart } from '../components/EquityChart'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { t, type Language } from '../i18n/translations'
@@ -27,43 +31,150 @@ import type {
   TraderInfo,
 } from '../types'
 
+// ── Constants ──────────────────────────────────────────────
+const GREEN = '#00C805'
+const RED = '#FF5000'
+const TIME_RANGES = ['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const
+type TimeRange = (typeof TIME_RANGES)[number]
+
+// ── Helpers ────────────────────────────────────────────────
 function getModelDisplayName(modelId: string): string {
-  switch (modelId.toLowerCase()) {
-    case 'deepseek':
-      return 'DeepSeek'
-    case 'qwen':
-      return 'Qwen'
-    case 'claude':
-      return 'Claude'
-    default:
-      return modelId.toUpperCase()
+  if (!modelId) return 'AI Trader'
+  const lower = modelId.toLowerCase()
+  const knownModels: [string, string][] = [
+    ['deepseek', 'DeepSeek'],
+    ['grok', 'Grok'],
+    ['qwen', 'Qwen'],
+    ['claude', 'Claude'],
+    ['gpt', 'GPT'],
+    ['gemini', 'Gemini'],
+    ['llama', 'Llama'],
+    ['mistral', 'Mistral'],
+  ]
+  for (const [key, name] of knownModels) {
+    if (lower.includes(key)) return name
   }
+  const parts = modelId.split('-').filter(Boolean)
+  const last = parts[parts.length - 1] || modelId
+  return last.charAt(0).toUpperCase() + last.slice(1)
 }
 
+function fmt(n: number): string {
+  return n.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  })
+}
+
+function fmtPct(n: number): string {
+  const sign = n >= 0 ? '+' : ''
+  return `${sign}${n.toFixed(2)}%`
+}
+
+function fmtChange(n: number): string {
+  const sign = n >= 0 ? '+' : ''
+  return `${sign}${fmt(n).replace('$', '$')}`
+}
+
+function filterByRange(
+  data: Array<{ timestamp: string; [k: string]: unknown }>,
+  range: TimeRange
+): Array<{ timestamp: string; [k: string]: unknown }> {
+  if (range === 'ALL' || !data.length) return data
+  const now = new Date()
+  let cutoff: Date
+  switch (range) {
+    case '1D':
+      cutoff = new Date(now.getTime() - 86400000)
+      break
+    case '1W':
+      cutoff = new Date(now.getTime() - 7 * 86400000)
+      break
+    case '1M':
+      cutoff = new Date(now.getTime() - 30 * 86400000)
+      break
+    case '3M':
+      cutoff = new Date(now.getTime() - 90 * 86400000)
+      break
+    case 'YTD':
+      cutoff = new Date(now.getFullYear(), 0, 1)
+      break
+    case '1Y':
+      cutoff = new Date(now.getTime() - 365 * 86400000)
+      break
+    default:
+      return data
+  }
+  const filtered = data.filter((d) => new Date(d.timestamp) >= cutoff)
+  return filtered.length > 0 ? filtered : data.slice(-1)
+}
+
+// ── Custom Tooltip ─────────────────────────────────────────
+function ChartTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null
+  const d = payload[0]?.payload
+  if (!d) return null
+
+  return (
+    <div className="bg-neutral-900/95 backdrop-blur-sm border border-neutral-800 rounded-lg px-3 py-2 shadow-xl">
+      <p className="text-xs text-neutral-400">
+        {new Date(d.timestamp).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+      </p>
+      {payload.map((entry: any, i: number) => (
+        <p key={i} className="text-sm font-semibold" style={{ color: entry.color || GREEN }}>
+          {fmt(entry.value)}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+// ── Main Component ─────────────────────────────────────────
 export default function TraderDashboard() {
   const { language } = useLanguage()
   const { user, token } = useAuth()
   const navigate = useNavigate()
+  const { traderId: routeTraderId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedTraderId, setSelectedTraderId] = useState<string | undefined>(
-    searchParams.get('trader') || undefined
+    routeTraderId || searchParams.get('trader') || undefined
   )
-  const [lastUpdate, setLastUpdate] = useState<string>('--:--:--')
-  const [timeRange, setTimeRange] = useState<'1D' | '1W' | '1M' | '3M' | '1Y'>('1W')
+  const [timeRange, setTimeRange] = useState<TimeRange>('1M')
+  const [hoverValue, setHoverValue] = useState<number | null>(null)
+  const [hoverChange, setHoverChange] = useState<number | null>(null)
+  const [hoverChangePct, setHoverChangePct] = useState<number | null>(null)
 
+  // ── Data fetching ──────────────────────────────────────
   const { data: traders, error: tradersError } = useSWR<TraderInfo[]>(
     user && token ? 'traders' : null,
     api.getTraders,
     { refreshInterval: 10000, shouldRetryOnError: false }
   )
 
-  useEffect(() => {
+  // Auto-select first trader if none selected
+  const effectiveSelectedId = useMemo(() => {
+    if (selectedTraderId) return selectedTraderId
+    if (traders && traders.length > 0) return traders[0].trader_id
+    return undefined
+  }, [selectedTraderId, traders])
+
+  // Set selectedTraderId when traders load and none is set
+  useMemo(() => {
     if (traders && traders.length > 0 && !selectedTraderId) {
-      const firstTraderId = traders[0].trader_id
-      setSelectedTraderId(firstTraderId)
-      setSearchParams({ trader: firstTraderId })
+      const firstId = traders[0].trader_id
+      setSelectedTraderId(firstId)
+      if (!routeTraderId) {
+        setSearchParams({ trader: firstId })
+      }
     }
-  }, [traders, selectedTraderId, setSearchParams])
+  }, [traders, selectedTraderId, routeTraderId, setSearchParams])
 
   const handleTraderSelect = (traderId: string) => {
     setSelectedTraderId(traderId)
@@ -71,343 +182,451 @@ export default function TraderDashboard() {
   }
 
   const { data: status } = useSWR<SystemStatus>(
-    selectedTraderId ? `status-${selectedTraderId}` : null,
-    () => api.getStatus(selectedTraderId),
+    effectiveSelectedId ? `status-${effectiveSelectedId}` : null,
+    () => api.getStatus(effectiveSelectedId),
     { refreshInterval: 15000, revalidateOnFocus: false, dedupingInterval: 10000 }
   )
 
   const { data: account } = useSWR<AccountInfo>(
-    selectedTraderId ? `account-${selectedTraderId}` : null,
-    () => api.getAccount(selectedTraderId),
+    effectiveSelectedId ? `account-${effectiveSelectedId}` : null,
+    () => api.getAccount(effectiveSelectedId),
     { refreshInterval: 15000, revalidateOnFocus: false, dedupingInterval: 10000 }
   )
 
   const { data: positions } = useSWR<Position[]>(
-    selectedTraderId ? `positions-${selectedTraderId}` : null,
-    () => api.getPositions(selectedTraderId),
+    effectiveSelectedId ? `positions-${effectiveSelectedId}` : null,
+    () => api.getPositions(effectiveSelectedId),
     { refreshInterval: 15000, revalidateOnFocus: false, dedupingInterval: 10000 }
   )
 
   const { data: decisions } = useSWR<DecisionRecord[]>(
-    selectedTraderId ? `decisions/latest-${selectedTraderId}` : null,
-    () => api.getLatestDecisions(selectedTraderId),
+    effectiveSelectedId ? `decisions/latest-${effectiveSelectedId}` : null,
+    () => api.getLatestDecisions(effectiveSelectedId),
     { refreshInterval: 30000, revalidateOnFocus: false, dedupingInterval: 20000 }
   )
 
-  const { data: stats } = useSWR<Statistics>(
-    selectedTraderId ? `statistics-${selectedTraderId}` : null,
-    () => api.getStatistics(selectedTraderId),
+  const { data: _stats } = useSWR<Statistics>(
+    effectiveSelectedId ? `statistics-${effectiveSelectedId}` : null,
+    () => api.getStatistics(effectiveSelectedId),
     { refreshInterval: 30000, revalidateOnFocus: false, dedupingInterval: 20000 }
   )
 
-  void stats
+  const { data: equityHistory } = useSWR<Array<{ timestamp: string; total_equity: number; pnl_pct: number }>>(
+    effectiveSelectedId ? `equity-history-${effectiveSelectedId}` : null,
+    () => api.getEquityHistory(effectiveSelectedId),
+    { refreshInterval: 30000, revalidateOnFocus: false, dedupingInterval: 20000 }
+  )
 
-  useEffect(() => {
-    if (account) {
-      setLastUpdate(new Date().toLocaleTimeString())
+  // ── Derived data ─────────────────────────────────────────
+  const selectedTrader = traders?.find((t) => t.trader_id === effectiveSelectedId)
+
+  // Chart data
+  const chartData = useMemo(() => {
+    if (!equityHistory || equityHistory.length === 0) return []
+    const mapped = equityHistory.map((p) => ({
+      timestamp: p.timestamp,
+      value: p.total_equity,
+    }))
+    return filterByRange(mapped, timeRange) as Array<{ timestamp: string; value: number }>
+  }, [equityHistory, timeRange])
+
+  // Derive equity from history (last point) with account API fallback
+  const totalEquity = useMemo(() => {
+    if (equityHistory && equityHistory.length > 0) {
+      return equityHistory[equityHistory.length - 1].total_equity
     }
+    return account?.total_equity ?? 0
+  }, [equityHistory, account])
+
+  // Initial balance: use account API's configured initial, NOT first data point
+  const initialEquity = useMemo(() => {
+    return account?.initial_balance ?? 10000
   }, [account])
 
-  const selectedTrader = traders?.find((t) => t.trader_id === selectedTraderId)
-  const totalEquity = account?.total_equity ?? 0
-  const totalPnl = account?.total_pnl ?? 0
-  const totalPnlPct = account?.total_pnl_pct ?? 0
+  // Total return: current equity vs initial balance
+  const totalPnl = totalEquity - initialEquity
+  const totalPnlPct = initialEquity > 0 ? (totalPnl / initialEquity) * 100 : 0
   const isPositive = totalPnl >= 0
+  const accentColor = isPositive ? GREEN : RED
 
-  // Empty states
+  // Today's return: use the LAST day in the data (start of that day vs end)
+  const { todayPnl, todayPnlPct } = useMemo(() => {
+    if (!equityHistory || equityHistory.length < 2) return { todayPnl: 0, todayPnlPct: 0 }
+    // Find the last data point's date, then find start of that day
+    const lastPoint = equityHistory[equityHistory.length - 1]
+    const lastDate = new Date(lastPoint.timestamp)
+    const startOfLastDay = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate())
+    // Find the first point on that day (or last point before it as baseline)
+    let dayStartEquity = equityHistory[0].total_equity
+    for (const p of equityHistory) {
+      const pTime = new Date(p.timestamp)
+      if (pTime >= startOfLastDay) {
+        dayStartEquity = p.total_equity
+        break
+      }
+      dayStartEquity = p.total_equity
+    }
+    const endEquity = lastPoint.total_equity
+    const pnl = endEquity - dayStartEquity
+    const pct = dayStartEquity > 0 ? (pnl / dayStartEquity) * 100 : 0
+    return { todayPnl: pnl, todayPnlPct: pct }
+  }, [equityHistory])
+
+  const firstValue = chartData.length > 0 ? chartData[0].value : initialEquity
+
+  const displayValue = hoverValue ?? totalEquity
+  const displayChange = hoverChange ?? totalPnl
+  const displayChangePct = hoverChangePct ?? totalPnlPct
+
+  const handleChartHover = useCallback(
+    (state: any) => {
+      if (state?.activePayload?.length) {
+        const val = state.activePayload[0]?.value
+        if (typeof val === 'number') {
+          setHoverValue(val)
+          const change = val - firstValue
+          setHoverChange(change)
+          setHoverChangePct(firstValue > 0 ? (change / firstValue) * 100 : 0)
+        }
+      }
+    },
+    [firstValue]
+  )
+
+  const handleChartLeave = useCallback(() => {
+    setHoverValue(null)
+    setHoverChange(null)
+    setHoverChangePct(null)
+  }, [])
+
+  // ── Empty state ────────────────────────────────────────
   if (tradersError || (traders && traders.length === 0)) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center max-w-md mx-auto px-6">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center bg-neutral-900 border border-neutral-800">
-            <Bot size={48} className="text-[#00C805]" />
+      <div className="max-w-3xl mx-auto pb-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center max-w-md mx-auto px-6">
+            <h2 className="text-2xl font-bold mb-3 text-white">
+              {t('dashboardEmptyTitle', language)}
+            </h2>
+            <p className="text-base mb-6 text-neutral-500">
+              {t('dashboardEmptyDescription', language)}
+            </p>
+            <button
+              onClick={() => navigate('/traders')}
+              className="px-6 py-3 rounded-full font-bold transition-all hover:scale-105 bg-[#00C805] text-black"
+            >
+              {t('goToTradersPage', language)}
+            </button>
           </div>
-          <h2 className="text-2xl font-bold mb-3 text-white">
-            {t('dashboardEmptyTitle', language)}
-          </h2>
-          <p className="text-base mb-6 text-gray-500">
-            {t('dashboardEmptyDescription', language)}
-          </p>
-          <button
-            onClick={() => navigate('/traders')}
-            className="px-6 py-3 rounded-full font-bold transition-all hover:scale-105 bg-[#00C805] text-black"
-          >
-            {t('goToTradersPage', language)}
-          </button>
         </div>
       </div>
     )
   }
 
-  // Loading skeleton
+  // ── Loading skeleton ───────────────────────────────────
   if (!selectedTrader) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-32 bg-neutral-900 rounded-2xl" />
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 bg-neutral-900 rounded-xl" />
-          ))}
-        </div>
-        <div className="h-80 bg-neutral-900 rounded-2xl" />
+      <div className="max-w-3xl mx-auto pb-8 space-y-6 animate-pulse">
+        <div className="h-8 w-24 bg-neutral-900 rounded-lg" />
+        <div className="h-16 w-48 bg-neutral-900 rounded-lg" />
+        <div className="h-[280px] bg-neutral-900 rounded-lg" />
       </div>
     )
   }
 
-  return (
-    <div className="max-w-7xl mx-auto">
-      {/* Portfolio Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#00C805]">
-              <Bot size={20} className="text-black" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">{selectedTrader.trader_name}</h1>
-              <span className="text-xs text-gray-500">
-                {getModelDisplayName(selectedTrader.ai_model.split('_').pop() || selectedTrader.ai_model)}
-                {status && ` • ${status.call_count} cycles`}
-              </span>
-            </div>
-          </div>
+  const modelName = getModelDisplayName(selectedTrader.ai_model.split('_').pop() || selectedTrader.ai_model)
 
+  return (
+    <div className="max-w-3xl md:max-w-6xl mx-auto pb-8">
+      <div className="md:grid md:grid-cols-5 md:gap-10">
+        {/* ── Left Column: Chart + Stats + Positions ── */}
+        <div className="md:col-span-3">
+
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="px-2"
+      >
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-neutral-500 text-sm font-medium">
+            {selectedTrader.trader_name} · {modelName}
+            {status ? ` · ${status.call_count} cycles` : ''}
+          </p>
           {traders && traders.length > 1 && (
             <div className="relative">
               <select
-                value={selectedTraderId}
+                value={effectiveSelectedId}
                 onChange={(e) => handleTraderSelect(e.target.value)}
-                className="appearance-none bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2 pr-8 text-sm text-white focus:outline-none focus:border-[#00C805] cursor-pointer"
+                className="appearance-none bg-transparent border border-neutral-800 rounded-full px-3 py-1.5 pr-8 text-sm text-white focus:outline-none focus:border-neutral-600 cursor-pointer"
               >
                 {traders.map((trader) => (
-                  <option key={trader.trader_id} value={trader.trader_id}>
+                  <option key={trader.trader_id} value={trader.trader_id} className="bg-black">
                     {trader.trader_name}
                   </option>
                 ))}
               </select>
-              <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
             </div>
           )}
         </div>
-
-        {/* Big Portfolio Value */}
-        <div className="pt-4 pb-2">
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-white">
-            ${totalEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </h2>
-          <div className={`flex items-center gap-2 text-sm font-medium mt-1 ${isPositive ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
-            <span>{isPositive ? '+' : ''}{totalPnl.toFixed(2)} USDT</span>
-            <span>({isPositive ? '+' : ''}{totalPnlPct.toFixed(2)}%)</span>
-            <span className="text-gray-500 uppercase text-xs">All Time</span>
-          </div>
+        <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+          {fmt(displayValue)}
+        </h1>
+        <div className="flex items-center gap-2 mt-1">
+          {displayChange >= 0 ? (
+            <TrendingUp size={16} style={{ color: accentColor }} />
+          ) : (
+            <TrendingDown size={16} style={{ color: accentColor }} />
+          )}
+          <span className="text-sm font-medium" style={{ color: accentColor }}>
+            {fmtChange(displayChange)} ({fmtPct(displayChangePct)})
+          </span>
+          <span className="text-neutral-600 text-sm">
+            {timeRange === '1D' ? 'Today' : timeRange}
+          </span>
         </div>
-      </div>
+      </motion.div>
 
       {/* Chart */}
-      <div className="mb-6 bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden">
-        <div className="p-4">
-          <EquityChart traderId={selectedTrader.trader_id} />
-        </div>
-        <div className="flex justify-between px-4 py-3 border-t border-neutral-800">
-          {(['1D', '1W', '1M', '3M', '1Y'] as const).map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range)}
-              className={`text-xs font-bold py-1 px-4 rounded-md transition-colors ${
-                timeRange === range ? 'bg-neutral-800 text-white' : 'text-gray-500 hover:text-white'
-              }`}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+        className="mt-6 -mx-4 md:mx-0"
+      >
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart
+              data={chartData}
+              onMouseMove={handleChartHover}
+              onMouseLeave={handleChartLeave}
             >
-              {range}
-            </button>
-          ))}
+              <defs>
+                <linearGradient id="dashGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={accentColor} stopOpacity={0.15} />
+                  <stop offset="100%" stopColor={accentColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="timestamp" hide />
+              <YAxis domain={['auto', 'auto']} hide />
+              <Tooltip
+                content={<ChartTooltip />}
+                cursor={{
+                  stroke: '#555',
+                  strokeWidth: 1,
+                  strokeDasharray: '4 4',
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke={accentColor}
+                strokeWidth={2}
+                fill="url(#dashGradient)"
+                dot={false}
+                activeDot={{
+                  r: 4,
+                  fill: accentColor,
+                  stroke: '#000',
+                  strokeWidth: 2,
+                }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[280px] flex items-center justify-center">
+            <p className="text-neutral-600 text-sm">No chart data yet</p>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Time Range Pills */}
+      <div className="flex gap-1 px-2 mt-2">
+        {TIME_RANGES.map((r) => (
+          <button
+            key={r}
+            onClick={() => setTimeRange(r)}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+              timeRange === r
+                ? 'text-white'
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+            style={timeRange === r ? { backgroundColor: accentColor + '22', color: accentColor } : {}}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-neutral-900 mt-6" />
+
+      {/* Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.4 }}
+        className="space-y-4 mt-4 px-2"
+      >
+        {/* Row 1: INITIAL · TOTAL · POSITIONS */}
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs text-neutral-500 uppercase">Initial</p>
+            <p className="text-base font-bold text-white">{fmt(initialEquity)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-500 uppercase">Total Equity</p>
+            <p className="text-base font-bold text-white">{fmt(totalEquity)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-500 uppercase">Positions</p>
+            <p className="text-base font-bold text-white">{positions?.length ?? account?.position_count ?? 0}</p>
+          </div>
         </div>
-      </div>
+        {/* Row 2: Today's Return */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-neutral-500">Today's Return</p>
+          <p className="text-sm font-bold" style={{ color: todayPnl >= 0 ? GREEN : RED }}>
+            {fmtChange(todayPnl)} ({fmtPct(todayPnlPct)})
+          </p>
+        </div>
+        {/* Row 3: Total Return */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-neutral-500">Total Return</p>
+          <p className="text-sm font-bold" style={{ color: accentColor }}>
+            {fmtChange(totalPnl)} ({fmtPct(totalPnlPct)})
+          </p>
+        </div>
+      </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <StatCard
-          label={t('totalEquity', language)}
-          value={`${totalEquity.toFixed(2)}`}
-          suffix="USDT"
-        />
-        <StatCard
-          label={t('availableBalance', language)}
-          value={`${account?.available_balance?.toFixed(2) || '0.00'}`}
-          suffix="USDT"
-          subtext={`${account?.available_balance && totalEquity ? ((account.available_balance / totalEquity) * 100).toFixed(1) : '0'}% free`}
-        />
-        <StatCard
-          label={t('totalPnL', language)}
-          value={`${isPositive ? '+' : ''}${totalPnl.toFixed(2)}`}
-          suffix="USDT"
-          trend={isPositive ? 'up' : 'down'}
-        />
-        <StatCard
-          label={t('positions', language)}
-          value={`${account?.position_count || 0}`}
-          subtext={`Margin: ${account?.margin_used_pct?.toFixed(1) || '0'}%`}
-        />
-      </div>
+      {/* Divider */}
+      <div className="border-t border-neutral-900 mt-6" />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Positions - Left 2 cols */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Current Positions */}
-          <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <TrendingUp size={20} className="text-[#00C805]" />
-                {t('currentPositions', language)}
-              </h3>
-              {positions && positions.length > 0 && (
-                <span className="text-xs px-3 py-1 rounded-full bg-[#00C805]/10 text-[#00C805] font-bold">
-                  {positions.length} Active
-                </span>
-              )}
-            </div>
-
-            {positions && positions.length > 0 ? (
-              <div className="space-y-3">
-                {positions.map((pos, i) => (
-                  <div key={i} className="bg-black rounded-xl p-4 border border-neutral-800">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <span className="font-mono font-bold text-white">{pos.symbol}</span>
-                        <span className={`ml-2 px-2 py-0.5 rounded text-xs font-bold ${
-                          pos.side === 'long' ? 'bg-[#00C805]/20 text-[#00C805]' : 'bg-[#FF5000]/20 text-[#FF5000]'
-                        }`}>
-                          {pos.side.toUpperCase()} {pos.leverage}x
-                        </span>
-                      </div>
-                      <span className={`font-mono font-bold ${pos.unrealized_pnl >= 0 ? 'text-[#00C805]' : 'text-[#FF5000]'}`}>
-                        {pos.unrealized_pnl >= 0 ? '+' : ''}{pos.unrealized_pnl.toFixed(2)} ({pos.unrealized_pnl_pct.toFixed(2)}%)
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-xs text-gray-500">
-                      <div>
-                        <span className="block text-gray-600">Entry</span>
-                        <span className="font-mono text-white">{pos.entry_price.toFixed(4)}</span>
-                      </div>
-                      <div>
-                        <span className="block text-gray-600">Mark</span>
-                        <span className="font-mono text-white">{pos.mark_price.toFixed(4)}</span>
-                      </div>
-                      <div>
-                        <span className="block text-gray-600">Value</span>
-                        <span className="font-mono text-white">{(pos.quantity * pos.mark_price).toFixed(2)} USDT</span>
-                      </div>
-                    </div>
+      {/* Positions */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.4 }}
+        className="mt-4 px-2"
+      >
+        <h2 className="text-lg font-bold text-white mb-3">{t('currentPositions', language)}</h2>
+        <div className="rounded-xl overflow-hidden border border-neutral-900">
+          {positions && positions.length > 0 ? (
+            positions.map((pos, i) => (
+              <div
+                key={i}
+                className="px-4 py-4 bg-transparent hover:bg-neutral-900/50 border-b border-neutral-900 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-white font-medium text-sm">{pos.symbol}</span>
+                    <span
+                      className={`ml-2 px-2 py-0.5 rounded text-xs font-bold ${
+                        pos.side === 'long'
+                          ? 'bg-[#00C805]/20 text-[#00C805]'
+                          : 'bg-[#FF5000]/20 text-[#FF5000]'
+                      }`}
+                    >
+                      {pos.side.toUpperCase()} {pos.leverage}x
+                    </span>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <PieChart size={48} className="mx-auto mb-4 text-gray-700" />
-                <p className="text-gray-500">{t('noActivePositions', language)}</p>
-              </div>
-            )}
-          </div>
-
-          {/* AI Learning */}
-          <AILearning traderId={selectedTrader.trader_id} />
-        </div>
-
-        {/* Right Sidebar - Decisions */}
-        <div className="lg:col-span-1">
-          <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-6 sticky top-24">
-            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-neutral-800">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-purple-900/30">
-                <Brain size={20} className="text-purple-400" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white">{t('recentDecisions', language)}</h3>
-                {decisions && decisions.length > 0 && (
-                  <span className="text-xs text-gray-500">Last {decisions.length} cycles</span>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              {decisions && decisions.length > 0 ? (
-                decisions.map((decision, i) => (
-                  <DecisionCard key={i} decision={decision} language={language} />
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <Brain size={48} className="mx-auto mb-4 text-gray-700" />
-                  <p className="text-gray-500">{t('noDecisionsYet', language)}</p>
+                  <span
+                    className="font-mono font-bold text-sm"
+                    style={{ color: pos.unrealized_pnl >= 0 ? GREEN : RED }}
+                  >
+                    {pos.unrealized_pnl >= 0 ? '+' : ''}
+                    {pos.unrealized_pnl.toFixed(2)} ({pos.unrealized_pnl_pct.toFixed(2)}%)
+                  </span>
                 </div>
-              )}
+                <div className="flex gap-4 mt-1 text-xs text-neutral-500">
+                  <span>Entry: <span className="text-neutral-400 font-mono">{pos.entry_price.toFixed(4)}</span></span>
+                  <span>Mark: <span className="text-neutral-400 font-mono">{pos.mark_price.toFixed(4)}</span></span>
+                  <span>Value: <span className="text-neutral-400 font-mono">{(pos.quantity * pos.mark_price).toFixed(2)}</span></span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-neutral-600 text-sm">{t('noActivePositions', language)}</p>
             </div>
-          </div>
+          )}
+        </div>
+      </motion.div>
+
+        </div>
+
+        {/* ── Right Column: Decisions ── */}
+        <div className="md:col-span-2 md:border-l md:border-neutral-900 md:pl-8">
+
+      {/* Divider — mobile only */}
+      <div className="border-t border-neutral-900 mt-6 md:hidden" />
+
+      {/* Decisions */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        className="mt-4 md:mt-0 px-2 md:px-0"
+      >
+        <h2 className="text-lg font-bold text-white mb-3">{t('recentDecisions', language)}</h2>
+        <div className="rounded-xl overflow-hidden border border-neutral-900">
+          {decisions && decisions.length > 0 ? (
+            decisions.map((decision, i) => (
+              <DecisionRow key={i} decision={decision} language={language} />
+            ))
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-neutral-600 text-sm">{t('noDecisionsYet', language)}</p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
         </div>
       </div>
-
-      {/* Debug footer */}
-      <div className="text-xs text-gray-600 font-mono flex items-center gap-2 mb-6">
-        <RefreshCw size={12} />
-        Last update: {lastUpdate}
-      </div>
     </div>
   )
 }
 
-// Stat Card Component
-function StatCard({
-  label,
-  value,
-  suffix,
-  subtext,
-  trend,
-}: {
-  label: string
-  value: string
-  suffix?: string
-  subtext?: string
-  trend?: 'up' | 'down'
-}) {
-  const trendColor = trend === 'up' ? 'text-[#00C805]' : trend === 'down' ? 'text-[#FF5000]' : 'text-white'
-  
-  return (
-    <div className="bg-neutral-900 rounded-xl p-4 border border-neutral-800">
-      <div className="text-xs text-gray-500 mb-1 uppercase tracking-wider">{label}</div>
-      <div className={`text-xl font-bold font-mono ${trendColor}`}>
-        {value}
-        {suffix && <span className="text-sm font-normal text-gray-500 ml-1">{suffix}</span>}
-      </div>
-      {subtext && <div className="text-xs text-gray-600 mt-1">{subtext}</div>}
-    </div>
-  )
-}
-
-// Decision Card Component
-function DecisionCard({ decision, language: _language }: { decision: DecisionRecord; language: Language }) {
+// ── Decision Row ───────────────────────────────────────────
+function DecisionRow({ decision, language: _language }: { decision: DecisionRecord; language: Language }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="bg-black rounded-xl p-4 border border-neutral-800">
-      <div className="flex items-start justify-between mb-2">
+    <div className="px-4 py-3 border-b border-neutral-900 transition-colors hover:bg-neutral-900/50">
+      <div className="flex items-center justify-between">
         <div>
-          <div className="font-semibold text-white text-sm">Cycle #{decision.cycle_number}</div>
-          <div className="text-xs text-gray-500">{new Date(decision.timestamp).toLocaleString()}</div>
+          <span className="text-white text-sm font-medium">Cycle #{decision.cycle_number}</span>
+          <span className="text-xs text-neutral-500 ml-2">
+            {new Date(decision.timestamp).toLocaleString()}
+          </span>
         </div>
-        <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-          decision.success ? 'bg-[#00C805]/20 text-[#00C805]' : 'bg-[#FF5000]/20 text-[#FF5000]'
-        }`}>
+        <span
+          className={`px-2 py-0.5 rounded text-xs font-bold ${
+            decision.success
+              ? 'bg-[#00C805]/20 text-[#00C805]'
+              : 'bg-[#FF5000]/20 text-[#FF5000]'
+          }`}
+        >
           {decision.success ? 'Success' : 'Failed'}
         </span>
       </div>
 
-      {/* Actions */}
+      {/* Actions preview */}
       {decision.decisions && decision.decisions.length > 0 && (
-        <div className="space-y-1 mb-2">
-          {decision.decisions.slice(0, 2).map((action, j) => (
-            <div key={j} className="flex items-center gap-2 text-xs">
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {decision.decisions.slice(0, 3).map((action, j) => (
+            <div key={j} className="flex items-center gap-1.5 text-xs">
               <span className="font-mono font-bold text-white">{action.symbol}</span>
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                action.action.includes('open') ? 'bg-blue-500/20 text-blue-400' : 'bg-yellow-500/20 text-yellow-400'
-              }`}>
+              <span
+                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                  action.action.includes('open')
+                    ? 'bg-neutral-800 text-neutral-300'
+                    : 'bg-neutral-800 text-neutral-300'
+                }`}
+              >
                 {action.action}
               </span>
               {action.success ? (
@@ -417,8 +636,8 @@ function DecisionCard({ decision, language: _language }: { decision: DecisionRec
               )}
             </div>
           ))}
-          {decision.decisions.length > 2 && (
-            <span className="text-xs text-gray-500">+{decision.decisions.length - 2} more</span>
+          {decision.decisions.length > 3 && (
+            <span className="text-xs text-neutral-500">+{decision.decisions.length - 3} more</span>
           )}
         </div>
       )}
@@ -427,16 +646,16 @@ function DecisionCard({ decision, language: _language }: { decision: DecisionRec
       {(decision.cot_trace || decision.input_prompt) && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-xs text-purple-400 hover:text-purple-300"
+          className="mt-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
         >
           {expanded ? 'Hide details' : 'Show details'}
         </button>
       )}
 
       {expanded && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-2">
           {decision.cot_trace && (
-            <div className="text-xs bg-neutral-900 rounded p-3 font-mono text-gray-400 max-h-40 overflow-y-auto whitespace-pre-wrap">
+            <div className="text-xs bg-neutral-900/50 rounded-lg p-3 font-mono text-neutral-400 max-h-40 overflow-y-auto whitespace-pre-wrap">
               {decision.cot_trace}
             </div>
           )}
@@ -444,7 +663,7 @@ function DecisionCard({ decision, language: _language }: { decision: DecisionRec
       )}
 
       {decision.error_message && (
-        <div className="mt-2 text-xs text-[#FF5000] flex items-center gap-1">
+        <div className="mt-1.5 text-xs text-[#FF5000] flex items-center gap-1">
           <XCircle size={12} /> {decision.error_message}
         </div>
       )}

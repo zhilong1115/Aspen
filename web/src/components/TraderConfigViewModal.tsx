@@ -50,7 +50,7 @@ export function TraderConfigViewModal({
           copiedField === fieldName
             ? 'rgba(14, 203, 129, 0.1)'
             : 'rgba(240, 185, 11, 0.1)',
-        color: copiedField === fieldName ? '#0ECB81' : '#F0B90B',
+        color: copiedField === fieldName ? '#00C805' : '#00C805',
         border: `1px solid ${copiedField === fieldName ? 'rgba(14, 203, 129, 0.3)' : 'rgba(240, 185, 11, 0.3)'}`,
       }}
     >
@@ -85,13 +85,13 @@ export function TraderConfigViewModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       <div
-        className="bg-[#1E2329] border border-[#2B3139] rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+        className="bg-[#1E2329] border border-[#2B3139] rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#2B3139] bg-gradient-to-r from-[#1E2329] to-[#252B35]">
+        <div className="flex items-center justify-between p-6 border-b border-[#2B3139] bg-[#1E2329]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#F0B90B] to-[#E1A706] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-[#00C805] flex items-center justify-center">
               <span className="text-lg">👁️</span>
             </div>
             <div>
@@ -107,7 +107,7 @@ export function TraderConfigViewModal({
               className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1"
               style={
                 traderData.is_running
-                  ? { background: 'rgba(14, 203, 129, 0.1)', color: '#0ECB81' }
+                  ? { background: 'rgba(14, 203, 129, 0.1)', color: '#00C805' }
                   : { background: 'rgba(246, 70, 93, 0.1)', color: '#F6465D' }
               }
             >
@@ -249,7 +249,7 @@ export function TraderConfigViewModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t border-[#2B3139] bg-gradient-to-r from-[#1E2329] to-[#252B35]">
+        <div className="flex justify-end gap-3 p-6 border-t border-[#2B3139] bg-[#1E2329]">
           <button
             onClick={onClose}
             className="px-6 py-3 bg-[#2B3139] text-[#EAECEF] rounded-lg hover:bg-[#404750] transition-all duration-200 border border-[#404750]"
@@ -263,7 +263,7 @@ export function TraderConfigViewModal({
                 'full_config'
               )
             }
-            className="px-6 py-3 bg-gradient-to-r from-[#F0B90B] to-[#E1A706] text-black rounded-lg hover:from-[#E1A706] hover:to-[#D4951E] transition-all duration-200 font-medium shadow-lg"
+            className="px-6 py-3 bg-[#00C805] text-black rounded-lg hover:from-[#00A804] hover:to-[#D4951E] transition-all duration-200 font-medium"
           >
             {copiedField === 'full_config' ? '✓ 已复制配置' : '📋 复制完整配置'}
           </button>

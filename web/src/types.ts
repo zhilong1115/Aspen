@@ -188,6 +188,28 @@ export interface CompetitionData {
   count: number
 }
 
+export interface CommunityTraderProfile {
+  trader_id: string
+  trader_name: string
+  ai_model: string
+  total_equity: number
+  initial_balance: number
+  total_return_pct: number
+  total_return: number
+  win_rate: number
+  total_trades: number
+  winning_trades: number
+  losing_trades: number
+  profit_factor: number
+  sharpe_ratio: number
+  is_running: boolean
+}
+
+export interface CommunityData {
+  traders: CommunityTraderProfile[]
+  count: number
+}
+
 // Trader Configuration Data for View Modal
 export interface TraderConfigData {
   trader_id?: string

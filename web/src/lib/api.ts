@@ -11,6 +11,7 @@ import type {
   UpdateModelConfigRequest,
   UpdateExchangeConfigRequest,
   CompetitionData,
+  CommunityData,
 } from '../types'
 import { CryptoService } from './crypto'
 import { httpClient } from './httpClient'
@@ -328,6 +329,13 @@ export const api = {
   async getCompetition(): Promise<CompetitionData> {
     const res = await httpClient.get(`${API_BASE}/competition`)
     if (!res.ok) throw new Error('获取竞赛数据失败')
+    return res.json()
+  },
+
+  // 获取社区排行榜数据（无需认证，含胜率、夏普等）
+  async getCommunity(): Promise<CommunityData> {
+    const res = await httpClient.get(`${API_BASE}/community`)
+    if (!res.ok) throw new Error('获取社区数据失败')
     return res.json()
   },
 

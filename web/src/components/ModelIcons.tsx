@@ -8,10 +8,12 @@ interface IconProps {
 export const getModelIcon = (modelType: string, props: IconProps = {}) => {
   // 支持完整ID或类型名
   const type = modelType.includes('_') ? modelType.split('_').pop() : modelType
+  const lower = (type || '').toLowerCase()
 
   let iconPath: string | null = null
 
-  switch (type) {
+  // Exact match first
+  switch (lower) {
     case 'deepseek':
       iconPath = '/icons/deepseek.svg'
       break
@@ -19,10 +21,38 @@ export const getModelIcon = (modelType: string, props: IconProps = {}) => {
       iconPath = '/icons/qwen.svg'
       break
     case 'openrouter':
-      // OpenRouter 暂时没有图标，返回 null 使用默认显示
-      return null
+      iconPath = '/icons/openrouter.svg'
+      break
+    case 'gpt':
+    case 'openai':
+      iconPath = '/icons/gpt.svg'
+      break
+    case 'gemini':
+    case 'google':
+      iconPath = '/icons/gemini.svg'
+      break
+    case 'grok':
+    case 'x-ai':
+    case 'xai':
+      iconPath = '/icons/grok.svg'
+      break
     default:
-      return null
+      // Partial match fallback
+      if (lower.includes('grok')) {
+        iconPath = '/icons/grok.svg'
+      } else if (lower.includes('gemini')) {
+        iconPath = '/icons/gemini.svg'
+      } else if (lower.includes('gpt') || lower.includes('openai')) {
+        iconPath = '/icons/gpt.svg'
+      } else if (lower.includes('openrouter')) {
+        iconPath = '/icons/openrouter.svg'
+      } else if (lower.includes('deepseek')) {
+        iconPath = '/icons/deepseek.svg'
+      } else if (lower.includes('qwen')) {
+        iconPath = '/icons/qwen.svg'
+      } else {
+        return null
+      }
   }
 
   return (

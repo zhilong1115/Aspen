@@ -11,6 +11,7 @@ import {
   Radio,
   Trash2
 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -26,13 +27,28 @@ import type {
   Exchange,
   TraderInfo,
 } from '../types'
-import { getExchangeIcon } from './ExchangeIcons'
 import { getModelIcon } from './ModelIcons'
 import { TraderConfigModal } from './TraderConfigModal'
 import {
   TwoStageKeyModal,
   type TwoStageKeyModalResult,
 } from './TwoStageKeyModal'
+
+// Animation variants for staggered children
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+}
 
 // 获取友好的AI模型名称
 function getModelDisplayName(modelId: string): string {
@@ -729,38 +745,30 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6 animate-fade-in">
+    <motion.div
+      className="space-y-4 md:space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shadow-lg bg-white/50 backdrop-blur-sm border border-white/20">
-            <img src="/icons/icon-ai-trader.png" alt="AI Traders" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
-          </div>
-          <div>
-            <h1
-              className="text-xl md:text-2xl font-bold flex items-center gap-2 text-[var(--text-primary)]"
-            >
-              {t('aiTraders', language)}
-              <span
-                className="text-xs font-normal px-2 py-1 rounded"
-                style={{
-                  background: 'var(--surface-soft-yellow)',
-                  color: 'var(--google-yellow)',
-                }}
-              >
-                {traders?.length || 0} {t('active', language)}
-              </span>
-            </h1>
-            <p className="text-xs text-[var(--text-secondary)]">
-              {t('manageAITraders', language)}
-            </p>
-          </div>
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-white">
+            {t('aiTraders', language)}
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#00C805]/20 text-[#00C805]">
+              {traders?.length || 0} {t('active', language)}
+            </span>
+          </h1>
+          <p className="text-sm text-neutral-500 mt-1">
+            {t('manageAITraders', language)}
+          </p>
         </div>
 
         <div className="flex gap-2 md:gap-3 w-full md:w-auto overflow-hidden flex-wrap md:flex-nowrap">
           <button
             onClick={handleAddModel}
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-[var(--surface)] border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
+            className="px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800"
           >
             <Plus className="w-3 h-3 md:w-4 md:h-4" />
             {t('aiModels', language)}
@@ -768,7 +776,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
           <button
             onClick={handleAddExchange}
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-white border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
+            className="px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800"
           >
             <Plus className="w-3 h-3 md:w-4 md:h-4" />
             {t('exchanges', language)}
@@ -776,7 +784,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
           <button
             onClick={() => setShowSignalSourceModal(true)}
-            className="px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-white border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]"
+            className="px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 md:gap-2 whitespace-nowrap bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800"
           >
             <Radio className="w-3 h-3 md:w-4 md:h-4" />
             {t('signalSource', language)}
@@ -787,39 +795,40 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             disabled={
               configuredModels.length === 0 || configuredExchanges.length === 0
             }
-            className={`px-3 md:px-4 py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 whitespace-nowrap ${configuredModels.length > 0 && configuredExchanges.length > 0
-              ? 'bg-[var(--google-blue)] text-white shadow-md hover:shadow-lg'
-              : 'bg-[var(--surface-hover)] text-[var(--text-tertiary)]'
+            className={`px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 whitespace-nowrap ${configuredModels.length > 0 && configuredExchanges.length > 0
+              ? 'bg-[#00C805] text-black'
+              : 'bg-neutral-800 text-neutral-600'
               }`}
           >
             <Plus className="w-4 h-4" />
             {t('createTrader', language)}
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* 信号源配置警告 */}
       {traders &&
         traders.some((t) => t.use_coin_pool || t.use_oi_top) &&
         !userSignalSource.coinPoolUrl &&
         !userSignalSource.oiTopUrl && (
-          <div
-            className="rounded-lg px-4 py-3 flex items-start gap-3 animate-slide-in bg-[var(--surface-soft)] border border-[var(--google-red)]/30"
+          <motion.div
+            variants={itemVariants}
+            className="rounded-xl px-4 py-3 flex items-start gap-3 bg-[#FF5000]/10 border border-[#FF5000]/30"
           >
             <AlertTriangle
               size={20}
-              className="flex-shrink-0 mt-0.5 text-[var(--google-red)]"
+              className="flex-shrink-0 mt-0.5 text-[#FF5000]"
             />
             <div className="flex-1">
-              <div className="font-semibold mb-1 text-[var(--google-red)]">
+              <div className="font-semibold mb-1 text-[#FF5000]">
                 ⚠️ {t('signalSourceNotConfigured', language)}
               </div>
-              <div className="text-sm text-[var(--text-secondary)]">
+              <div className="text-sm text-neutral-400">
                 <p className="mb-2">
                   {t('signalSourceWarningMessage', language)}
                 </p>
                 <p>
-                  <strong>{t('solutions', language)}</strong>
+                  <strong className="text-neutral-300">{t('solutions', language)}</strong>
                 </p>
                 <ul className="list-disc list-inside space-y-1 ml-2 mt-1">
                   <li>点击"{t('signalSource', language)}"按钮配置API地址</li>
@@ -829,22 +838,20 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               </div>
               <button
                 onClick={() => setShowSignalSourceModal(true)}
-                className="mt-3 px-3 py-1.5 rounded text-sm font-semibold transition-all hover:scale-105 bg-[var(--google-yellow)] text-black"
+                className="mt-3 px-3 py-1.5 rounded-full text-sm font-bold transition-all hover:scale-105 bg-[#00C805] text-black"
               >
                 {t('configureSignalSourceNow', language)}
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
       {/* Configuration Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* AI Models */}
-        <div className="glass-card p-4 md:p-5">
-          <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-3 text-[var(--text-primary)]">
-            <div className="p-1.5 rounded-md bg-[var(--surface-soft-purple)] text-[var(--google-blue)]">
-              <Brain size={20} />
-            </div>
+        <div className="rounded-xl border border-neutral-900 p-4 md:p-5">
+          <h3 className="text-base md:text-lg font-bold mb-4 flex items-center gap-3 text-white">
+            <img src="/icons/ai-models.svg" alt="AI Models" className="w-8 h-8" />
             {t('aiModels', language)}
           </h3>
           <div className="space-y-2 md:space-y-3">
@@ -870,37 +877,23 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={model.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all border border-[var(--border-light)] ${inUse
-                    ? 'cursor-not-allowed bg-gray-50'
-                    : 'cursor-pointer hover:bg-[var(--surface-hover)] bg-[var(--surface)]'
+                  className={`flex items-center justify-between p-2 md:p-3 rounded-lg transition-colors border border-neutral-900 ${inUse
+                    ? 'cursor-not-allowed bg-neutral-900/30'
+                    : 'cursor-pointer hover:bg-neutral-800/50 bg-transparent'
                     }`}
                   onClick={() => handleModelClick(model.id)}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center flex-shrink-0">
-                      {getModelIcon(model.provider || model.id, {
-                        width: 28,
-                        height: 28,
-                      }) || (
-                          <div
-                            className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold"
-                            style={{
-                              background:
-                                model.id === 'deepseek' ? 'var(--google-blue)' : 'var(--surface-soft-purple)',
-                              color: model.id === 'deepseek' ? '#fff' : 'var(--google-blue)',
-                            }}
-                          >
-                            {getShortName(model.name)[0]}
-                          </div>
-                        )}
+                    <div
+                      className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold bg-neutral-800 text-[#00C805] flex-shrink-0"
+                    >
+                      {getShortName(model.name)[0]}
                     </div>
                     <div className="min-w-0">
-                      <div
-                        className="font-semibold text-sm md:text-base truncate text-[var(--text-primary)]"
-                      >
+                      <div className="font-semibold text-sm md:text-base truncate text-white">
                         {displayName}{modelIdSuffix}
                       </div>
-                      <div className="text-xs text-[var(--text-secondary)]">
+                      <div className="text-xs text-neutral-500">
                         {inUse
                           ? t('inUse', language)
                           : model.enabled
@@ -910,15 +903,13 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                     </div>
                   </div>
                   <div
-                    className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0 ${model.enabled ? 'bg-green-400' : 'bg-gray-500'}`}
+                    className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0 ${model.enabled ? 'bg-[#00C805]' : 'bg-neutral-700'}`}
                   />
                 </div>
               )
             })}
             {configuredModels.length === 0 && (
-              <div
-                className="text-center py-6 md:py-8 text-[var(--text-secondary)]"
-              >
+              <div className="text-center py-6 md:py-8 text-neutral-500">
                 <Brain className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 opacity-50" />
                 <div className="text-xs md:text-sm">
                   {t('noModelsConfigured', language)}
@@ -929,9 +920,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         </div>
 
         {/* Exchanges */}
-        <div className="glass-card p-4 md:p-5">
-          <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-3 text-[var(--text-primary)]">
-            <div className="p-1.5 rounded-md bg-[var(--surface-soft-green)] text-[var(--google-green)]">
+        <div className="rounded-xl border border-neutral-900 p-4 md:p-5">
+          <h3 className="text-base md:text-lg font-bold mb-4 flex items-center gap-3 text-white">
+            <div className="p-1.5 rounded-md bg-[#00C805]/10 text-[#00C805]">
               <Landmark size={20} />
             </div>
             {t('exchanges', language)}
@@ -942,23 +933,21 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={exchange.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded transition-all border border-[var(--border-light)] ${inUse
-                    ? 'cursor-not-allowed bg-gray-50'
-                    : 'cursor-pointer hover:bg-[var(--surface-hover)] bg-[var(--surface)]'
+                  className={`flex items-center justify-between p-2 md:p-3 rounded-lg transition-colors border border-neutral-900 ${inUse
+                    ? 'cursor-not-allowed bg-neutral-900/30'
+                    : 'cursor-pointer hover:bg-neutral-800/50 bg-transparent'
                     }`}
                   onClick={() => handleExchangeClick(exchange.id)}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center flex-shrink-0">
-                      {getExchangeIcon(exchange.id, { width: 28, height: 28 })}
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold bg-neutral-800 text-[#00C805] flex-shrink-0">
+                      {getShortName(exchange.name)[0]}
                     </div>
                     <div className="min-w-0">
-                      <div
-                        className="font-semibold text-sm md:text-base truncate text-[var(--text-primary)]"
-                      >
+                      <div className="font-semibold text-sm md:text-base truncate text-white">
                         {getShortName(exchange.name)}
                       </div>
-                      <div className="text-xs text-[var(--text-secondary)]">
+                      <div className="text-xs text-neutral-500">
                         {exchange.type.toUpperCase()} •{' '}
                         {inUse
                           ? t('inUse', language)
@@ -969,15 +958,13 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                     </div>
                   </div>
                   <div
-                    className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0 ${exchange.enabled ? 'bg-green-400' : 'bg-gray-500'}`}
+                    className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0 ${exchange.enabled ? 'bg-[#00C805]' : 'bg-neutral-700'}`}
                   />
                 </div>
               )
             })}
             {configuredExchanges.length === 0 && (
-              <div
-                className="text-center py-6 md:py-8 text-[var(--text-secondary)]"
-              >
+              <div className="text-center py-6 md:py-8 text-neutral-500">
                 <Landmark className="w-10 h-10 md:w-12 md:h-12 mx-auto mb-2 opacity-50" />
                 <div className="text-xs md:text-sm">
                   {t('noExchangesConfigured', language)}
@@ -986,15 +973,13 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Traders List */}
-      <div className="glass-card p-4 md:p-6">
+      <motion.div variants={itemVariants} className="rounded-xl border border-neutral-900 p-4 md:p-6">
         <div className="flex items-center justify-between mb-5 md:mb-6">
-          <h2 className="text-lg md:text-xl font-bold flex items-center gap-3 text-[var(--text-primary)]">
-            <div className="p-1.5 rounded-md bg-[var(--surface-soft-blue)] text-[var(--google-blue)]">
-              <Bot size={20} />
-            </div>
+          <h2 className="text-lg md:text-xl font-bold flex items-center gap-3 text-white">
+            <img src="/icons/my-traders.svg" alt="My Traders" className="w-8 h-8" />
             {t('currentTraders', language)}
           </h2>
         </div>
@@ -1004,34 +989,17 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             {traders.map((trader) => (
               <div
                 key={trader.trader_id}
-                className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 rounded transition-all hover:translate-y-[-1px] gap-3 md:gap-4 bg-[var(--surface)] border border-[var(--border-light)] hover:shadow-md"
+                className="flex flex-col md:flex-row md:items-center justify-between p-3 md:p-4 rounded-xl transition-colors gap-3 md:gap-4 bg-transparent border border-neutral-900 hover:bg-neutral-900/50"
               >
                 <div className="flex items-center gap-3 md:gap-4">
-                  <div
-                    className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0"
-                    style={{
-                      background: trader.ai_model.includes('deepseek')
-                        ? 'var(--google-blue)'
-                        : 'var(--surface-soft-purple)',
-                      color: trader.ai_model.includes('deepseek') ? '#fff' : 'var(--google-blue)',
-                    }}
-                  >
-                    <Bot className="w-5 h-5 md:w-6 md:h-6" />
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-neutral-800 text-[#00C805] text-sm md:text-base font-bold">
+                    {trader.trader_name?.[0] || 'T'}
                   </div>
                   <div className="min-w-0">
-                    <div
-                      className="font-bold text-base md:text-lg truncate text-[var(--text-primary)]"
-                    >
+                    <div className="font-bold text-base md:text-lg truncate text-white">
                       {trader.trader_name}
                     </div>
-                    <div
-                      className="text-xs md:text-sm truncate"
-                      style={{
-                        color: trader.ai_model.includes('deepseek')
-                          ? 'var(--google-blue)'
-                          : 'var(--text-secondary)',
-                      }}
-                    >
+                    <div className="text-xs md:text-sm truncate text-neutral-500">
                       {getModelDisplayName(
                         trader.ai_model.split('_').pop() || trader.ai_model
                       )}{' '}
@@ -1043,25 +1011,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                 <div className="flex items-center gap-3 md:gap-4 flex-wrap md:flex-nowrap">
                   {/* Status */}
                   <div className="text-center">
-                    {/* <div className="text-xs mb-1" style={{ color: '#848E9C' }}>
-                      {t('status', language)}
-                    </div> */}
                     <div
                       className={`px-2 md:px-3 py-1 rounded text-xs font-bold ${trader.is_running
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-[#00C805]/20 text-[#00C805]'
+                        : 'bg-neutral-800 text-neutral-500'
                         }`}
-                      style={
-                        trader.is_running
-                          ? {
-                            background: 'var(--surface-soft-green)',
-                            color: 'var(--google-green)',
-                          }
-                          : {
-                            background: 'var(--surface-soft)',
-                            color: 'var(--google-red)',
-                          }
-                      }
                     >
                       {trader.is_running
                         ? t('running', language)
@@ -1079,11 +1033,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                           navigate(`/dashboard?trader=${trader.trader_id}`)
                         }
                       }}
-                      className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 whitespace-nowrap"
-                      style={{
-                        background: 'var(--surface-soft-blue)',
-                        color: 'var(--google-blue)',
-                      }}
+                      className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 flex items-center gap-1 whitespace-nowrap bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800"
                     >
                       <BarChart3 className="w-3 h-3 md:w-4 md:h-4" />
                       {t('view', language)}
@@ -1092,13 +1042,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                     <button
                       onClick={() => handleEditTrader(trader.trader_id)}
                       disabled={trader.is_running}
-                      className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1"
-                      style={{
-                        background: trader.is_running
-                          ? 'var(--surface-hover)'
-                          : 'var(--surface-soft-yellow)',
-                        color: trader.is_running ? 'var(--text-secondary)' : 'var(--google-yellow)',
-                      }}
+                      className={`px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1 ${
+                        trader.is_running
+                          ? 'bg-neutral-900 text-neutral-600'
+                          : 'bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800'
+                      }`}
                     >
                       <Pencil className="w-3 h-3 md:w-4 md:h-4" />
                       {t('edit', language)}
@@ -1111,18 +1059,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                           trader.is_running || false
                         )
                       }
-                      className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 whitespace-nowrap"
-                      style={
+                      className={`px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 whitespace-nowrap ${
                         trader.is_running
-                          ? {
-                            background: 'var(--surface-soft)',
-                            color: 'var(--google-red)',
-                          }
-                          : {
-                            background: 'var(--surface-soft-green)',
-                            color: 'var(--google-green)',
-                          }
-                      }
+                          ? 'bg-[#FF5000]/20 text-[#FF5000]'
+                          : 'bg-[#00C805]/20 text-[#00C805]'
+                      }`}
                     >
                       {trader.is_running
                         ? t('stop', language)
@@ -1131,11 +1072,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
                     <button
                       onClick={() => handleDeleteTrader(trader.trader_id)}
-                      className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105"
-                      style={{
-                        background: 'var(--surface-soft)',
-                        color: 'var(--google-red)',
-                      }}
+                      className="px-2 md:px-3 py-1.5 md:py-2 rounded text-xs md:text-sm font-semibold transition-all hover:scale-105 bg-[#FF5000]/20 text-[#FF5000]"
                     >
                       <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
                     </button>
@@ -1145,11 +1082,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             ))}
           </div>
         ) : (
-          <div
-            className="text-center py-12 md:py-16 text-[var(--text-secondary)]"
-          >
+          <div className="text-center py-12 md:py-16 text-neutral-500">
             <Bot className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-3 md:mb-4 opacity-50" />
-            <div className="text-base md:text-lg font-semibold mb-2">
+            <div className="text-base md:text-lg font-semibold mb-2 text-neutral-400">
               {t('noTraders', language)}
             </div>
             <div className="text-xs md:text-sm mb-3 md:mb-4">
@@ -1157,7 +1092,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             </div>
             {(configuredModels.length === 0 ||
               configuredExchanges.length === 0) && (
-                <div className="text-xs md:text-sm text-yellow-500">
+                <div className="text-xs md:text-sm text-[#FF5000]">
                   {configuredModels.length === 0 &&
                     configuredExchanges.length === 0
                     ? t('configureModelsAndExchangesFirst', language)
@@ -1168,7 +1103,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               )}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Create Trader Modal */}
       {showCreateModal && (
@@ -1244,7 +1179,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           language={language}
         />
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -1269,12 +1204,7 @@ function Tooltip({
       </div>
       {show && (
         <div
-          className="absolute z-10 px-3 py-2 text-sm rounded-lg shadow-lg w-64 left-1/2 transform -translate-x-1/2 bottom-full mb-2"
-          style={{
-            background: 'var(--surface-hover)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border)',
-          }}
+          className="absolute z-10 px-3 py-2 text-sm rounded-lg w-64 left-1/2 transform -translate-x-1/2 bottom-full mb-2 bg-neutral-800 text-white border border-neutral-700"
         >
           {content}
           <div
@@ -1284,7 +1214,7 @@ function Tooltip({
               height: 0,
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderTop: '6px solid var(--surface-hover)',
+              borderTop: '6px solid #262626',
             }}
           />
         </div>
@@ -1316,16 +1246,18 @@ function SignalSourceModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div
-        className="bg-[var(--surface)] rounded-xl w-full max-w-lg relative my-8 shadow-2xl border border-[var(--border-light)]"
+        className="bg-[#1E2329] rounded-xl w-full max-w-lg relative my-8 border border-neutral-800"
         style={{
           maxHeight: 'calc(100vh - 4rem)',
         }}
       >
-        <h3 className="text-xl font-bold mb-4 text-[var(--text-primary)]">
-          {t('signalSourceConfig', language)}
-        </h3>
+        <div className="p-6 pb-0">
+          <h3 className="text-xl font-bold mb-4 text-white">
+            {t('signalSourceConfig', language)}
+          </h3>
+        </div>
 
         <form onSubmit={handleSubmit} className="px-6 pb-6">
           <div
@@ -1333,9 +1265,7 @@ function SignalSourceModal({
             style={{ maxHeight: 'calc(100vh - 16rem)' }}
           >
             <div>
-              <label
-                className="block text-sm font-semibold mb-2 text-[var(--text-primary)]"
-              >
+              <label className="block text-sm font-semibold mb-2 text-white">
                 COIN POOL URL
               </label>
               <input
@@ -1343,17 +1273,15 @@ function SignalSourceModal({
                 value={coinPool}
                 onChange={(e) => setCoinPool(e.target.value)}
                 placeholder="https://api.example.com/coinpool"
-                className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent outline-none transition-all"
+                className="w-full px-3 py-2 rounded border border-neutral-800 bg-[#0B0E11] text-white focus:border-[#00C805] outline-none transition-all"
               />
-              <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+              <div className="text-xs mt-1 text-neutral-500">
                 {t('coinPoolDescription', language)}
               </div>
             </div>
 
             <div>
-              <label
-                className="block text-sm font-semibold mb-2 text-[var(--text-primary)]"
-              >
+              <label className="block text-sm font-semibold mb-2 text-white">
                 OI TOP URL
               </label>
               <input
@@ -1361,26 +1289,18 @@ function SignalSourceModal({
                 value={oiTop}
                 onChange={(e) => setOiTop(e.target.value)}
                 placeholder="https://api.example.com/oitop"
-                className="w-full px-3 py-2 rounded border border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--brand-primary)] focus:border-transparent outline-none transition-all"
+                className="w-full px-3 py-2 rounded border border-neutral-800 bg-[#0B0E11] text-white focus:border-[#00C805] outline-none transition-all"
               />
-              <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+              <div className="text-xs mt-1 text-neutral-500">
                 {t('oiTopDescription', language)}
               </div>
             </div>
 
-            <div
-              className="p-4 rounded"
-              style={{
-                background: 'var(--surface-soft-yellow)',
-                border: '1px solid var(--google-yellow)/20',
-              }}
-            >
-              <div
-                className="text-sm font-semibold mb-2 text-[var(--google-yellow)]"
-              >
+            <div className="p-4 rounded bg-[#00C805]/10 border border-[#00C805]/20">
+              <div className="text-sm font-semibold mb-2 text-[#00C805]">
                 ℹ️ {t('information', language)}
               </div>
-              <div className="text-xs space-y-1 text-[var(--text-secondary)]">
+              <div className="text-xs space-y-1 text-neutral-400">
                 <div>{t('signalSourceInfo1', language)}</div>
                 <div>{t('signalSourceInfo2', language)}</div>
                 <div>{t('signalSourceInfo3', language)}</div>
@@ -1388,19 +1308,17 @@ function SignalSourceModal({
             </div>
           </div>
 
-          <div
-            className="flex gap-3 mt-6 pt-4 sticky bottom-0 bg-[var(--surface)] border-t border-[var(--border-light)]"
-          >
+          <div className="flex gap-3 mt-6 pt-4 sticky bottom-0 bg-[#1E2329] border-t border-neutral-800">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-[var(--surface-hover)] text-[var(--text-secondary)]"
+              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-neutral-800 text-neutral-400 hover:bg-neutral-700 transition-colors"
             >
               {t('cancel', language)}
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-[var(--google-blue)] text-white hover:opacity-90 transition-opacity shadow-md"
+              className="flex-1 px-4 py-2 rounded text-sm font-bold bg-[#00C805] text-black hover:opacity-90 transition-opacity"
             >
               {t('save', language)}
             </button>
@@ -1590,19 +1508,17 @@ function ModelConfigModal({
   const availableProviders = supportedModels || []
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div
-        className="bg-gray-800 rounded-lg w-full max-w-lg relative my-8"
+        className="bg-[#1E2329] rounded-xl w-full max-w-lg relative my-8 border border-neutral-800"
         style={{
-          background: '#1E2329',
           maxHeight: 'calc(100vh - 4rem)',
         }}
       >
         <div
-          className="flex items-center justify-between p-6 pb-4 sticky top-0 z-10"
-          style={{ background: '#1E2329' }}
+          className="flex items-center justify-between p-6 pb-4 sticky top-0 z-10 bg-[#1E2329] rounded-t-xl"
         >
-          <h3 className="text-xl font-bold" style={{ color: '#EAECEF' }}>
+          <h3 className="text-xl font-bold text-white">
             {editingModelId
               ? t('editAIModel', language)
               : t('addAIModel', language)}
@@ -1611,8 +1527,7 @@ function ModelConfigModal({
             <button
               type="button"
               onClick={() => onDelete(editingModelId)}
-              className="p-2 rounded hover:bg-red-100 transition-colors"
-              style={{ background: 'rgba(246, 70, 93, 0.1)', color: '#FF5000' }}
+              className="p-2 rounded bg-[#FF5000]/10 text-[#FF5000] hover:bg-[#FF5000]/20 transition-colors"
               title={t('delete', language)}
             >
               <Trash2 className="w-4 h-4" />
@@ -1627,21 +1542,13 @@ function ModelConfigModal({
           >
             {!editingModelId && (
               <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: '#EAECEF' }}
-                >
+                <label className="block text-sm font-semibold mb-2 text-white">
                   {t('selectModel', language)}
                 </label>
                 <select
                   value={selectedProvider}
                   onChange={(e) => setSelectedProvider(e.target.value)}
-                  className="w-full px-3 py-2 rounded"
-                  style={{
-                    background: '#0B0E11',
-                    border: '1px solid #2B3139',
-                    color: '#EAECEF',
-                  }}
+                  className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                   required
                 >
                   <option value="">{t('pleaseSelectModel', language)}</option>
@@ -1657,42 +1564,30 @@ function ModelConfigModal({
                     )
                   })}
                 </select>
-                <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                <div className="text-xs mt-1 text-neutral-500">
                   可以为同一个 provider 创建多个实例（使用不同的 API Key 或模型）
                 </div>
               </div>
             )}
 
             {selectedModel && (
-              <div
-                className="p-4 rounded"
-                style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
-              >
+              <div className="p-4 rounded bg-[#0B0E11] border border-neutral-800">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-8 h-8 flex items-center justify-center">
                     {getModelIcon(selectedModel.provider || selectedModel.id, {
                       width: 32,
                       height: 32,
                     }) || (
-                        <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                          style={{
-                            background:
-                              selectedModel.provider === 'deepseek'
-                                ? '#60a5fa'
-                                : '#c084fc',
-                            color: '#fff',
-                          }}
-                        >
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-neutral-800 text-white">
                           {(selectedModel.name || selectedModel.provider || '?')[0]}
                         </div>
                       )}
                   </div>
                   <div>
-                    <div className="font-semibold" style={{ color: '#EAECEF' }}>
+                    <div className="font-semibold text-white">
                       {getShortName(selectedModel.name || selectedModel.provider || '')}
                     </div>
-                    <div className="text-xs" style={{ color: '#848E9C' }}>
+                    <div className="text-xs text-neutral-500">
                       {selectedModel.provider || selectedModel.id}
                     </div>
                   </div>
@@ -1703,10 +1598,7 @@ function ModelConfigModal({
             {selectedProvider && (
               <>
                 <div>
-                  <label
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: '#EAECEF' }}
-                  >
+                  <label className="block text-sm font-semibold mb-2 text-white">
                     API Key
                   </label>
                   <input
@@ -1714,22 +1606,14 @@ function ModelConfigModal({
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder={t('enterAPIKey', language)}
-                    className="w-full px-3 py-2 rounded"
-                    style={{
-                      background: '#0B0E11',
-                      border: '1px solid #2B3139',
-                      color: '#EAECEF',
-                    }}
+                    className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                     required
                   />
                 </div>
 
                 {selectedProvider !== 'openrouter' && (
                   <div>
-                    <label
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: '#EAECEF' }}
-                    >
+                    <label className="block text-sm font-semibold mb-2 text-white">
                       {t('customBaseURL', language)}
                     </label>
                     <input
@@ -1737,14 +1621,9 @@ function ModelConfigModal({
                       value={baseUrl}
                       onChange={(e) => setBaseUrl(e.target.value)}
                       placeholder={t('customBaseURLPlaceholder', language)}
-                      className="w-full px-3 py-2 rounded"
-                      style={{
-                        background: '#0B0E11',
-                        border: '1px solid #2B3139',
-                        color: '#EAECEF',
-                      }}
+                      className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                     />
-                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                    <div className="text-xs mt-1 text-neutral-500">
                       {t('leaveBlankForDefault', language)}
                     </div>
                   </div>
@@ -1752,10 +1631,7 @@ function ModelConfigModal({
 
                 {selectedProvider === 'openrouter' && !editingModelId ? (
                   <div>
-                    <label
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: '#EAECEF' }}
-                    >
+                    <label className="block text-sm font-semibold mb-2 text-white">
                       模型名称（每行一个或用逗号分隔）
                     </label>
                     <textarea
@@ -1769,15 +1645,10 @@ google/gemini-pro
 或者用逗号分隔：
 openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
                       rows={6}
-                      className="w-full px-3 py-2 rounded font-mono text-sm"
-                      style={{
-                        background: '#0B0E11',
-                        border: '1px solid #2B3139',
-                        color: '#EAECEF',
-                        resize: 'vertical',
-                      }}
+                      className="w-full px-3 py-2 rounded font-mono text-sm bg-[#0B0E11] border border-neutral-800 text-white"
+                      style={{ resize: 'vertical' }}
                     />
-                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                    <div className="text-xs mt-1 text-neutral-500">
                       {(() => {
                         const modelCount = modelNamesInput
                           .split(/[\n,，]/)
@@ -1788,16 +1659,13 @@ openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
                           : '支持换行或逗号分隔，系统将为每个模型创建一个实例'
                       })()}
                     </div>
-                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                    <div className="text-xs mt-1 text-neutral-500">
                       常用模型示例：openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro, meta-llama/llama-3.1-405b-instruct
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <label
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: '#EAECEF' }}
-                    >
+                    <label className="block text-sm font-semibold mb-2 text-white">
                       Model Name (可选)
                     </label>
                     <input
@@ -1809,14 +1677,9 @@ openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
                           ? '例如: openai/gpt-4o, anthropic/claude-3.5-sonnet'
                           : '例如: deepseek-chat, qwen3-max, gpt-5'
                       }
-                      className="w-full px-3 py-2 rounded"
-                      style={{
-                        background: '#0B0E11',
-                        border: '1px solid #2B3139',
-                        color: '#EAECEF',
-                      }}
+                      className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                     />
-                    <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                    <div className="text-xs mt-1 text-neutral-500">
                       {selectedProvider === 'openrouter'
                         ? '留空使用默认模型 openai/gpt-4o'
                         : '留空使用默认模型名称'}
@@ -1824,23 +1687,11 @@ openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
                   </div>
                 )}
 
-                <div
-                  className="p-4 rounded"
-                  style={{
-                    background: 'rgba(240, 185, 11, 0.1)',
-                    border: '1px solid rgba(240, 185, 11, 0.2)',
-                  }}
-                >
-                  <div
-                    className="text-sm font-semibold mb-2"
-                    style={{ color: '#00C805' }}
-                  >
+                <div className="p-4 rounded bg-[#00C805]/10 border border-[#00C805]/20">
+                  <div className="text-sm font-semibold mb-2 text-[#00C805]">
                     ℹ️ {t('information', language)}
                   </div>
-                  <div
-                    className="text-xs space-y-1"
-                    style={{ color: '#848E9C' }}
-                  >
+                  <div className="text-xs space-y-1 text-neutral-500">
                     <div>{t('modelConfigInfo1', language)}</div>
                     <div>{t('modelConfigInfo2', language)}</div>
                     <div>{t('modelConfigInfo3', language)}</div>
@@ -1850,15 +1701,11 @@ openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
             )}
           </div>
 
-          <div
-            className="flex gap-3 mt-6 pt-4 sticky bottom-0"
-            style={{ background: '#1E2329' }}
-          >
+          <div className="flex gap-3 mt-6 pt-4 sticky bottom-0 bg-[#1E2329]">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: '#2B3139', color: '#848E9C' }}
+              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-neutral-800 text-neutral-400 hover:bg-neutral-700 transition-colors"
             >
               {t('cancel', language)}
             </button>
@@ -1871,8 +1718,7 @@ openai/gpt-4o, anthropic/claude-3.5-sonnet, google/gemini-pro`}
                   !editingModelId &&
                   !modelNamesInput.trim())
               }
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
-              style={{ background: '#00C805', color: '#000' }}
+              className="flex-1 px-4 py-2 rounded text-sm font-bold disabled:opacity-50 bg-[#00C805] text-black"
             >
               {t('saveConfig', language)}
             </button>
@@ -2127,19 +1973,15 @@ function ExchangeConfigModal({
   const availableExchanges = allExchanges || []
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div
-        className="bg-gray-800 rounded-lg w-full max-w-lg relative my-8"
+        className="bg-[#1E2329] rounded-xl w-full max-w-lg relative my-8 border border-neutral-800"
         style={{
-          background: '#1E2329',
           maxHeight: 'calc(100vh - 4rem)',
         }}
       >
-        <div
-          className="flex items-center justify-between p-6 pb-4 sticky top-0 z-10"
-          style={{ background: '#1E2329' }}
-        >
-          <h3 className="text-xl font-bold" style={{ color: '#EAECEF' }}>
+        <div className="flex items-center justify-between p-6 pb-4 sticky top-0 z-10 bg-[#1E2329] rounded-t-xl">
+          <h3 className="text-xl font-bold text-white">
             {editingExchangeId
               ? t('editExchange', language)
               : t('addExchange', language)}
@@ -2149,11 +1991,7 @@ function ExchangeConfigModal({
               <button
                 type="button"
                 onClick={() => setShowGuide(true)}
-                className="px-3 py-2 rounded text-sm font-semibold transition-all hover:scale-105 flex items-center gap-2"
-                style={{
-                  background: 'rgba(240, 185, 11, 0.1)',
-                  color: '#00C805',
-                }}
+                className="px-3 py-2 rounded text-sm font-semibold transition-all hover:scale-105 flex items-center gap-2 bg-[#00C805]/10 text-[#00C805]"
               >
                 <BookOpen className="w-4 h-4" />
                 {t('viewGuide', language)}
@@ -2163,11 +2001,7 @@ function ExchangeConfigModal({
               <button
                 type="button"
                 onClick={() => onDelete(editingExchangeId)}
-                className="p-2 rounded hover:bg-red-100 transition-colors"
-                style={{
-                  background: 'rgba(246, 70, 93, 0.1)',
-                  color: '#FF5000',
-                }}
+                className="p-2 rounded bg-[#FF5000]/10 text-[#FF5000] hover:bg-[#FF5000]/20 transition-colors"
                 title={t('delete', language)}
               >
                 <Trash2 className="w-4 h-4" />
@@ -2183,21 +2017,13 @@ function ExchangeConfigModal({
           >
             {!editingExchangeId && (
               <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: '#EAECEF' }}
-                >
+                <label className="block text-sm font-semibold mb-2 text-white">
                   {t('selectExchange', language)}
                 </label>
                 <select
                   value={selectedExchangeId}
                   onChange={(e) => setSelectedExchangeId(e.target.value)}
-                  className="w-full px-3 py-2 rounded"
-                  style={{
-                    background: '#0B0E11',
-                    border: '1px solid #2B3139',
-                    color: '#EAECEF',
-                  }}
+                  className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                   required
                 >
                   <option value="">
@@ -2214,22 +2040,16 @@ function ExchangeConfigModal({
             )}
 
             {selectedExchange && (
-              <div
-                className="p-4 rounded"
-                style={{ background: '#0B0E11', border: '1px solid #2B3139' }}
-              >
+              <div className="p-4 rounded bg-[#0B0E11] border border-neutral-800">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 flex items-center justify-center">
-                    {getExchangeIcon(selectedExchange.id, {
-                      width: 32,
-                      height: 32,
-                    })}
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-neutral-800 text-[#00C805]">
+                    {getShortName(selectedExchange.name)[0]}
                   </div>
                   <div>
-                    <div className="font-semibold" style={{ color: '#EAECEF' }}>
+                    <div className="font-semibold text-white">
                       {getShortName(selectedExchange.name)}
                     </div>
-                    <div className="text-xs" style={{ color: '#848E9C' }}>
+                    <div className="text-xs text-neutral-500">
                       {selectedExchange.type.toUpperCase()} •{' '}
                       {selectedExchange.id}
                     </div>
@@ -2249,26 +2069,21 @@ function ExchangeConfigModal({
                       {/* 币安用户配置提示 (D1 方案) */}
                       {selectedExchange.id === 'binance' && (
                         <div
-                          className="mb-4 p-3 rounded cursor-pointer transition-colors"
-                          style={{
-                            background: '#1a3a52',
-                            border: '1px solid #2b5278',
-                          }}
+                          className="mb-4 p-3 rounded cursor-pointer transition-colors bg-blue-900/30 border border-blue-800/50"
                           onClick={() => setShowBinanceGuide(!showBinanceGuide)}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span style={{ color: '#58a6ff' }}>ℹ️</span>
+                              <span className="text-blue-400">ℹ️</span>
                               <span
-                                className="text-sm font-medium"
-                                style={{ color: '#EAECEF' }}
+                                className="text-sm font-medium text-white"
                               >
                                 <strong>币安用户必读：</strong>
                                 使用「现货与合约交易」API，不要用「统一账户
                                 API」
                               </span>
                             </div>
-                            <span style={{ color: '#8b949e' }}>
+                            <span className="text-neutral-500">
                               {showBinanceGuide ? '▲' : '▼'}
                             </span>
                           </div>
@@ -2276,22 +2091,16 @@ function ExchangeConfigModal({
                           {/* 展开的详细说明 */}
                           {showBinanceGuide && (
                             <div
-                              className="mt-3 pt-3"
-                              style={{
-                                borderTop: '1px solid #2b5278',
-                                fontSize: '0.875rem',
-                                color: '#c9d1d9',
-                              }}
+                              className="mt-3 pt-3 border-t border-blue-800/50 text-sm text-neutral-300"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <p className="mb-2" style={{ color: '#8b949e' }}>
+                              <p className="mb-2 text-neutral-500">
                                 <strong>原因：</strong>统一账户 API
                                 权限结构不同，会导致订单提交失败
                               </p>
 
                               <p
-                                className="font-semibold mb-1"
-                                style={{ color: '#EAECEF' }}
+                                className="font-semibold mb-1 text-white"
                               >
                                 正确配置步骤：
                               </p>
@@ -2309,7 +2118,7 @@ function ExchangeConfigModal({
                                 </li>
                                 <li>
                                   勾选「<strong>现货与合约交易</strong>」（
-                                  <span style={{ color: '#f85149' }}>
+                                  <span className="text-[#FF5000]">
                                     不选统一账户
                                   </span>
                                   ）
@@ -2320,13 +2129,7 @@ function ExchangeConfigModal({
                                 </li>
                               </ol>
 
-                              <p
-                                className="mb-2 p-2 rounded"
-                                style={{
-                                  background: '#3d2a00',
-                                  border: '1px solid #9e6a03',
-                                }}
-                              >
+                              <p className="mb-2 p-2 rounded bg-[#FF5000]/10 border border-[#FF5000]/30">
                                 💡 <strong>多资产模式用户注意：</strong>
                                 如果您开启了多资产模式，将强制使用全仓模式。建议关闭多资产模式以支持逐仓交易。
                               </p>
@@ -2335,8 +2138,7 @@ function ExchangeConfigModal({
                                 href="https://www.binance.com/zh-CN/support/faq/how-to-create-api-keys-on-binance-360002502072"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-block text-sm hover:underline"
-                                style={{ color: '#58a6ff' }}
+                                className="inline-block text-sm hover:underline text-blue-400"
                               >
                                 📖 查看币安官方教程 ↗
                               </a>
@@ -2347,8 +2149,7 @@ function ExchangeConfigModal({
 
                       <div>
                         <label
-                          className="block text-sm font-semibold mb-2"
-                          style={{ color: '#EAECEF' }}
+                          className="block text-sm font-semibold mb-2 text-white"
                         >
                           {t('apiKey', language)}
                         </label>
@@ -2357,20 +2158,14 @@ function ExchangeConfigModal({
                           value={apiKey}
                           onChange={(e) => setApiKey(e.target.value)}
                           placeholder={t('enterAPIKey', language)}
-                          className="w-full px-3 py-2 rounded"
-                          style={{
-                            background: '#0B0E11',
-                            border: '1px solid #2B3139',
-                            color: '#EAECEF',
-                          }}
+                          className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                           required
                         />
                       </div>
 
                       <div>
                         <label
-                          className="block text-sm font-semibold mb-2"
-                          style={{ color: '#EAECEF' }}
+                          className="block text-sm font-semibold mb-2 text-white"
                         >
                           {t('secretKey', language)}
                         </label>
@@ -2379,12 +2174,7 @@ function ExchangeConfigModal({
                           value={secretKey}
                           onChange={(e) => setSecretKey(e.target.value)}
                           placeholder={t('enterSecretKey', language)}
-                          className="w-full px-3 py-2 rounded"
-                          style={{
-                            background: '#0B0E11',
-                            border: '1px solid #2B3139',
-                            color: '#EAECEF',
-                          }}
+                          className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                           required
                         />
                       </div>
@@ -2392,8 +2182,7 @@ function ExchangeConfigModal({
                       {selectedExchange.id === 'okx' && (
                         <div>
                           <label
-                            className="block text-sm font-semibold mb-2"
-                            style={{ color: '#EAECEF' }}
+                            className="block text-sm font-semibold mb-2 text-white"
                           >
                             {t('passphrase', language)}
                           </label>
@@ -2402,12 +2191,7 @@ function ExchangeConfigModal({
                             value={passphrase}
                             onChange={(e) => setPassphrase(e.target.value)}
                             placeholder={t('enterPassphrase', language)}
-                            className="w-full px-3 py-2 rounded"
-                            style={{
-                              background: '#0B0E11',
-                              border: '1px solid #2B3139',
-                              color: '#EAECEF',
-                            }}
+                            className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                             required
                           />
                         </div>
@@ -2416,51 +2200,38 @@ function ExchangeConfigModal({
                       {/* Binance 白名单IP提示 */}
                       {selectedExchange.id === 'binance' && (
                         <div
-                          className="p-4 rounded"
-                          style={{
-                            background: 'rgba(240, 185, 11, 0.1)',
-                            border: '1px solid rgba(240, 185, 11, 0.2)',
-                          }}
+                          className="p-4 rounded bg-[#00C805]/10 border border-[#00C805]/20"
                         >
                           <div
-                            className="text-sm font-semibold mb-2"
-                            style={{ color: '#00C805' }}
+                            className="text-sm font-semibold mb-2 text-[#00C805]"
                           >
                             {t('whitelistIP', language)}
                           </div>
                           <div
-                            className="text-xs mb-3"
-                            style={{ color: '#848E9C' }}
+                            className="text-xs mb-3 text-neutral-500"
                           >
                             {t('whitelistIPDesc', language)}
                           </div>
 
                           {loadingIP ? (
                             <div
-                              className="text-xs"
-                              style={{ color: '#848E9C' }}
+                              className="text-xs text-neutral-500"
                             >
                               {t('loadingServerIP', language)}
                             </div>
                           ) : serverIP && serverIP.public_ip ? (
                             <div
-                              className="flex items-center gap-2 p-2 rounded"
-                              style={{ background: '#0B0E11' }}
+                              className="flex items-center gap-2 p-2 rounded bg-[#0B0E11]"
                             >
                               <code
-                                className="flex-1 text-sm font-mono"
-                                style={{ color: '#00C805' }}
+                                className="flex-1 text-sm font-mono text-[#00C805]"
                               >
                                 {serverIP.public_ip}
                               </code>
                               <button
                                 type="button"
                                 onClick={() => handleCopyIP(serverIP.public_ip)}
-                                className="px-3 py-1 rounded text-xs font-semibold transition-all hover:scale-105"
-                                style={{
-                                  background: 'rgba(240, 185, 11, 0.2)',
-                                  color: '#00C805',
-                                }}
+                                className="px-3 py-1 rounded text-xs font-semibold transition-all hover:scale-105 bg-[#00C805]/20 text-[#00C805]"
                               >
                                 {copiedIP
                                   ? t('ipCopied', language)
@@ -2478,8 +2249,7 @@ function ExchangeConfigModal({
                   <>
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 text-white"
                       >
                         {t('privateKey', language)}
                       </label>
@@ -2488,17 +2258,11 @@ function ExchangeConfigModal({
                         value={apiKey}
                         onChange={(e) => setApiKey(e.target.value)}
                         placeholder={t('enterPrivateKey', language)}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                       <div
-                        className="text-xs mt-1"
-                        style={{ color: '#848E9C' }}
+                        className="text-xs mt-1 text-neutral-500"
                       >
                         {t('hyperliquidPrivateKeyDesc', language)}
                       </div>
@@ -2511,14 +2275,12 @@ function ExchangeConfigModal({
                   <>
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2 flex items-center gap-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 flex items-center gap-2 text-white"
                       >
                         {t('user', language)}
                         <Tooltip content={t('asterUserDesc', language)}>
                           <HelpCircle
-                            className="w-4 h-4 cursor-help"
-                            style={{ color: '#00C805' }}
+                            className="w-4 h-4 cursor-help text-[#00C805]"
                           />
                         </Tooltip>
                       </label>
@@ -2527,26 +2289,19 @@ function ExchangeConfigModal({
                         value={asterUser}
                         onChange={(e) => setAsterUser(e.target.value)}
                         placeholder={t('enterUser', language)}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                     </div>
 
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2 flex items-center gap-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 flex items-center gap-2 text-white"
                       >
                         {t('signer', language)}
                         <Tooltip content={t('asterSignerDesc', language)}>
                           <HelpCircle
-                            className="w-4 h-4 cursor-help"
-                            style={{ color: '#00C805' }}
+                            className="w-4 h-4 cursor-help text-[#00C805]"
                           />
                         </Tooltip>
                       </label>
@@ -2555,26 +2310,19 @@ function ExchangeConfigModal({
                         value={asterSigner}
                         onChange={(e) => setAsterSigner(e.target.value)}
                         placeholder={t('enterSigner', language)}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                     </div>
 
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2 flex items-center gap-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 flex items-center gap-2 text-white"
                       >
                         {t('privateKey', language)}
                         <Tooltip content={t('asterPrivateKeyDesc', language)}>
                           <HelpCircle
-                            className="w-4 h-4 cursor-help"
-                            style={{ color: '#00C805' }}
+                            className="w-4 h-4 cursor-help text-[#00C805]"
                           />
                         </Tooltip>
                       </label>
@@ -2583,12 +2331,7 @@ function ExchangeConfigModal({
                         value={asterPrivateKey}
                         onChange={(e) => setAsterPrivateKey(e.target.value)}
                         placeholder={t('enterPrivateKey', language)}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                     </div>
@@ -2600,8 +2343,7 @@ function ExchangeConfigModal({
                   <>
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 text-white"
                       >
                         初始 USDC 金额
                       </label>
@@ -2616,38 +2358,26 @@ function ExchangeConfigModal({
                           )
                         }
                         placeholder="10000"
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                       <div
-                        className="text-xs mt-1"
-                        style={{ color: '#848E9C' }}
+                        className="text-xs mt-1 text-neutral-500"
                       >
                         模拟仓的初始USDC余额，用于模拟交易
                       </div>
                     </div>
 
                     <div
-                      className="p-4 rounded"
-                      style={{
-                        background: 'rgba(59, 130, 246, 0.1)',
-                        border: '1px solid rgba(59, 130, 246, 0.2)',
-                      }}
+                      className="p-4 rounded bg-blue-500/10 border border-blue-500/20"
                     >
                       <div
-                        className="text-sm font-semibold mb-2"
-                        style={{ color: '#3B82F6' }}
+                        className="text-sm font-semibold mb-2 text-blue-500"
                       >
                         ℹ️ 关于模拟仓
                       </div>
                       <div
-                        className="text-xs space-y-1"
-                        style={{ color: '#848E9C' }}
+                        className="text-xs space-y-1 text-neutral-500"
                       >
                         <div>
                           • 模拟仓使用真实市场价格进行模拟交易
@@ -2665,26 +2395,20 @@ function ExchangeConfigModal({
                   <>
                     {/* 安全提示 banner */}
                     <div
-                      className="p-3 rounded mb-4"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.1)',
-                        border: '1px solid rgba(240, 185, 11, 0.3)',
-                      }}
+                      className="p-3 rounded mb-4 bg-[#00C805]/10 border border-[#00C805]/30"
                     >
                       <div className="flex items-start gap-2">
-                        <span style={{ color: '#00C805', fontSize: '16px' }}>
+                        <span className="text-[#00C805] text-base">
                           🔐
                         </span>
                         <div className="flex-1">
                           <div
-                            className="text-sm font-semibold mb-1"
-                            style={{ color: '#00C805' }}
+                            className="text-sm font-semibold mb-1 text-[#00C805]"
                           >
                             {t('hyperliquidAgentWalletTitle', language)}
                           </div>
                           <div
-                            className="text-xs"
-                            style={{ color: '#848E9C', lineHeight: '1.5' }}
+                            className="text-xs text-neutral-500" style={{ lineHeight: '1.5' }}
                           >
                             {t('hyperliquidAgentWalletDesc', language)}
                           </div>
@@ -2695,8 +2419,7 @@ function ExchangeConfigModal({
                     {/* Agent Private Key 字段 */}
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 text-white"
                       >
                         {t('hyperliquidAgentPrivateKey', language)}
                       </label>
@@ -2710,22 +2433,12 @@ function ExchangeConfigModal({
                               'enterHyperliquidAgentPrivateKey',
                               language
                             )}
-                            className="w-full px-3 py-2 rounded"
-                            style={{
-                              background: '#0B0E11',
-                              border: '1px solid #2B3139',
-                              color: '#EAECEF',
-                            }}
+                            className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                           />
                           <button
                             type="button"
                             onClick={() => setSecureInputTarget('hyperliquid')}
-                            className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105"
-                            style={{
-                              background: '#00C805',
-                              color: '#000',
-                              whiteSpace: 'nowrap',
-                            }}
+                            className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105 bg-[#00C805] text-black whitespace-nowrap"
                           >
                             {apiKey
                               ? t('secureInputReenter', language)
@@ -2735,26 +2448,20 @@ function ExchangeConfigModal({
                             <button
                               type="button"
                               onClick={() => setApiKey('')}
-                              className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105"
-                              style={{
-                                background: '#1B1F2B',
-                                color: '#848E9C',
-                                whiteSpace: 'nowrap',
-                              }}
+                              className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105 bg-neutral-900 text-neutral-500 whitespace-nowrap"
                             >
                               {t('secureInputClear', language)}
                             </button>
                           )}
                         </div>
                         {apiKey && (
-                          <div className="text-xs" style={{ color: '#848E9C' }}>
+                          <div className="text-xs text-neutral-500">
                             {t('secureInputHint', language)}
                           </div>
                         )}
                       </div>
                       <div
-                        className="text-xs mt-1"
-                        style={{ color: '#848E9C' }}
+                        className="text-xs mt-1 text-neutral-500"
                       >
                         {t('hyperliquidAgentPrivateKeyDesc', language)}
                       </div>
@@ -2763,8 +2470,7 @@ function ExchangeConfigModal({
                     {/* Main Wallet Address 字段 */}
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 text-white"
                       >
                         {t('hyperliquidMainWalletAddress', language)}
                       </label>
@@ -2778,17 +2484,11 @@ function ExchangeConfigModal({
                           'enterHyperliquidMainWalletAddress',
                           language
                         )}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                       <div
-                        className="text-xs mt-1"
-                        style={{ color: '#848E9C' }}
+                        className="text-xs mt-1 text-neutral-500"
                       >
                         {t('hyperliquidMainWalletAddressDesc', language)}
                       </div>
@@ -2801,14 +2501,12 @@ function ExchangeConfigModal({
                   <>
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2 flex items-center gap-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 flex items-center gap-2 text-white"
                       >
                         {t('user', language)}
                         <Tooltip content={t('asterUserDesc', language)}>
                           <HelpCircle
-                            className="w-4 h-4 cursor-help"
-                            style={{ color: '#00C805' }}
+                            className="w-4 h-4 cursor-help text-[#00C805]"
                           />
                         </Tooltip>
                       </label>
@@ -2817,26 +2515,19 @@ function ExchangeConfigModal({
                         value={asterUser}
                         onChange={(e) => setAsterUser(e.target.value)}
                         placeholder={t('enterUser', language)}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                     </div>
 
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2 flex items-center gap-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 flex items-center gap-2 text-white"
                       >
                         {t('signer', language)}
                         <Tooltip content={t('asterSignerDesc', language)}>
                           <HelpCircle
-                            className="w-4 h-4 cursor-help"
-                            style={{ color: '#00C805' }}
+                            className="w-4 h-4 cursor-help text-[#00C805]"
                           />
                         </Tooltip>
                       </label>
@@ -2845,26 +2536,19 @@ function ExchangeConfigModal({
                         value={asterSigner}
                         onChange={(e) => setAsterSigner(e.target.value)}
                         placeholder={t('enterSigner', language)}
-                        className="w-full px-3 py-2 rounded"
-                        style={{
-                          background: '#0B0E11',
-                          border: '1px solid #2B3139',
-                          color: '#EAECEF',
-                        }}
+                        className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                         required
                       />
                     </div>
 
                     <div>
                       <label
-                        className="block text-sm font-semibold mb-2 flex items-center gap-2"
-                        style={{ color: '#EAECEF' }}
+                        className="block text-sm font-semibold mb-2 flex items-center gap-2 text-white"
                       >
                         {t('privateKey', language)}
                         <Tooltip content={t('asterPrivateKeyDesc', language)}>
                           <HelpCircle
-                            className="w-4 h-4 cursor-help"
-                            style={{ color: '#00C805' }}
+                            className="w-4 h-4 cursor-help text-[#00C805]"
                           />
                         </Tooltip>
                       </label>
@@ -2875,22 +2559,12 @@ function ExchangeConfigModal({
                             value={maskSecret(asterPrivateKey)}
                             readOnly
                             placeholder={t('enterPrivateKey', language)}
-                            className="w-full px-3 py-2 rounded"
-                            style={{
-                              background: '#0B0E11',
-                              border: '1px solid #2B3139',
-                              color: '#EAECEF',
-                            }}
+                            className="w-full px-3 py-2 rounded bg-[#0B0E11] border border-neutral-800 text-white"
                           />
                           <button
                             type="button"
                             onClick={() => setSecureInputTarget('aster')}
-                            className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105"
-                            style={{
-                              background: '#00C805',
-                              color: '#000',
-                              whiteSpace: 'nowrap',
-                            }}
+                            className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105 bg-[#00C805] text-black whitespace-nowrap"
                           >
                             {asterPrivateKey
                               ? t('secureInputReenter', language)
@@ -2900,19 +2574,14 @@ function ExchangeConfigModal({
                             <button
                               type="button"
                               onClick={() => setAsterPrivateKey('')}
-                              className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105"
-                              style={{
-                                background: '#1B1F2B',
-                                color: '#848E9C',
-                                whiteSpace: 'nowrap',
-                              }}
+                              className="px-3 py-2 rounded text-xs font-semibold transition-all hover:scale-105 bg-neutral-900 text-neutral-500 whitespace-nowrap"
                             >
                               {t('secureInputClear', language)}
                             </button>
                           )}
                         </div>
                         {asterPrivateKey && (
-                          <div className="text-xs" style={{ color: '#848E9C' }}>
+                          <div className="text-xs text-neutral-500">
                             {t('secureInputHint', language)}
                           </div>
                         )}
@@ -2920,15 +2589,10 @@ function ExchangeConfigModal({
                     </div>
 
                     <div
-                      className="p-4 rounded"
-                      style={{
-                        background: 'rgba(240, 185, 11, 0.1)',
-                        border: '1px solid rgba(240, 185, 11, 0.2)',
-                      }}
+                      className="p-4 rounded bg-[#00C805]/10 border border-[#00C805]/20"
                     >
                       <div
-                        className="text-sm font-semibold mb-2"
-                        style={{ color: '#00C805' }}
+                        className="text-sm font-semibold mb-2 text-[#00C805]"
                       >
                         <span className="inline-flex items-center gap-1">
                           <AlertTriangle className="w-4 h-4" />{' '}
@@ -2936,8 +2600,7 @@ function ExchangeConfigModal({
                         </span>
                       </div>
                       <div
-                        className="text-xs space-y-1"
-                        style={{ color: '#848E9C' }}
+                        className="text-xs space-y-1 text-neutral-500"
                       >
                         {selectedExchange.id === 'aster' && (
                           <div>{t('asterUsdtWarning', language)}</div>
@@ -2952,7 +2615,7 @@ function ExchangeConfigModal({
 
                 {/* Testnet 开关 - 所有交易所通用（Paper Trading 除外） */}
                 {selectedExchange && selectedExchange.id !== 'paper' && (
-                  <div className="flex items-center gap-3 p-4 rounded" style={{ background: '#0B0E11', border: '1px solid #2B3139' }}>
+                  <div className="flex items-center gap-3 p-4 rounded bg-[#0B0E11] border border-neutral-800">
                     <input
                       type="checkbox"
                       id="testnet-checkbox"
@@ -2966,13 +2629,12 @@ function ExchangeConfigModal({
                     />
                     <label
                       htmlFor="testnet-checkbox"
-                      className="flex-1 cursor-pointer"
-                      style={{ color: '#EAECEF' }}
+                      className="flex-1 cursor-pointer text-white"
                     >
                       <div className="text-sm font-semibold">
                         {t('useTestnet', language)}
                       </div>
-                      <div className="text-xs mt-1" style={{ color: '#848E9C' }}>
+                      <div className="text-xs mt-1 text-neutral-500">
                         {t('testnetDescription', language)}
                       </div>
                     </label>
@@ -2983,14 +2645,12 @@ function ExchangeConfigModal({
           </div>
 
           <div
-            className="flex gap-3 mt-6 pt-4 sticky bottom-0"
-            style={{ background: '#1E2329' }}
+            className="flex gap-3 mt-6 pt-4 sticky bottom-0 bg-[#1E2329]"
           >
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold"
-              style={{ background: '#2B3139', color: '#848E9C' }}
+              className="flex-1 px-4 py-2 rounded text-sm font-semibold bg-neutral-800 text-neutral-400"
             >
               {t('cancel', language)}
             </button>
@@ -3020,8 +2680,7 @@ function ExchangeConfigModal({
                   selectedExchange.id !== 'paper' &&
                   (!apiKey.trim() || !secretKey.trim()))
               }
-              className="flex-1 px-4 py-2 rounded text-sm font-semibold disabled:opacity-50"
-              style={{ background: '#00C805', color: '#000' }}
+              className="flex-1 px-4 py-2 rounded text-sm font-semibold disabled:opacity-50 bg-[#00C805] text-black"
             >
               {t('saveConfig', language)}
             </button>
@@ -3032,26 +2691,23 @@ function ExchangeConfigModal({
       {/* Binance Setup Guide Modal */}
       {showGuide && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
           onClick={() => setShowGuide(false)}
         >
           <div
-            className="bg-gray-800 rounded-lg p-6 w-full max-w-4xl relative"
-            style={{ background: '#1E2329' }}
+            className="bg-[#1E2329] rounded-xl p-6 w-full max-w-4xl relative border border-neutral-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
               <h3
-                className="text-xl font-bold flex items-center gap-2"
-                style={{ color: '#EAECEF' }}
+                className="text-xl font-bold flex items-center gap-2 text-white"
               >
-                <BookOpen className="w-6 h-6" style={{ color: '#00C805' }} />
+                <BookOpen className="w-6 h-6 text-[#00C805]" />
                 {t('binanceSetupGuide', language)}
               </h3>
               <button
                 onClick={() => setShowGuide(false)}
-                className="px-4 py-2 rounded text-sm font-semibold transition-all hover:scale-105"
-                style={{ background: '#2B3139', color: '#848E9C' }}
+                className="px-4 py-2 rounded text-sm font-semibold transition-all hover:scale-105 bg-neutral-800 text-neutral-400"
               >
                 {t('closeGuide', language)}
               </button>

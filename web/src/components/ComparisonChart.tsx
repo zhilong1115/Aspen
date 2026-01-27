@@ -265,7 +265,7 @@ export function ComparisonChart({ traders }: ComparisonChartProps) {
           position: 'relative',
         }}
       >
-        {/* ATrade Watermark */}
+        {/* Aspen Watermark */}
         <div
           style={{
             position: 'absolute',
@@ -279,7 +279,7 @@ export function ComparisonChart({ traders }: ComparisonChartProps) {
             fontFamily: 'monospace',
           }}
         >
-          ATrade
+          Aspen
         </div>
         <ResponsiveContainer width="100%" height={520}>
           <LineChart

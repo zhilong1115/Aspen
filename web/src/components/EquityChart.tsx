@@ -295,7 +295,7 @@ export function EquityChart({ traderId }: EquityChartProps) {
           position: 'relative',
         }}
       >
-        {/* ATrade Watermark */}
+        {/* Aspen Watermark */}
         <div
           style={{
             position: 'absolute',
@@ -309,7 +309,7 @@ export function EquityChart({ traderId }: EquityChartProps) {
             fontFamily: 'monospace',
           }}
         >
-          ATrade
+          Aspen
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart

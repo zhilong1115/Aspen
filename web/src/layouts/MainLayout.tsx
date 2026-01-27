@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'framer-motion'
-import { Activity, BarChart3, Globe, Layers, User } from 'lucide-react'
+import { Brain, User, Users, Wallet } from 'lucide-react'
 import { ReactNode, useEffect, useState } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { PageTransition } from '../components/ui/PageTransition'
@@ -44,30 +44,28 @@ export default function MainLayout({ children }: MainLayoutProps) {
             to="/"
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-[#00C805] rounded-lg flex items-center justify-center">
-              <Activity size={20} className="text-black" />
-            </div>
+            <img src="/icons/aspen.svg" alt="Aspen" className="w-8 h-8" />
             <span className="font-bold text-xl tracking-tighter hidden md:block text-white">
-              ATrade
+              Aspen
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <NavBtn
-              label={t('dashboardNav', language)}
-              active={isActive('/dashboard')}
-              onClick={() => navigate('/dashboard')}
+              label={t('portfolio', language) || 'Portfolio'}
+              active={isActive('/portfolio')}
+              onClick={() => navigate('/portfolio')}
             />
             <NavBtn
-              label={t('configNav', language)}
+              label={t('aiStrategyNav', language)}
               active={isActive('/traders')}
               onClick={() => navigate('/traders')}
             />
             <NavBtn
-              label={t('realtimeNav', language)}
-              active={isActive('/competition')}
-              onClick={() => navigate('/competition')}
+              label={t('communityNav', language)}
+              active={isActive('/community')}
+              onClick={() => navigate('/community')}
             />
             <NavBtn
               label={t('profile', language) || 'Profile'}
@@ -111,22 +109,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <div className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 pb-safe pt-2 z-50">
           <div className="flex justify-around items-center h-16">
             <MobNavBtn
-              icon={<BarChart3 size={22} />}
-              label={t('dashboardNav', language)}
-              active={isActive('/dashboard')}
-              onClick={() => navigate('/dashboard')}
+              icon={<Wallet size={22} />}
+              label={t('portfolio', language) || 'Portfolio'}
+              active={isActive('/portfolio')}
+              onClick={() => navigate('/portfolio')}
             />
             <MobNavBtn
-              icon={<Layers size={22} />}
-              label={t('configNav', language)}
+              icon={<Brain size={22} />}
+              label={t('aiStrategyNav', language)}
               active={isActive('/traders')}
               onClick={() => navigate('/traders')}
             />
             <MobNavBtn
-              icon={<Globe size={22} />}
-              label={t('realtimeNav', language)}
-              active={isActive('/competition')}
-              onClick={() => navigate('/competition')}
+              icon={<Users size={22} />}
+              label={t('communityNav', language)}
+              active={isActive('/community')}
+              onClick={() => navigate('/community')}
             />
             <MobNavBtn
               icon={<User size={22} />}
