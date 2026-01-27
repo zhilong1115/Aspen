@@ -2,6 +2,8 @@ package auth
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"sync"
@@ -25,6 +27,78 @@ var tokenBlacklist = struct {
 // maxBlacklistEntries 黑名单最大容量阈值
 const maxBlacklistEntries = 100_000
 
+// DatabaseLike 定义auth包所需的数据库接口（用于token黑名单持久化）
+type DatabaseLike interface {
+	BlacklistToken(tokenHash string, expiresAt time.Time) error
+	IsTokenBlacklisted(tokenHash string) bool
+	CleanExpiredTokens() (int64, error)
+	GetAllBlacklistedTokens() (map[string]time.Time, error)
+}
+
+// db 数据库实例，用于持久化token黑名单（可选，nil时仅使用内存）
+var db DatabaseLike
+
+// SetDatabase 注入数据库实例以启用token黑名单持久化
+func SetDatabase(d DatabaseLike) {
+	db = d
+}
+
+// hashToken 对token进行SHA-256哈希（安全最佳实践：不存储原始token）
+func hashToken(token string) string {
+	h := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(h[:])
+}
+
+// LoadBlacklistFromDB 从数据库加载未过期的黑名单token到内存缓存
+func LoadBlacklistFromDB() {
+	if db == nil {
+		return
+	}
+
+	tokens, err := db.GetAllBlacklistedTokens()
+	if err != nil {
+		log.Printf("auth: 从数据库加载token黑名单失败: %v", err)
+		return
+	}
+
+	tokenBlacklist.Lock()
+	defer tokenBlacklist.Unlock()
+	for hash, exp := range tokens {
+		tokenBlacklist.items[hash] = exp
+	}
+
+	log.Printf("auth: 从数据库恢复了 %d 个黑名单token", len(tokens))
+}
+
+// StartBlacklistCleaner 启动后台协程定期清理过期的黑名单token
+func StartBlacklistCleaner(interval time.Duration) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for range ticker.C {
+			// 清理内存缓存
+			now := time.Now()
+			tokenBlacklist.Lock()
+			for t, e := range tokenBlacklist.items {
+				if now.After(e) {
+					delete(tokenBlacklist.items, t)
+				}
+			}
+			tokenBlacklist.Unlock()
+
+			// 清理数据库
+			if db != nil {
+				cleaned, err := db.CleanExpiredTokens()
+				if err != nil {
+					log.Printf("auth: 清理过期黑名单token失败: %v", err)
+				} else if cleaned > 0 {
+					log.Printf("auth: 清理了 %d 个过期黑名单token", cleaned)
+				}
+			}
+		}
+	}()
+}
+
 // OTPIssuer OTP发行者名称
 const OTPIssuer = "Aspen"
 
@@ -35,9 +109,11 @@ func SetJWTSecret(secret string) {
 
 // BlacklistToken 将token加入黑名单直到过期
 func BlacklistToken(token string, exp time.Time) {
+	hash := hashToken(token)
+
+	// 写入内存缓存
 	tokenBlacklist.Lock()
-	defer tokenBlacklist.Unlock()
-	tokenBlacklist.items[token] = exp
+	tokenBlacklist.items[hash] = exp
 
 	// 如果超过容量阈值，则进行一次过期清理；若仍超限，记录警告日志
 	if len(tokenBlacklist.items) > maxBlacklistEntries {
@@ -52,19 +128,46 @@ func BlacklistToken(token string, exp time.Time) {
 				len(tokenBlacklist.items), maxBlacklistEntries)
 		}
 	}
+	tokenBlacklist.Unlock()
+
+	// 持久化到数据库
+	if db != nil {
+		if err := db.BlacklistToken(hash, exp); err != nil {
+			log.Printf("auth: 持久化黑名单token失败: %v", err)
+		}
+	}
 }
 
 // IsTokenBlacklisted 检查token是否在黑名单中（过期自动清理）
 func IsTokenBlacklisted(token string) bool {
+	hash := hashToken(token)
+
+	// 快速路径：检查内存缓存
 	tokenBlacklist.Lock()
-	defer tokenBlacklist.Unlock()
-	if exp, ok := tokenBlacklist.items[token]; ok {
+	if exp, ok := tokenBlacklist.items[hash]; ok {
 		if time.Now().After(exp) {
-			delete(tokenBlacklist.items, token)
+			delete(tokenBlacklist.items, hash)
+			tokenBlacklist.Unlock()
 			return false
 		}
+		tokenBlacklist.Unlock()
 		return true
 	}
+	tokenBlacklist.Unlock()
+
+	// 慢速路径：检查数据库
+	if db != nil {
+		if db.IsTokenBlacklisted(hash) {
+			// 从数据库找到，回填到内存缓存（下次查询走快速路径）
+			// 注意：这里不知道精确的过期时间，用一个合理的TTL
+			// 实际上token不会在DB中过期后还返回true，所以这里的过期时间不太关键
+			tokenBlacklist.Lock()
+			tokenBlacklist.items[hash] = time.Now().Add(24 * time.Hour)
+			tokenBlacklist.Unlock()
+			return true
+		}
+	}
+
 	return false
 }
 

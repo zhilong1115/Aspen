@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -234,6 +235,11 @@ func main() {
 		log.Printf("🔑 使用环境变量JWT密钥")
 	}
 	auth.SetJWTSecret(jwtSecret)
+
+	// 设置auth的数据库依赖，启用token黑名单持久化
+	auth.SetDatabase(database)
+	auth.LoadBlacklistFromDB()
+	auth.StartBlacklistCleaner(1 * time.Hour)
 
 	// 管理员模式下需要管理员密码，缺失则退出
 

@@ -52,6 +52,10 @@ type DatabaseInterface interface {
 	ValidateBetaCode(code string) (bool, error)
 	UseBetaCode(code, userEmail string) error
 	GetBetaCodeStats() (total, used int, err error)
+	BlacklistToken(tokenHash string, expiresAt time.Time) error
+	IsTokenBlacklisted(tokenHash string) bool
+	CleanExpiredTokens() (int64, error)
+	GetAllBlacklistedTokens() (map[string]time.Time, error)
 	Close() error
 }
 
@@ -198,6 +202,13 @@ func (d *Database) createTables() error {
 			positions TEXT DEFAULT '{}',
 			updated_at TEXT DEFAULT (datetime('now'))
 		)`,
+
+		// Token黑名单表（JWT登出持久化）
+		`CREATE TABLE IF NOT EXISTS token_blacklist (
+			token_hash TEXT PRIMARY KEY,
+			expires_at TEXT NOT NULL
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at)`,
 
 		// 内测码表
 		`CREATE TABLE IF NOT EXISTS beta_codes (
@@ -1264,6 +1275,65 @@ func (d *Database) LoadPaperTraderState(traderID string) (initialBalance, balanc
 func (d *Database) DeletePaperTraderState(traderID string) error {
 	_, err := d.db.Exec(`DELETE FROM paper_trader_state WHERE trader_id = ?`, traderID)
 	return err
+}
+
+// BlacklistToken 将token哈希加入黑名单
+func (d *Database) BlacklistToken(tokenHash string, expiresAt time.Time) error {
+	_, err := d.db.Exec(`
+		INSERT OR REPLACE INTO token_blacklist (token_hash, expires_at)
+		VALUES (?, ?)
+	`, tokenHash, expiresAt.UTC().Format(time.RFC3339))
+	return err
+}
+
+// IsTokenBlacklisted 检查token哈希是否在黑名单中
+func (d *Database) IsTokenBlacklisted(tokenHash string) bool {
+	var count int
+	err := d.db.QueryRow(`
+		SELECT COUNT(*) FROM token_blacklist
+		WHERE token_hash = ? AND expires_at > ?
+	`, tokenHash, time.Now().UTC().Format(time.RFC3339)).Scan(&count)
+	if err != nil {
+		return false
+	}
+	return count > 0
+}
+
+// CleanExpiredTokens 清理已过期的黑名单token
+func (d *Database) CleanExpiredTokens() (int64, error) {
+	result, err := d.db.Exec(`
+		DELETE FROM token_blacklist WHERE expires_at <= ?
+	`, time.Now().UTC().Format(time.RFC3339))
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+// GetAllBlacklistedTokens 获取所有未过期的黑名单token（用于启动时加载到内存）
+func (d *Database) GetAllBlacklistedTokens() (map[string]time.Time, error) {
+	rows, err := d.db.Query(`
+		SELECT token_hash, expires_at FROM token_blacklist
+		WHERE expires_at > ?
+	`, time.Now().UTC().Format(time.RFC3339))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tokens := make(map[string]time.Time)
+	for rows.Next() {
+		var hash, expiresStr string
+		if err := rows.Scan(&hash, &expiresStr); err != nil {
+			continue
+		}
+		exp, err := time.Parse(time.RFC3339, expiresStr)
+		if err != nil {
+			continue
+		}
+		tokens[hash] = exp
+	}
+	return tokens, nil
 }
 
 // Close 关闭数据库连接
