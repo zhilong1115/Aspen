@@ -1,6 +1,8 @@
 package trader
 
 import (
+	"aspen/config"
+	"encoding/json"
 	"fmt"
 	"log"
 	"aspen/market"
@@ -12,20 +14,22 @@ import (
 
 // Position 持仓信息
 type Position struct {
-	Symbol        string
-	Side          string // "LONG" or "SHORT"
-	Quantity      float64
-	EntryPrice    float64
-	Leverage      int
-	UnrealizedPnL float64
+	Symbol        string  `json:"symbol"`
+	Side          string  `json:"side"` // "LONG" or "SHORT"
+	Quantity      float64 `json:"quantity"`
+	EntryPrice    float64 `json:"entry_price"`
+	Leverage      int     `json:"leverage"`
+	UnrealizedPnL float64 `json:"unrealized_pnl"`
 }
 
 // PaperTrader 模拟仓交易器
 type PaperTrader struct {
+	traderID       string               // 交易器唯一标识（用于持久化）
 	initialBalance float64              // 初始USDC余额
 	balance        float64              // 当前可用USDC余额（已扣除保证金）
 	realizedPnL    float64              // 已实现盈亏
 	positions      map[string]*Position // symbol_side -> Position
+	db             *config.Database     // 数据库引用（用于持久化）
 	mu             sync.RWMutex
 }
 
@@ -45,6 +49,72 @@ func NewPaperTrader(initialUSDC float64) (*PaperTrader, error) {
 
 	log.Printf("📝 [Paper Trading] 模拟仓已创建，初始余额: %.2f USDC", initialUSDC)
 	return trader, nil
+}
+
+// NewPaperTraderWithDB 创建模拟仓交易器（带数据库持久化支持）
+// 如果数据库中存在已保存的状态，则恢复；否则从初始余额开始
+func NewPaperTraderWithDB(initialUSDC float64, db *config.Database, traderID string) (*PaperTrader, error) {
+	if initialUSDC <= 0 {
+		return nil, fmt.Errorf("初始USDC金额必须大于0")
+	}
+
+	pt := &PaperTrader{
+		traderID:       traderID,
+		initialBalance: initialUSDC,
+		balance:        initialUSDC,
+		realizedPnL:    0.0,
+		positions:      make(map[string]*Position),
+		db:             db,
+	}
+
+	// 尝试从数据库加载已保存的状态
+	if db != nil && traderID != "" {
+		savedInitBal, savedBalance, savedPnL, savedPositions, exists, err := db.LoadPaperTraderState(traderID)
+		if err != nil {
+			log.Printf("⚠️ [Paper Trading] 加载保存状态失败: %v，使用初始余额", err)
+		} else if exists {
+			pt.initialBalance = savedInitBal
+			pt.balance = savedBalance
+			pt.realizedPnL = savedPnL
+
+			// 反序列化持仓
+			if savedPositions != "" && savedPositions != "{}" {
+				var positions map[string]*Position
+				if err := json.Unmarshal([]byte(savedPositions), &positions); err != nil {
+					log.Printf("⚠️ [Paper Trading] 反序列化持仓失败: %v，从空仓开始", err)
+				} else {
+					pt.positions = positions
+					log.Printf("✅ [Paper Trading] 已从数据库恢复状态: 余额=%.2f, 已实现盈亏=%.2f, 持仓数=%d",
+						savedBalance, savedPnL, len(positions))
+					return pt, nil
+				}
+			}
+			log.Printf("✅ [Paper Trading] 已从数据库恢复状态: 余额=%.2f, 已实现盈亏=%.2f, 无持仓",
+				savedBalance, savedPnL)
+			return pt, nil
+		}
+	}
+
+	log.Printf("📝 [Paper Trading] 模拟仓已创建，初始余额: %.2f USDC", initialUSDC)
+	return pt, nil
+}
+
+// SaveState 将当前状态保存到数据库
+func (t *PaperTrader) SaveState() {
+	if t.db == nil || t.traderID == "" {
+		return
+	}
+
+	// 序列化持仓
+	positionsJSON, err := json.Marshal(t.positions)
+	if err != nil {
+		log.Printf("⚠️ [Paper Trading] 序列化持仓失败: %v", err)
+		return
+	}
+
+	if err := t.db.SavePaperTraderState(t.traderID, t.initialBalance, t.balance, t.realizedPnL, string(positionsJSON)); err != nil {
+		log.Printf("⚠️ [Paper Trading] 保存状态到数据库失败: %v", err)
+	}
 }
 
 // getPositionKey 生成持仓键
@@ -225,6 +295,9 @@ func (t *PaperTrader) OpenLong(symbol string, quantity float64, leverage int) (m
 	log.Printf("📝 [Paper Trading] 开多仓: %s, 数量: %.6f, 价格: %.2f, 杠杆: %dx, 保证金: %.2f USDC, 手续费: %.2f USDC",
 		symbol, quantity, currentPrice, leverage, requiredMargin, tradingFee)
 
+	// 持久化状态
+	t.SaveState()
+
 	return map[string]interface{}{
 		"orderId":  fmt.Sprintf("paper_%d", time.Now().UnixNano()),
 		"symbol":   symbol,
@@ -293,6 +366,9 @@ func (t *PaperTrader) OpenShort(symbol string, quantity float64, leverage int) (
 	log.Printf("📝 [Paper Trading] 开空仓: %s, 数量: %.6f, 价格: %.2f, 杠杆: %dx, 保证金: %.2f USDC, 手续费: %.2f USDC",
 		symbol, quantity, currentPrice, leverage, requiredMargin, tradingFee)
 
+	// 持久化状态
+	t.SaveState()
+
 	return map[string]interface{}{
 		"orderId":  fmt.Sprintf("paper_%d", time.Now().UnixNano()),
 		"symbol":   symbol,
@@ -352,6 +428,9 @@ func (t *PaperTrader) CloseLong(symbol string, quantity float64) (map[string]int
 	log.Printf("📝 [Paper Trading] 平多仓: %s, 数量: %.6f, 开仓价: %.2f, 平仓价: %.2f, 盈亏: %.2f USDC",
 		symbol, closeQuantity, entryPrice, currentPrice, pnl)
 
+	// 持久化状态
+	t.SaveState()
+
 	return map[string]interface{}{
 		"orderId":  fmt.Sprintf("paper_%d", time.Now().UnixNano()),
 		"symbol":   symbol,
@@ -410,6 +489,9 @@ func (t *PaperTrader) CloseShort(symbol string, quantity float64) (map[string]in
 
 	log.Printf("📝 [Paper Trading] 平空仓: %s, 数量: %.6f, 开仓价: %.2f, 平仓价: %.2f, 盈亏: %.2f USDC",
 		symbol, closeQuantity, entryPrice, currentPrice, pnl)
+
+	// 持久化状态
+	t.SaveState()
 
 	return map[string]interface{}{
 		"orderId":  fmt.Sprintf("paper_%d", time.Now().UnixNano()),

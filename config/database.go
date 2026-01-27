@@ -44,6 +44,9 @@ type DatabaseInterface interface {
 	CreateUserSignalSource(userID, coinPoolURL, oiTopURL string) error
 	GetUserSignalSource(userID string) (*UserSignalSource, error)
 	UpdateUserSignalSource(userID, coinPoolURL, oiTopURL string) error
+	SavePaperTraderState(traderID string, initialBalance, balance, realizedPnL float64, positions string) error
+	LoadPaperTraderState(traderID string) (initialBalance, balance, realizedPnL float64, positions string, exists bool, err error)
+	DeletePaperTraderState(traderID string) error
 	GetCustomCoins() []string
 	LoadBetaCodesFromFile(filePath string) error
 	ValidateBetaCode(code string) (bool, error)
@@ -184,6 +187,16 @@ func (d *Database) createTables() error {
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)`,
+
+		// Paper Trader 状态持久化表
+		`CREATE TABLE IF NOT EXISTS paper_trader_state (
+			trader_id TEXT PRIMARY KEY,
+			initial_balance REAL NOT NULL,
+			balance REAL NOT NULL,
+			realized_pnl REAL NOT NULL,
+			positions TEXT DEFAULT '{}',
+			updated_at TEXT DEFAULT (datetime('now'))
 		)`,
 
 		// 内测码表
@@ -1221,6 +1234,36 @@ func (d *Database) GetCustomCoins() []string {
 		}
 	}
 	return symbols
+}
+
+// SavePaperTraderState 保存模拟仓交易器状态到数据库
+func (d *Database) SavePaperTraderState(traderID string, initialBalance, balance, realizedPnL float64, positions string) error {
+	_, err := d.db.Exec(`
+		INSERT OR REPLACE INTO paper_trader_state (trader_id, initial_balance, balance, realized_pnl, positions, updated_at)
+		VALUES (?, ?, ?, ?, ?, datetime('now'))
+	`, traderID, initialBalance, balance, realizedPnL, positions)
+	return err
+}
+
+// LoadPaperTraderState 从数据库加载模拟仓交易器状态
+func (d *Database) LoadPaperTraderState(traderID string) (initialBalance, balance, realizedPnL float64, positions string, exists bool, err error) {
+	err = d.db.QueryRow(`
+		SELECT initial_balance, balance, realized_pnl, positions
+		FROM paper_trader_state WHERE trader_id = ?
+	`, traderID).Scan(&initialBalance, &balance, &realizedPnL, &positions)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, 0, 0, "", false, nil
+		}
+		return 0, 0, 0, "", false, err
+	}
+	return initialBalance, balance, realizedPnL, positions, true, nil
+}
+
+// DeletePaperTraderState 删除模拟仓交易器状态
+func (d *Database) DeletePaperTraderState(traderID string) error {
+	_, err := d.db.Exec(`DELETE FROM paper_trader_state WHERE trader_id = ?`, traderID)
+	return err
 }
 
 // Close 关闭数据库连接

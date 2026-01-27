@@ -1,6 +1,7 @@
 package trader
 
 import (
+	configpkg "aspen/config"
 	"aspen/decision"
 	"aspen/logger"
 	"aspen/market"
@@ -221,7 +222,12 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		if config.PaperTradingInitialUSDC <= 0 {
 			config.PaperTradingInitialUSDC = 10000.0 // 默认值
 		}
-		trader, err = NewPaperTrader(config.PaperTradingInitialUSDC)
+		// 尝试使用带数据库持久化的构造函数
+		if db, ok := database.(*configpkg.Database); ok && db != nil {
+			trader, err = NewPaperTraderWithDB(config.PaperTradingInitialUSDC, db, config.ID)
+		} else {
+			trader, err = NewPaperTrader(config.PaperTradingInitialUSDC)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("初始化模拟仓交易器失败: %w", err)
 		}
