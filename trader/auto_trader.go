@@ -10,7 +10,6 @@ import (
 	"aspen/pool"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"strings"
 	"sync"
@@ -144,7 +143,7 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 			return nil, fmt.Errorf("自定义AI API密钥未设置")
 		}
 		mcpClient.SetCustomAPI(config.CustomAPIURL, config.CustomAPIKey, config.CustomModelName)
-		log.Printf("🤖 [%s] 使用自定义AI API: %s (模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用自定义AI API: %s (模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
 	} else if config.AIModel == "openrouter" {
 		// 使用OpenRouter (支持自定义模型选择)
 		if config.OpenRouterKey == "" {
@@ -155,7 +154,7 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 			modelName = "openai/gpt-4o" // 默认模型
 		}
 		mcpClient.SetOpenRouterAPIKey(config.OpenRouterKey, modelName)
-		log.Printf("🤖 [%s] 使用OpenRouter AI (模型: %s)", config.Name, modelName)
+		logger.Infof("🤖 [%s] 使用OpenRouter AI (模型: %s)", config.Name, modelName)
 	} else if config.UseQwen || config.AIModel == "qwen" {
 		// 使用Qwen (支持自定义URL和Model)
 		if config.QwenKey == "" {
@@ -163,9 +162,9 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		}
 		mcpClient.SetQwenAPIKey(config.QwenKey, config.CustomAPIURL, config.CustomModelName)
 		if config.CustomAPIURL != "" || config.CustomModelName != "" {
-			log.Printf("🤖 [%s] 使用阿里云Qwen AI (自定义URL: %s, 模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
+			logger.Infof("🤖 [%s] 使用阿里云Qwen AI (自定义URL: %s, 模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
 		} else {
-			log.Printf("🤖 [%s] 使用阿里云Qwen AI", config.Name)
+			logger.Infof("🤖 [%s] 使用阿里云Qwen AI", config.Name)
 		}
 	} else {
 		// 默认使用DeepSeek (支持自定义URL和Model)
@@ -174,9 +173,9 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		}
 		mcpClient.SetDeepSeekAPIKey(config.DeepSeekKey, config.CustomAPIURL, config.CustomModelName)
 		if config.CustomAPIURL != "" || config.CustomModelName != "" {
-			log.Printf("🤖 [%s] 使用DeepSeek AI (自定义URL: %s, 模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
+			logger.Infof("🤖 [%s] 使用DeepSeek AI (自定义URL: %s, 模型: %s)", config.Name, config.CustomAPIURL, config.CustomModelName)
 		} else {
-			log.Printf("🤖 [%s] 使用DeepSeek AI", config.Name)
+			logger.Infof("🤖 [%s] 使用DeepSeek AI", config.Name)
 		}
 	}
 
@@ -199,26 +198,26 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 	if !config.IsCrossMargin {
 		marginModeStr = "逐仓"
 	}
-	log.Printf("📊 [%s] 仓位模式: %s", config.Name, marginModeStr)
+	logger.Infof("📊 [%s] 仓位模式: %s", config.Name, marginModeStr)
 
 	switch config.Exchange {
 	case "binance":
-		log.Printf("🏦 [%s] 使用币安合约交易", config.Name)
+		logger.Infof("🏦 [%s] 使用币安合约交易", config.Name)
 		trader = NewFuturesTrader(config.BinanceAPIKey, config.BinanceSecretKey, userID)
 	case "hyperliquid":
-		log.Printf("🏦 [%s] 使用Hyperliquid交易", config.Name)
+		logger.Infof("🏦 [%s] 使用Hyperliquid交易", config.Name)
 		trader, err = NewHyperliquidTrader(config.HyperliquidPrivateKey, config.HyperliquidWalletAddr, config.HyperliquidTestnet)
 		if err != nil {
 			return nil, fmt.Errorf("初始化Hyperliquid交易器失败: %w", err)
 		}
 	case "aster":
-		log.Printf("🏦 [%s] 使用Aster交易", config.Name)
+		logger.Infof("🏦 [%s] 使用Aster交易", config.Name)
 		trader, err = NewAsterTrader(config.AsterUser, config.AsterSigner, config.AsterPrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("初始化Aster交易器失败: %w", err)
 		}
 	case "paper":
-		log.Printf("📝 [%s] 使用模拟仓交易 (初始余额: %.2f USDC)", config.Name, config.PaperTradingInitialUSDC)
+		logger.Infof("📝 [%s] 使用模拟仓交易 (初始余额: %.2f USDC)", config.Name, config.PaperTradingInitialUSDC)
 		if config.PaperTradingInitialUSDC <= 0 {
 			config.PaperTradingInitialUSDC = 10000.0 // 默认值
 		}
@@ -289,16 +288,16 @@ func (at *AutoTrader) Run() error {
 	at.stopMonitorCh = make(chan struct{})
 	at.startTime = time.Now()
 
-	log.Println("🚀 AI驱动自动交易系统启动")
+	logger.Info("🚀 AI驱动自动交易系统启动")
 	stablecoinUnit := at.getStablecoinUnit()
-	log.Printf("💰 初始余额: %.2f %s", at.initialBalance, stablecoinUnit)
-	log.Printf("⚙️  扫描间隔: %v", at.config.ScanInterval)
-	log.Println("🤖 AI将全权决定杠杆、仓位大小、止损止盈等参数")
+	logger.Infof("💰 初始余额: %.2f %s", at.initialBalance, stablecoinUnit)
+	logger.Infof("⚙️  扫描间隔: %v", at.config.ScanInterval)
+	logger.Info("🤖 AI将全权决定杠杆、仓位大小、止损止盈等参数")
 	at.monitorWg.Add(1)
 	defer func() {
 		at.monitorWg.Done()
 		at.isRunning = false
-		log.Printf("[%s] ⏹ 自动交易主循环已退出 (isRunning=%v)", at.name, at.isRunning)
+		logger.Infof("[%s] ⏹ 自动交易主循环已退出 (isRunning=%v)", at.name, at.isRunning)
 	}()
 
 	// 启动回撤监控
@@ -309,27 +308,27 @@ func (at *AutoTrader) Run() error {
 
 	// 首次立即执行
 	if err := at.runCycle(); err != nil {
-		log.Printf("❌ 执行失败: %v", err)
+		logger.Errorf("❌ 执行失败: %v", err)
 	}
 
 	for at.isRunning {
 		select {
 		case <-ticker.C:
 			if !at.isRunning {
-				log.Printf("[%s] ⚠️  检测到 isRunning=false，退出循环", at.name)
+				logger.Warnf("[%s] ⚠️  检测到 isRunning=false，退出循环", at.name)
 				return nil
 			}
 			if err := at.runCycle(); err != nil {
-				log.Printf("❌ 执行失败: %v", err)
+				logger.Errorf("❌ 执行失败: %v", err)
 				// 注意：runCycle 的错误不会导致停止，只是记录日志
 			}
 		case <-at.stopMonitorCh:
-			log.Printf("[%s] ⏹ 收到停止信号 (stopMonitorCh)，退出自动交易主循环", at.name)
+			logger.Infof("[%s] ⏹ 收到停止信号 (stopMonitorCh)，退出自动交易主循环", at.name)
 			return nil
 		}
 	}
 
-	log.Printf("[%s] ⚠️  循环正常退出 (isRunning=%v)", at.name, at.isRunning)
+	logger.Warnf("[%s] ⚠️  循环正常退出 (isRunning=%v)", at.name, at.isRunning)
 	return nil
 }
 
@@ -341,7 +340,7 @@ func (at *AutoTrader) Stop() {
 	at.isRunning = false
 	close(at.stopMonitorCh) // 通知监控goroutine停止
 	at.monitorWg.Wait()     // 等待监控goroutine结束
-	log.Println("⏹ 自动交易系统停止")
+	logger.Info("⏹ 自动交易系统停止")
 }
 
 // autoSyncBalanceIfNeeded 自动同步余额（每10分钟检查一次，变化>5%才更新）
@@ -357,12 +356,12 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 		return
 	}
 
-	log.Printf("🔄 [%s] 开始自动检查余额变化...", at.name)
+	logger.Infof("🔄 [%s] 开始自动检查余额变化...", at.name)
 
 	// 查询实际余额
 	balanceInfo, err := at.trader.GetBalance()
 	if err != nil {
-		log.Printf("⚠️ [%s] 查询余额失败: %v", at.name, err)
+		logger.Warnf("⚠️ [%s] 查询余额失败: %v", at.name, err)
 		at.lastBalanceSyncTime = time.Now() // 即使失败也更新时间，避免频繁重试
 		return
 	}
@@ -376,7 +375,7 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 	} else if totalBalance, ok := balanceInfo["balance"].(float64); ok && totalBalance > 0 {
 		actualBalance = totalBalance
 	} else {
-		log.Printf("⚠️ [%s] 无法提取可用余额", at.name)
+		logger.Warnf("⚠️ [%s] 无法提取可用余额", at.name)
 		at.lastBalanceSyncTime = time.Now()
 		return
 	}
@@ -386,7 +385,7 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 	// 防止除以零：如果初始余额无效，直接更新为实际余额
 	if oldBalance <= 0 {
 		stablecoinUnit := at.getStablecoinUnit()
-		log.Printf("⚠️ [%s] 初始余额无效 (%.2f)，直接更新为实际余额 %.2f %s", at.name, oldBalance, actualBalance, stablecoinUnit)
+		logger.Warnf("⚠️ [%s] 初始余额无效 (%.2f)，直接更新为实际余额 %.2f %s", at.name, oldBalance, actualBalance, stablecoinUnit)
 		at.initialBalance = actualBalance
 		if at.database != nil {
 			type DatabaseUpdater interface {
@@ -394,15 +393,15 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 			}
 			if db, ok := at.database.(DatabaseUpdater); ok {
 				if err := db.UpdateTraderInitialBalance(at.userID, at.id, actualBalance); err != nil {
-					log.Printf("❌ [%s] 更新数据库失败: %v", at.name, err)
+					logger.Errorf("❌ [%s] 更新数据库失败: %v", at.name, err)
 				} else {
-					log.Printf("✅ [%s] 已自动同步余额到数据库", at.name)
+					logger.Infof("✅ [%s] 已自动同步余额到数据库", at.name)
 				}
 			} else {
-				log.Printf("⚠️ [%s] 数据库类型不支持UpdateTraderInitialBalance接口", at.name)
+				logger.Warnf("⚠️ [%s] 数据库类型不支持UpdateTraderInitialBalance接口", at.name)
 			}
 		} else {
-			log.Printf("⚠️ [%s] 数据库引用为空，余额仅在内存中更新", at.name)
+			logger.Warnf("⚠️ [%s] 数据库引用为空，余额仅在内存中更新", at.name)
 		}
 		at.lastBalanceSyncTime = time.Now()
 		return
@@ -413,7 +412,7 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 	// 变化超过5%才更新
 	if math.Abs(changePercent) > 5.0 {
 		stablecoinUnit := at.getStablecoinUnit()
-		log.Printf("🔔 [%s] 检测到余额大幅变化: %.2f → %.2f %s (%.2f%%)",
+		logger.Infof("🔔 [%s] 检测到余额大幅变化: %.2f → %.2f %s (%.2f%%)",
 			at.name, oldBalance, actualBalance, stablecoinUnit, changePercent)
 
 		// 更新内存中的 initialBalance
@@ -430,18 +429,18 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 			if db, ok := at.database.(DatabaseUpdater); ok {
 				err := db.UpdateTraderInitialBalance(at.userID, at.id, actualBalance)
 				if err != nil {
-					log.Printf("❌ [%s] 更新数据库失败: %v", at.name, err)
+					logger.Errorf("❌ [%s] 更新数据库失败: %v", at.name, err)
 				} else {
-					log.Printf("✅ [%s] 已自动同步余额到数据库", at.name)
+					logger.Infof("✅ [%s] 已自动同步余额到数据库", at.name)
 				}
 			} else {
-				log.Printf("⚠️ [%s] 数据库类型不支持UpdateTraderInitialBalance接口", at.name)
+				logger.Warnf("⚠️ [%s] 数据库类型不支持UpdateTraderInitialBalance接口", at.name)
 			}
 		} else {
-			log.Printf("⚠️ [%s] 数据库引用为空，余额仅在内存中更新", at.name)
+			logger.Warnf("⚠️ [%s] 数据库引用为空，余额仅在内存中更新", at.name)
 		}
 	} else {
-		log.Printf("✓ [%s] 余额变化不大 (%.2f%%)，无需更新", at.name, changePercent)
+		logger.Debugf("✓ [%s] 余额变化不大 (%.2f%%)，无需更新", at.name, changePercent)
 	}
 
 	at.lastBalanceSyncTime = time.Now()
@@ -451,9 +450,9 @@ func (at *AutoTrader) autoSyncBalanceIfNeeded() {
 func (at *AutoTrader) runCycle() error {
 	at.callCount++
 
-	log.Print("\n" + strings.Repeat("=", 70) + "\n")
-	log.Printf("⏰ %s - AI决策周期 #%d", time.Now().Format("2006-01-02 15:04:05"), at.callCount)
-	log.Println(strings.Repeat("=", 70))
+	logger.Debug("\n" + strings.Repeat("=", 70) + "\n")
+	logger.Infof("⏰ %s - AI决策周期 #%d", time.Now().Format("2006-01-02 15:04:05"), at.callCount)
+	logger.Debug(strings.Repeat("=", 70))
 
 	// 创建决策记录
 	record := &logger.DecisionRecord{
@@ -464,7 +463,7 @@ func (at *AutoTrader) runCycle() error {
 	// 1. 检查是否需要停止交易
 	if time.Now().Before(at.stopUntil) {
 		remaining := at.stopUntil.Sub(time.Now())
-		log.Printf("⏸ 风险控制：暂停交易中，剩余 %.0f 分钟", remaining.Minutes())
+		logger.Infof("⏸ 风险控制：暂停交易中，剩余 %.0f 分钟", remaining.Minutes())
 		record.Success = false
 		record.ErrorMessage = fmt.Sprintf("风险控制暂停中，剩余 %.0f 分钟", remaining.Minutes())
 		at.decisionLogger.LogDecision(record)
@@ -475,7 +474,7 @@ func (at *AutoTrader) runCycle() error {
 	if time.Since(at.lastResetTime) > 24*time.Hour {
 		at.dailyPnL = 0
 		at.lastResetTime = time.Now()
-		log.Println("📅 日盈亏已重置")
+		logger.Info("📅 日盈亏已重置")
 	}
 
 	// 3. 自动同步余额（每10分钟检查一次，充值/提现后自动更新）
@@ -513,40 +512,40 @@ func (at *AutoTrader) runCycle() error {
 		})
 	}
 
-	log.Print(strings.Repeat("=", 70))
+	logger.Debug(strings.Repeat("=", 70))
 	for _, coin := range ctx.CandidateCoins {
 		record.CandidateCoins = append(record.CandidateCoins, coin.Symbol)
 	}
 
 	stablecoinUnit := at.getStablecoinUnit()
-	log.Printf("📊 账户净值: %.2f %s | 可用: %.2f %s | 持仓: %d",
+	logger.Infof("📊 账户净值: %.2f %s | 可用: %.2f %s | 持仓: %d",
 		ctx.Account.TotalEquity, stablecoinUnit, ctx.Account.AvailableBalance, stablecoinUnit, ctx.Account.PositionCount)
 	
 	// 诊断信息：显示候选币种配置情况
 	if len(ctx.CandidateCoins) == 0 {
-		log.Printf("⚠️  警告: 候选币种列表为空！")
-		log.Printf("   - 自定义币种 (tradingCoins): %v (数量: %d)", at.tradingCoins, len(at.tradingCoins))
-		log.Printf("   - 默认币种 (defaultCoins): %v (数量: %d)", at.defaultCoins, len(at.defaultCoins))
-		log.Printf("   - 如果两者都为空，系统应该使用 AI500+OI Top 作为 fallback")
+		logger.Warnf("⚠️  警告: 候选币种列表为空！")
+		logger.Warnf("   - 自定义币种 (tradingCoins): %v (数量: %d)", at.tradingCoins, len(at.tradingCoins))
+		logger.Warnf("   - 默认币种 (defaultCoins): %v (数量: %d)", at.defaultCoins, len(at.defaultCoins))
+		logger.Warnf("   - 如果两者都为空，系统应该使用 AI500+OI Top 作为 fallback")
 	} else {
-		log.Printf("📋 候选币种列表: %d 个", len(ctx.CandidateCoins))
+		logger.Infof("📋 候选币种列表: %d 个", len(ctx.CandidateCoins))
 		for i, coin := range ctx.CandidateCoins {
 			if i < 5 { // 只显示前5个
-				log.Printf("   %d. %s (来源: %v)", i+1, coin.Symbol, coin.Sources)
+				logger.Infof("   %d. %s (来源: %v)", i+1, coin.Symbol, coin.Sources)
 			}
 		}
 		if len(ctx.CandidateCoins) > 5 {
-			log.Printf("   ... 还有 %d 个币种", len(ctx.CandidateCoins)-5)
+			logger.Infof("   ... 还有 %d 个币种", len(ctx.CandidateCoins)-5)
 		}
 	}
 
 	// 5. 调用AI获取完整决策
-	log.Printf("🤖 正在请求AI分析并决策... [模板: %s]", at.systemPromptTemplate)
+	logger.Infof("🤖 正在请求AI分析并决策... [模板: %s]", at.systemPromptTemplate)
 	decision, err := decision.GetFullDecisionWithCustomPrompt(ctx, at.mcpClient, at.customPrompt, at.overrideBasePrompt, at.systemPromptTemplate)
 
 	if decision != nil && decision.AIRequestDurationMs > 0 {
 		record.AIRequestDurationMs = decision.AIRequestDurationMs
-		log.Printf("⏱️ AI调用耗时: %.2f 秒", float64(record.AIRequestDurationMs)/1000)
+		logger.Infof("⏱️ AI调用耗时: %.2f 秒", float64(record.AIRequestDurationMs)/1000)
 		record.ExecutionLog = append(record.ExecutionLog,
 			fmt.Sprintf("AI调用耗时: %d ms", record.AIRequestDurationMs))
 	}
@@ -568,18 +567,18 @@ func (at *AutoTrader) runCycle() error {
 
 		// 打印系统提示词和AI思维链（即使有错误，也要输出以便调试）
 		if decision != nil {
-			log.Print("\n" + strings.Repeat("=", 70) + "\n")
-			log.Printf("📋 系统提示词 [模板: %s] (错误情况)", at.systemPromptTemplate)
-			log.Println(strings.Repeat("=", 70))
-			log.Println(decision.SystemPrompt)
-			log.Println(strings.Repeat("=", 70))
+			logger.Debug("\n" + strings.Repeat("=", 70) + "\n")
+			logger.Infof("📋 系统提示词 [模板: %s] (错误情况)", at.systemPromptTemplate)
+			logger.Debug(strings.Repeat("=", 70))
+			logger.Info(decision.SystemPrompt)
+			logger.Debug(strings.Repeat("=", 70))
 
 			if decision.CoTTrace != "" {
-				log.Print("\n" + strings.Repeat("-", 70) + "\n")
-				log.Println("💭 AI思维链分析（错误情况）:")
-				log.Println(strings.Repeat("-", 70))
-				log.Println(decision.CoTTrace)
-				log.Println(strings.Repeat("-", 70))
+				logger.Debug("\n" + strings.Repeat("-", 70) + "\n")
+				logger.Info("💭 AI思维链分析（错误情况）:")
+				logger.Debug(strings.Repeat("-", 70))
+				logger.Info(decision.CoTTrace)
+				logger.Debug(strings.Repeat("-", 70))
 			}
 		}
 
@@ -610,19 +609,19 @@ func (at *AutoTrader) runCycle() error {
 	//           d.Leverage, d.PositionSizeUSD, d.StopLoss, d.TakeProfit)
 	//     }
 	// }
-	log.Println()
-	log.Print(strings.Repeat("-", 70))
+	logger.Info("")
+	logger.Debug(strings.Repeat("-", 70))
 	// 8. 对决策排序：确保先平仓后开仓（防止仓位叠加超限）
-	log.Print(strings.Repeat("-", 70))
+	logger.Debug(strings.Repeat("-", 70))
 
 	// 8. 对决策排序：确保先平仓后开仓（防止仓位叠加超限）
 	sortedDecisions := sortDecisionsByPriority(decision.Decisions)
 
-	log.Println("🔄 执行顺序（已优化）: 先平仓→后开仓")
+	logger.Info("🔄 执行顺序（已优化）: 先平仓→后开仓")
 	for i, d := range sortedDecisions {
-		log.Printf("  [%d] %s %s", i+1, d.Symbol, d.Action)
+		logger.Infof("  [%d] %s %s", i+1, d.Symbol, d.Action)
 	}
-	log.Println()
+	logger.Info("")
 
 	// 执行决策并记录结果
 	for _, d := range sortedDecisions {
@@ -637,7 +636,7 @@ func (at *AutoTrader) runCycle() error {
 		}
 
 		if err := at.executeDecisionWithRecord(&d, &actionRecord); err != nil {
-			log.Printf("❌ 执行决策失败 (%s %s): %v", d.Symbol, d.Action, err)
+			logger.Errorf("❌ 执行决策失败 (%s %s): %v", d.Symbol, d.Action, err)
 			actionRecord.Error = err.Error()
 			record.ExecutionLog = append(record.ExecutionLog, fmt.Sprintf("❌ %s %s 失败: %v", d.Symbol, d.Action, err))
 		} else {
@@ -652,7 +651,7 @@ func (at *AutoTrader) runCycle() error {
 
 	// 9. 保存决策记录
 	if err := at.decisionLogger.LogDecision(record); err != nil {
-		log.Printf("⚠ 保存决策记录失败: %v", err)
+		logger.Warnf("⚠ 保存决策记录失败: %v", err)
 	}
 
 	// 10. 记录交易指标
@@ -716,12 +715,12 @@ func (at *AutoTrader) buildTradingContext() (*decision.Context, error) {
 		// 安全地获取字段，避免 nil panic
 		symbol, ok := pos["symbol"].(string)
 		if !ok || symbol == "" {
-			log.Printf("⚠️ 构建交易上下文：持仓数据缺少 symbol 字段，跳过: %v", pos)
+			logger.Warnf("⚠️ 构建交易上下文：持仓数据缺少 symbol 字段，跳过: %v", pos)
 			continue
 		}
 		side, ok := pos["side"].(string)
 		if !ok || side == "" {
-			log.Printf("⚠️ 构建交易上下文：持仓数据缺少 side 字段，跳过: %v", pos)
+			logger.Warnf("⚠️ 构建交易上下文：持仓数据缺少 side 字段，跳过: %v", pos)
 			continue
 		}
 		entryPrice, _ := pos["entryPrice"].(float64)
@@ -809,7 +808,7 @@ func (at *AutoTrader) buildTradingContext() (*decision.Context, error) {
 	// 假设每3分钟一个周期，100个周期 = 5小时，足够覆盖大部分交易
 	performance, err := at.decisionLogger.AnalyzePerformance(100)
 	if err != nil {
-		log.Printf("⚠️  分析历史表现失败: %v", err)
+		logger.Warnf("⚠️  分析历史表现失败: %v", err)
 		// 不影响主流程，继续执行（但设置performance为nil以避免传递错误数据）
 		performance = nil
 	}
@@ -873,7 +872,7 @@ func (at *AutoTrader) executeDecisionWithRecord(decision *decision.Decision, act
 
 // executeOpenLongWithRecord 执行开多仓并记录详细信息
 func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  📈 开多仓: %s", decision.Symbol)
+	logger.Infof("  📈 开多仓: %s", decision.Symbol)
 
 	// ⚠️ 关键：检查是否已有同币种同方向持仓，如果有则拒绝开仓（防止仓位叠加超限）
 	positions, err := at.trader.GetPositions()
@@ -938,7 +937,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 			totalRequired = requiredMargin + estimatedFee
 			
 			stablecoinUnit := at.getStablecoinUnit()
-			log.Printf("  ⚠️  仓位大小自动调整: %.2f → %.2f %s (超出可用余额 %.2f%%)",
+			logger.Warnf("  ⚠️  仓位大小自动调整: %.2f → %.2f %s (超出可用余额 %.2f%%)",
 				originalSize, decision.PositionSizeUSD, stablecoinUnit, excessPercent)
 		} else {
 			stablecoinUnit := at.getStablecoinUnit()
@@ -949,7 +948,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 
 	// 设置仓位模式
 	if err := at.trader.SetMarginMode(decision.Symbol, at.config.IsCrossMargin); err != nil {
-		log.Printf("  ⚠️ 设置仓位模式失败: %v", err)
+		logger.Warnf("  ⚠️ 设置仓位模式失败: %v", err)
 		// 继续执行，不影响交易
 	}
 
@@ -964,7 +963,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 		actionRecord.OrderID = orderID
 	}
 
-	log.Printf("  ✓ 开仓成功，订单ID: %v, 数量: %.4f", order["orderId"], quantity)
+	logger.Infof("  ✓ 开仓成功，订单ID: %v, 数量: %.4f", order["orderId"], quantity)
 
 	// 记录开仓时间
 	posKey := decision.Symbol + "_long"
@@ -972,10 +971,10 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 
 	// 设置止损止盈
 	if err := at.trader.SetStopLoss(decision.Symbol, "LONG", quantity, decision.StopLoss); err != nil {
-		log.Printf("  ⚠ 设置止损失败: %v", err)
+		logger.Warnf("  ⚠ 设置止损失败: %v", err)
 	}
 	if err := at.trader.SetTakeProfit(decision.Symbol, "LONG", quantity, decision.TakeProfit); err != nil {
-		log.Printf("  ⚠ 设置止盈失败: %v", err)
+		logger.Warnf("  ⚠ 设置止盈失败: %v", err)
 	}
 
 	return nil
@@ -983,7 +982,7 @@ func (at *AutoTrader) executeOpenLongWithRecord(decision *decision.Decision, act
 
 // executeOpenShortWithRecord 执行开空仓并记录详细信息
 func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  📉 开空仓: %s", decision.Symbol)
+	logger.Infof("  📉 开空仓: %s", decision.Symbol)
 
 	// ⚠️ 关键：检查是否已有同币种同方向持仓，如果有则拒绝开仓（防止仓位叠加超限）
 	positions, err := at.trader.GetPositions()
@@ -1048,7 +1047,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 			totalRequired = requiredMargin + estimatedFee
 			
 			stablecoinUnit := at.getStablecoinUnit()
-			log.Printf("  ⚠️  仓位大小自动调整: %.2f → %.2f %s (超出可用余额 %.2f%%)",
+			logger.Warnf("  ⚠️  仓位大小自动调整: %.2f → %.2f %s (超出可用余额 %.2f%%)",
 				originalSize, decision.PositionSizeUSD, stablecoinUnit, excessPercent)
 		} else {
 			stablecoinUnit := at.getStablecoinUnit()
@@ -1059,7 +1058,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 
 	// 设置仓位模式
 	if err := at.trader.SetMarginMode(decision.Symbol, at.config.IsCrossMargin); err != nil {
-		log.Printf("  ⚠️ 设置仓位模式失败: %v", err)
+		logger.Warnf("  ⚠️ 设置仓位模式失败: %v", err)
 		// 继续执行，不影响交易
 	}
 
@@ -1074,7 +1073,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 		actionRecord.OrderID = orderID
 	}
 
-	log.Printf("  ✓ 开仓成功，订单ID: %v, 数量: %.4f", order["orderId"], quantity)
+	logger.Infof("  ✓ 开仓成功，订单ID: %v, 数量: %.4f", order["orderId"], quantity)
 
 	// 记录开仓时间
 	posKey := decision.Symbol + "_short"
@@ -1082,10 +1081,10 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 
 	// 设置止损止盈
 	if err := at.trader.SetStopLoss(decision.Symbol, "SHORT", quantity, decision.StopLoss); err != nil {
-		log.Printf("  ⚠ 设置止损失败: %v", err)
+		logger.Warnf("  ⚠ 设置止损失败: %v", err)
 	}
 	if err := at.trader.SetTakeProfit(decision.Symbol, "SHORT", quantity, decision.TakeProfit); err != nil {
-		log.Printf("  ⚠ 设置止盈失败: %v", err)
+		logger.Warnf("  ⚠ 设置止盈失败: %v", err)
 	}
 
 	return nil
@@ -1093,7 +1092,7 @@ func (at *AutoTrader) executeOpenShortWithRecord(decision *decision.Decision, ac
 
 // executeCloseLongWithRecord 执行平多仓并记录详细信息
 func (at *AutoTrader) executeCloseLongWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  🔄 平多仓: %s", decision.Symbol)
+	logger.Infof("  🔄 平多仓: %s", decision.Symbol)
 
 	// 获取当前价格
 	marketData, err := market.Get(decision.Symbol)
@@ -1113,13 +1112,13 @@ func (at *AutoTrader) executeCloseLongWithRecord(decision *decision.Decision, ac
 		actionRecord.OrderID = orderID
 	}
 
-	log.Printf("  ✓ 平仓成功")
+	logger.Infof("  ✓ 平仓成功")
 	return nil
 }
 
 // executeCloseShortWithRecord 执行平空仓并记录详细信息
 func (at *AutoTrader) executeCloseShortWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  🔄 平空仓: %s", decision.Symbol)
+	logger.Infof("  🔄 平空仓: %s", decision.Symbol)
 
 	// 获取当前价格
 	marketData, err := market.Get(decision.Symbol)
@@ -1139,13 +1138,13 @@ func (at *AutoTrader) executeCloseShortWithRecord(decision *decision.Decision, a
 		actionRecord.OrderID = orderID
 	}
 
-	log.Printf("  ✓ 平仓成功")
+	logger.Infof("  ✓ 平仓成功")
 	return nil
 }
 
 // executeUpdateStopLossWithRecord 执行调整止损并记录详细信息
 func (at *AutoTrader) executeUpdateStopLossWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  🎯 调整止损: %s → %.2f", decision.Symbol, decision.NewStopLoss)
+	logger.Infof("  🎯 调整止损: %s → %.2f", decision.Symbol, decision.NewStopLoss)
 
 	// 获取当前价格
 	marketData, err := market.Get(decision.Symbol)
@@ -1203,16 +1202,16 @@ func (at *AutoTrader) executeUpdateStopLossWithRecord(decision *decision.Decisio
 	}
 
 	if hasOppositePosition {
-		log.Printf("  🚨 警告：检测到 %s 存在双向持仓（%s + %s），这违反了策略规则",
+		logger.Errorf("  🚨 警告：检测到 %s 存在双向持仓（%s + %s），这违反了策略规则",
 			decision.Symbol, positionSide, oppositeSide)
-		log.Printf("  🚨 取消止损单将影响两个方向的订单，请检查是否为用户手动操作导致")
-		log.Printf("  🚨 建议：手动平掉其中一个方向的持仓，或检查系统是否有BUG")
+		logger.Errorf("  🚨 取消止损单将影响两个方向的订单，请检查是否为用户手动操作导致")
+		logger.Errorf("  🚨 建议：手动平掉其中一个方向的持仓，或检查系统是否有BUG")
 	}
 
 	// 取消旧的止损单（只删除止损单，不影响止盈单）
 	// 注意：如果存在双向持仓，这会删除两个方向的止损单
 	if err := at.trader.CancelStopLossOrders(decision.Symbol); err != nil {
-		log.Printf("  ⚠ 取消旧止损单失败: %v", err)
+		logger.Warnf("  ⚠ 取消旧止损单失败: %v", err)
 		// 不中断执行，继续设置新止损
 	}
 
@@ -1223,13 +1222,13 @@ func (at *AutoTrader) executeUpdateStopLossWithRecord(decision *decision.Decisio
 		return fmt.Errorf("修改止损失败: %w", err)
 	}
 
-	log.Printf("  ✓ 止损已调整: %.2f (当前价格: %.2f)", decision.NewStopLoss, marketData.CurrentPrice)
+	logger.Infof("  ✓ 止损已调整: %.2f (当前价格: %.2f)", decision.NewStopLoss, marketData.CurrentPrice)
 	return nil
 }
 
 // executeUpdateTakeProfitWithRecord 执行调整止盈并记录详细信息
 func (at *AutoTrader) executeUpdateTakeProfitWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  🎯 调整止盈: %s → %.2f", decision.Symbol, decision.NewTakeProfit)
+	logger.Infof("  🎯 调整止盈: %s → %.2f", decision.Symbol, decision.NewTakeProfit)
 
 	// 获取当前价格
 	marketData, err := market.Get(decision.Symbol)
@@ -1287,16 +1286,16 @@ func (at *AutoTrader) executeUpdateTakeProfitWithRecord(decision *decision.Decis
 	}
 
 	if hasOppositePosition {
-		log.Printf("  🚨 警告：检测到 %s 存在双向持仓（%s + %s），这违反了策略规则",
+		logger.Errorf("  🚨 警告：检测到 %s 存在双向持仓（%s + %s），这违反了策略规则",
 			decision.Symbol, positionSide, oppositeSide)
-		log.Printf("  🚨 取消止盈单将影响两个方向的订单，请检查是否为用户手动操作导致")
-		log.Printf("  🚨 建议：手动平掉其中一个方向的持仓，或检查系统是否有BUG")
+		logger.Errorf("  🚨 取消止盈单将影响两个方向的订单，请检查是否为用户手动操作导致")
+		logger.Errorf("  🚨 建议：手动平掉其中一个方向的持仓，或检查系统是否有BUG")
 	}
 
 	// 取消旧的止盈单（只删除止盈单，不影响止损单）
 	// 注意：如果存在双向持仓，这会删除两个方向的止盈单
 	if err := at.trader.CancelTakeProfitOrders(decision.Symbol); err != nil {
-		log.Printf("  ⚠ 取消旧止盈单失败: %v", err)
+		logger.Warnf("  ⚠ 取消旧止盈单失败: %v", err)
 		// 不中断执行，继续设置新止盈
 	}
 
@@ -1307,13 +1306,13 @@ func (at *AutoTrader) executeUpdateTakeProfitWithRecord(decision *decision.Decis
 		return fmt.Errorf("修改止盈失败: %w", err)
 	}
 
-	log.Printf("  ✓ 止盈已调整: %.2f (当前价格: %.2f)", decision.NewTakeProfit, marketData.CurrentPrice)
+	logger.Infof("  ✓ 止盈已调整: %.2f (当前价格: %.2f)", decision.NewTakeProfit, marketData.CurrentPrice)
 	return nil
 }
 
 // executePartialCloseWithRecord 执行部分平仓并记录详细信息
 func (at *AutoTrader) executePartialCloseWithRecord(decision *decision.Decision, actionRecord *logger.DecisionAction) error {
-	log.Printf("  📊 部分平仓: %s %.1f%%", decision.Symbol, decision.ClosePercentage)
+	logger.Infof("  📊 部分平仓: %s %.1f%%", decision.Symbol, decision.ClosePercentage)
 
 	// 验证百分比范围
 	if decision.ClosePercentage <= 0 || decision.ClosePercentage > 100 {
@@ -1376,7 +1375,7 @@ func (at *AutoTrader) executePartialCloseWithRecord(decision *decision.Decision,
 	}
 
 	remainingQuantity := totalQuantity - closeQuantity
-	log.Printf("  ✓ 部分平仓成功: 平仓 %.4f (%.1f%%), 剩余 %.4f",
+	logger.Infof("  ✓ 部分平仓成功: 平仓 %.4f (%.1f%%), 剩余 %.4f",
 		closeQuantity, decision.ClosePercentage, remainingQuantity)
 
 	return nil
@@ -1549,12 +1548,12 @@ func (at *AutoTrader) GetPositions() ([]map[string]interface{}, error) {
 		// 安全地获取字段，避免 nil panic
 		symbol, ok := pos["symbol"].(string)
 		if !ok || symbol == "" {
-			log.Printf("⚠️ 持仓数据缺少 symbol 字段，跳过: %v", pos)
+			logger.Warnf("⚠️ 持仓数据缺少 symbol 字段，跳过: %v", pos)
 			continue
 		}
 		side, ok := pos["side"].(string)
 		if !ok || side == "" {
-			log.Printf("⚠️ 持仓数据缺少 side 字段，跳过: %v", pos)
+			logger.Warnf("⚠️ 持仓数据缺少 side 字段，跳过: %v", pos)
 			continue
 		}
 		entryPrice, _ := pos["entryPrice"].(float64)
@@ -1644,7 +1643,7 @@ func sortDecisionsByPriority(decisions []decision.Decision) []decision.Decision 
 
 // getCandidateCoins 获取交易员的候选币种列表
 func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
-	log.Printf("🔍 [%s] 获取候选币种 - 自定义币种: %v (数量: %d), 默认币种: %v (数量: %d)",
+	logger.Debugf("🔍 [%s] 获取候选币种 - 自定义币种: %v (数量: %d), 默认币种: %v (数量: %d)",
 		at.name, at.tradingCoins, len(at.tradingCoins), at.defaultCoins, len(at.defaultCoins))
 	
 	if len(at.tradingCoins) == 0 {
@@ -1660,17 +1659,17 @@ func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
 					Sources: []string{"default"}, // 标记为数据库默认币种
 				})
 			}
-			log.Printf("📋 [%s] 使用数据库默认币种: %d个币种 %v",
+			logger.Infof("📋 [%s] 使用数据库默认币种: %d个币种 %v",
 				at.name, len(candidateCoins), at.defaultCoins)
 			return candidateCoins, nil
 		} else {
 			// 如果数据库中没有配置默认币种，则使用AI500+OI Top作为fallback
 			const ai500Limit = 20 // AI500取前20个评分最高的币种
 
-			log.Printf("📋 [%s] 自定义币种和默认币种都为空，尝试使用AI500+OI Top作为fallback...", at.name)
+			logger.Infof("📋 [%s] 自定义币种和默认币种都为空，尝试使用AI500+OI Top作为fallback...", at.name)
 			mergedPool, err := pool.GetMergedCoinPool(ai500Limit)
 			if err != nil {
-				log.Printf("❌ [%s] 获取AI500+OI Top币种池失败: %v", at.name, err)
+				logger.Errorf("❌ [%s] 获取AI500+OI Top币种池失败: %v", at.name, err)
 				return nil, fmt.Errorf("获取合并币种池失败: %w", err)
 			}
 
@@ -1684,9 +1683,9 @@ func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
 			}
 
 			if len(candidateCoins) == 0 {
-				log.Printf("⚠️  [%s] AI500+OI Top返回了空列表，候选币种将为0个", at.name)
+				logger.Warnf("⚠️  [%s] AI500+OI Top返回了空列表，候选币种将为0个", at.name)
 			} else {
-				log.Printf("📋 [%s] 数据库无默认币种配置，使用AI500+OI Top: AI500前%d + OI_Top20 = 总计%d个候选币种",
+				logger.Infof("📋 [%s] 数据库无默认币种配置，使用AI500+OI Top: AI500前%d + OI_Top20 = 总计%d个候选币种",
 					at.name, ai500Limit, len(candidateCoins))
 			}
 			return candidateCoins, nil
@@ -1708,7 +1707,7 @@ func (at *AutoTrader) getCandidateCoins() ([]decision.CandidateCoin, error) {
 		for _, c := range candidateCoins {
 			normalizedSymbols = append(normalizedSymbols, c.Symbol)
 		}
-		log.Printf("📋 [%s] 使用自定义币种: %d个币种 %v (标准化后: %v)",
+		logger.Infof("📋 [%s] 使用自定义币种: %d个币种 %v (标准化后: %v)",
 			at.name, len(candidateCoins), at.tradingCoins, normalizedSymbols)
 		return candidateCoins, nil
 	}
@@ -1752,14 +1751,14 @@ func (at *AutoTrader) startDrawdownMonitor() {
 		ticker := time.NewTicker(1 * time.Minute) // 每分钟检查一次
 		defer ticker.Stop()
 
-		log.Println("📊 启动持仓回撤监控（每分钟检查一次）")
+		logger.Info("📊 启动持仓回撤监控（每分钟检查一次）")
 
 		for {
 			select {
 			case <-ticker.C:
 				at.checkPositionDrawdown()
 			case <-at.stopMonitorCh:
-				log.Println("⏹ 停止持仓回撤监控")
+				logger.Info("⏹ 停止持仓回撤监控")
 				return
 			}
 		}
@@ -1771,7 +1770,7 @@ func (at *AutoTrader) checkPositionDrawdown() {
 	// 获取当前持仓
 	positions, err := at.trader.GetPositions()
 	if err != nil {
-		log.Printf("❌ 回撤监控：获取持仓失败: %v", err)
+		logger.Errorf("❌ 回撤监控：获取持仓失败: %v", err)
 		return
 	}
 
@@ -1779,12 +1778,12 @@ func (at *AutoTrader) checkPositionDrawdown() {
 		// 安全地获取字段，避免 nil panic
 		symbol, ok := pos["symbol"].(string)
 		if !ok || symbol == "" {
-			log.Printf("⚠️ 回撤监控：持仓数据缺少 symbol 字段，跳过: %v", pos)
+			logger.Warnf("⚠️ 回撤监控：持仓数据缺少 symbol 字段，跳过: %v", pos)
 			continue
 		}
 		side, ok := pos["side"].(string)
 		if !ok || side == "" {
-			log.Printf("⚠️ 回撤监控：持仓数据缺少 side 字段，跳过: %v", pos)
+			logger.Warnf("⚠️ 回撤监控：持仓数据缺少 side 字段，跳过: %v", pos)
 			continue
 		}
 		entryPrice, _ := pos["entryPrice"].(float64)
@@ -1832,20 +1831,20 @@ func (at *AutoTrader) checkPositionDrawdown() {
 
 		// 检查平仓条件：收益大于5%且回撤超过40%
 		if currentPnLPct > 5.0 && drawdownPct >= 40.0 {
-			log.Printf("🚨 触发回撤平仓条件: %s %s | 当前收益: %.2f%% | 最高收益: %.2f%% | 回撤: %.2f%%",
+			logger.Warnf("🚨 触发回撤平仓条件: %s %s | 当前收益: %.2f%% | 最高收益: %.2f%% | 回撤: %.2f%%",
 				symbol, side, currentPnLPct, peakPnLPct, drawdownPct)
 
 			// 执行平仓
 			if err := at.emergencyClosePosition(symbol, side); err != nil {
-				log.Printf("❌ 回撤平仓失败 (%s %s): %v", symbol, side, err)
+				logger.Errorf("❌ 回撤平仓失败 (%s %s): %v", symbol, side, err)
 			} else {
-				log.Printf("✅ 回撤平仓成功: %s %s", symbol, side)
+				logger.Infof("✅ 回撤平仓成功: %s %s", symbol, side)
 				// 平仓后清理该持仓的缓存
 				at.ClearPeakPnLCache(symbol, side)
 			}
 		} else if currentPnLPct > 5.0 {
 			// 记录接近平仓条件的情况（用于调试）
-			log.Printf("📊 回撤监控: %s %s | 收益: %.2f%% | 最高: %.2f%% | 回撤: %.2f%%",
+			logger.Infof("📊 回撤监控: %s %s | 收益: %.2f%% | 最高: %.2f%% | 回撤: %.2f%%",
 				symbol, side, currentPnLPct, peakPnLPct, drawdownPct)
 		}
 	}
@@ -1859,13 +1858,13 @@ func (at *AutoTrader) emergencyClosePosition(symbol, side string) error {
 		if err != nil {
 			return err
 		}
-		log.Printf("✅ 紧急平多仓成功，订单ID: %v", order["orderId"])
+		logger.Infof("✅ 紧急平多仓成功，订单ID: %v", order["orderId"])
 	case "short":
 		order, err := at.trader.CloseShort(symbol, 0) // 0 = 全部平仓
 		if err != nil {
 			return err
 		}
-		log.Printf("✅ 紧急平空仓成功，订单ID: %v", order["orderId"])
+		logger.Infof("✅ 紧急平空仓成功，订单ID: %v", order["orderId"])
 	default:
 		return fmt.Errorf("未知的持仓方向: %s", side)
 	}

@@ -1,15 +1,16 @@
 package trader
 
 import (
-	"aspen/config"
 	"encoding/json"
 	"fmt"
-	"log"
-	"aspen/market"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"aspen/config"
+	"aspen/logger"
+	"aspen/market"
 )
 
 // Position 持仓信息
@@ -47,7 +48,7 @@ func NewPaperTrader(initialUSDC float64) (*PaperTrader, error) {
 		positions:      make(map[string]*Position),
 	}
 
-	log.Printf("📝 [Paper Trading] 模拟仓已创建，初始余额: %.2f USDC", initialUSDC)
+	logger.Infof("📝 [Paper Trading] 模拟仓已创建，初始余额: %.2f USDC", initialUSDC)
 	return trader, nil
 }
 
@@ -71,7 +72,7 @@ func NewPaperTraderWithDB(initialUSDC float64, db *config.Database, traderID str
 	if db != nil && traderID != "" {
 		savedInitBal, savedBalance, savedPnL, savedPositions, exists, err := db.LoadPaperTraderState(traderID)
 		if err != nil {
-			log.Printf("⚠️ [Paper Trading] 加载保存状态失败: %v，使用初始余额", err)
+			logger.Warnf("⚠️ [Paper Trading] 加载保存状态失败: %v，使用初始余额", err)
 		} else if exists {
 			pt.initialBalance = savedInitBal
 			pt.balance = savedBalance
@@ -81,21 +82,21 @@ func NewPaperTraderWithDB(initialUSDC float64, db *config.Database, traderID str
 			if savedPositions != "" && savedPositions != "{}" {
 				var positions map[string]*Position
 				if err := json.Unmarshal([]byte(savedPositions), &positions); err != nil {
-					log.Printf("⚠️ [Paper Trading] 反序列化持仓失败: %v，从空仓开始", err)
+					logger.Warnf("⚠️ [Paper Trading] 反序列化持仓失败: %v，从空仓开始", err)
 				} else {
 					pt.positions = positions
-					log.Printf("✅ [Paper Trading] 已从数据库恢复状态: 余额=%.2f, 已实现盈亏=%.2f, 持仓数=%d",
+					logger.Infof("✅ [Paper Trading] 已从数据库恢复状态: 余额=%.2f, 已实现盈亏=%.2f, 持仓数=%d",
 						savedBalance, savedPnL, len(positions))
 					return pt, nil
 				}
 			}
-			log.Printf("✅ [Paper Trading] 已从数据库恢复状态: 余额=%.2f, 已实现盈亏=%.2f, 无持仓",
+			logger.Infof("✅ [Paper Trading] 已从数据库恢复状态: 余额=%.2f, 已实现盈亏=%.2f, 无持仓",
 				savedBalance, savedPnL)
 			return pt, nil
 		}
 	}
 
-	log.Printf("📝 [Paper Trading] 模拟仓已创建，初始余额: %.2f USDC", initialUSDC)
+	logger.Infof("📝 [Paper Trading] 模拟仓已创建，初始余额: %.2f USDC", initialUSDC)
 	return pt, nil
 }
 
@@ -108,12 +109,12 @@ func (t *PaperTrader) SaveState() {
 	// 序列化持仓
 	positionsJSON, err := json.Marshal(t.positions)
 	if err != nil {
-		log.Printf("⚠️ [Paper Trading] 序列化持仓失败: %v", err)
+		logger.Warnf("⚠️ [Paper Trading] 序列化持仓失败: %v", err)
 		return
 	}
 
 	if err := t.db.SavePaperTraderState(t.traderID, t.initialBalance, t.balance, t.realizedPnL, string(positionsJSON)); err != nil {
-		log.Printf("⚠️ [Paper Trading] 保存状态到数据库失败: %v", err)
+		logger.Warnf("⚠️ [Paper Trading] 保存状态到数据库失败: %v", err)
 	}
 }
 
@@ -130,7 +131,7 @@ func (t *PaperTrader) updateUnrealizedPnL() {
 	for key, pos := range t.positions {
 		currentPrice, err := t.getMarketPrice(pos.Symbol)
 		if err != nil {
-			log.Printf("⚠️ [Paper Trading] 获取 %s 价格失败: %v", pos.Symbol, err)
+			logger.Warnf("⚠️ [Paper Trading] 获取 %s 价格失败: %v", pos.Symbol, err)
 			continue
 		}
 
@@ -292,7 +293,7 @@ func (t *PaperTrader) OpenLong(symbol string, quantity float64, leverage int) (m
 	// 扣除保证金和手续费
 	t.balance -= totalRequired
 
-	log.Printf("📝 [Paper Trading] 开多仓: %s, 数量: %.6f, 价格: %.2f, 杠杆: %dx, 保证金: %.2f USDC, 手续费: %.2f USDC",
+	logger.Infof("📝 [Paper Trading] 开多仓: %s, 数量: %.6f, 价格: %.2f, 杠杆: %dx, 保证金: %.2f USDC, 手续费: %.2f USDC",
 		symbol, quantity, currentPrice, leverage, requiredMargin, tradingFee)
 
 	// 持久化状态
@@ -363,7 +364,7 @@ func (t *PaperTrader) OpenShort(symbol string, quantity float64, leverage int) (
 	// 扣除保证金和手续费
 	t.balance -= totalRequired
 
-	log.Printf("📝 [Paper Trading] 开空仓: %s, 数量: %.6f, 价格: %.2f, 杠杆: %dx, 保证金: %.2f USDC, 手续费: %.2f USDC",
+	logger.Infof("📝 [Paper Trading] 开空仓: %s, 数量: %.6f, 价格: %.2f, 杠杆: %dx, 保证金: %.2f USDC, 手续费: %.2f USDC",
 		symbol, quantity, currentPrice, leverage, requiredMargin, tradingFee)
 
 	// 持久化状态
@@ -425,7 +426,7 @@ func (t *PaperTrader) CloseLong(symbol string, quantity float64) (map[string]int
 		t.positions[key] = pos
 	}
 
-	log.Printf("📝 [Paper Trading] 平多仓: %s, 数量: %.6f, 开仓价: %.2f, 平仓价: %.2f, 盈亏: %.2f USDC",
+	logger.Infof("📝 [Paper Trading] 平多仓: %s, 数量: %.6f, 开仓价: %.2f, 平仓价: %.2f, 盈亏: %.2f USDC",
 		symbol, closeQuantity, entryPrice, currentPrice, pnl)
 
 	// 持久化状态
@@ -487,7 +488,7 @@ func (t *PaperTrader) CloseShort(symbol string, quantity float64) (map[string]in
 		t.positions[key] = pos
 	}
 
-	log.Printf("📝 [Paper Trading] 平空仓: %s, 数量: %.6f, 开仓价: %.2f, 平仓价: %.2f, 盈亏: %.2f USDC",
+	logger.Infof("📝 [Paper Trading] 平空仓: %s, 数量: %.6f, 开仓价: %.2f, 平仓价: %.2f, 盈亏: %.2f USDC",
 		symbol, closeQuantity, entryPrice, currentPrice, pnl)
 
 	// 持久化状态
@@ -517,7 +518,7 @@ func (t *PaperTrader) SetLeverage(symbol string, leverage int) error {
 		}
 	}
 
-	log.Printf("📝 [Paper Trading] 设置 %s 杠杆: %dx", symbol, leverage)
+	logger.Infof("📝 [Paper Trading] 设置 %s 杠杆: %dx", symbol, leverage)
 	return nil
 }
 
@@ -527,7 +528,7 @@ func (t *PaperTrader) SetMarginMode(symbol string, isCrossMargin bool) error {
 	if isCrossMargin {
 		mode = "全仓"
 	}
-	log.Printf("📝 [Paper Trading] 设置 %s 仓位模式: %s", symbol, mode)
+	logger.Infof("📝 [Paper Trading] 设置 %s 仓位模式: %s", symbol, mode)
 	return nil
 }
 
@@ -538,13 +539,13 @@ func (t *PaperTrader) GetMarketPrice(symbol string) (float64, error) {
 
 // SetStopLoss 设置止损单（模拟仓中暂不支持）
 func (t *PaperTrader) SetStopLoss(symbol string, positionSide string, quantity, stopPrice float64) error {
-	log.Printf("📝 [Paper Trading] 止损单功能暂不支持（模拟仓）")
+	logger.Infof("📝 [Paper Trading] 止损单功能暂不支持（模拟仓）")
 	return nil
 }
 
 // SetTakeProfit 设置止盈单（模拟仓中暂不支持）
 func (t *PaperTrader) SetTakeProfit(symbol string, positionSide string, quantity, takeProfitPrice float64) error {
-	log.Printf("📝 [Paper Trading] 止盈单功能暂不支持（模拟仓）")
+	logger.Infof("📝 [Paper Trading] 止盈单功能暂不支持（模拟仓）")
 	return nil
 }
 
