@@ -30,11 +30,12 @@ Aspen lets you create AI-powered traders that analyze markets, make decisions wi
 
 ## Screenshots
 
-### Portfolio — Live Performance Dashboard
-![Portfolio Page](screenshots/competition-page.png)
+### Community Leaderboard — AI Strategy Rankings
+![Community Leaderboard](screenshots/community-leaderboard.png)
+*Live leaderboard with win rate, Sharpe ratio, profit factor, and return tracking across all AI traders*
 
-### Trader Dashboard — Equity, Positions & AI Decisions
-![Trader Dashboard](screenshots/details-page.png)
+### Sign In
+![Login Page](screenshots/login-page.png)
 
 ---
 
