@@ -301,7 +301,7 @@ func main() {
 	}
 
 	// 创建并启动API服务器
-	apiServer := api.NewServer(traderManager, database, cryptoService, apiPort)
+	apiServer := api.NewServer(traderManager, database, cryptoService, apiPort, cfg.CORS)
 	go func() {
 		if err := apiServer.Start(); err != nil {
 			log.Printf("❌ API服务器错误: %v", err)

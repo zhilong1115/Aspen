@@ -27,10 +27,16 @@ type TelegramConfig struct {
 	MinLevel string `json:"min_level"` // 最低日志级别，该级别及以上的日志会推送到Telegram（可选，默认: error）
 }
 
+// CORSConfig CORS配置
+type CORSConfig struct {
+	AllowedOrigins []string `json:"allowed_origins"` // 允许的源列表，空或包含"*"表示允许所有
+}
+
 // Config 总配置
 type Config struct {
 	BetaMode           bool           `json:"beta_mode"`
 	APIServerPort      int            `json:"api_server_port"`
+	CORS               *CORSConfig    `json:"cors"`
 	UseDefaultCoins    bool           `json:"use_default_coins"`
 	DefaultCoins       []string       `json:"default_coins"`
 	CoinPoolAPIURL     string         `json:"coin_pool_api_url"`

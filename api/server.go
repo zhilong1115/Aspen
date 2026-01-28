@@ -31,17 +31,18 @@ type Server struct {
 	database      *config.Database
 	cryptoHandler *CryptoHandler
 	port          int
+	corsConfig    *config.CORSConfig
 }
 
 // NewServer 创建API服务器
-func NewServer(traderManager *manager.TraderManager, database *config.Database, cryptoService *crypto.CryptoService, port int) *Server {
+func NewServer(traderManager *manager.TraderManager, database *config.Database, cryptoService *crypto.CryptoService, port int, corsConfig *config.CORSConfig) *Server {
 	// 设置为Release模式（减少日志输出）
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
 
 	// 启用CORS
-	router.Use(corsMiddleware())
+	router.Use(corsMiddleware(corsConfig))
 
 	// 启用Metrics中间件
 	router.Use(metrics.GinMiddleware())
@@ -58,6 +59,7 @@ func NewServer(traderManager *manager.TraderManager, database *config.Database, 
 		database:      database,
 		cryptoHandler: cryptoHandler,
 		port:          port,
+		corsConfig:    corsConfig,
 	}
 
 	// 设置路由
@@ -67,11 +69,47 @@ func NewServer(traderManager *manager.TraderManager, database *config.Database, 
 }
 
 // corsMiddleware CORS中间件
-func corsMiddleware() gin.HandlerFunc {
+// 如果corsConfig为nil或AllowedOrigins为空或包含"*"，则允许所有源
+// 否则只允许配置的源列表
+func corsMiddleware(corsConfig *config.CORSConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		origin := c.Request.Header.Get("Origin")
+		allowedOrigin := "*"
+
+		// 检查是否有配置的源列表
+		if corsConfig != nil && len(corsConfig.AllowedOrigins) > 0 {
+			// 检查是否包含通配符
+			hasWildcard := false
+			for _, o := range corsConfig.AllowedOrigins {
+				if o == "*" {
+					hasWildcard = true
+					break
+				}
+			}
+
+			if !hasWildcard {
+				// 检查请求的Origin是否在允许列表中
+				allowed := false
+				for _, o := range corsConfig.AllowedOrigins {
+					if o == origin {
+						allowed = true
+						allowedOrigin = origin
+						break
+					}
+				}
+				if !allowed {
+					// 不在允许列表中，设置为空（浏览器会阻止跨域请求）
+					allowedOrigin = ""
+				}
+			}
+		}
+
+		if allowedOrigin != "" {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+			c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusOK)

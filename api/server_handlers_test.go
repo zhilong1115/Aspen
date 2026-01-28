@@ -27,7 +27,7 @@ func init() {
 // It does NOT require a database — only tests that don't touch DB.
 func setupTestRouter() *gin.Engine {
 	router := gin.New()
-	router.Use(corsMiddleware())
+	router.Use(corsMiddleware(nil)) // nil allows all origins (dev/test mode)
 	return router
 }
 
