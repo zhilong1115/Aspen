@@ -21,49 +21,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// ConfigFile 配置文件结构，只包含需要同步到数据库的字段
-// TODO 现在与config.Config相同，未来会被替换， 现在为了兼容性不得不保留当前文件
-type ConfigFile struct {
-	BetaMode           bool                  `json:"beta_mode"`
-	APIServerPort      int                   `json:"api_server_port"`
-	UseDefaultCoins    bool                  `json:"use_default_coins"`
-	DefaultCoins       []string              `json:"default_coins"`
-	CoinPoolAPIURL     string                `json:"coin_pool_api_url"`
-	OITopAPIURL        string                `json:"oi_top_api_url"`
-	MaxDailyLoss       float64               `json:"max_daily_loss"`
-	MaxDrawdown        float64               `json:"max_drawdown"`
-	StopTradingMinutes int                   `json:"stop_trading_minutes"`
-	Leverage           config.LeverageConfig `json:"leverage"`
-	JWTSecret          string                `json:"jwt_secret"`
-	DataKLineTime      string                `json:"data_k_line_time"`
-	Log                *config.LogConfig     `json:"log"` // 日志配置
-}
-
-// loadConfigFile 读取并解析config.json文件
-func loadConfigFile() (*ConfigFile, error) {
-	// 检查config.json是否存在
-	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
-		log.Printf("📄 config.json不存在，使用默认配置")
-		return &ConfigFile{}, nil
-	}
-
-	// 读取config.json
-	data, err := os.ReadFile("config.json")
-	if err != nil {
-		return nil, fmt.Errorf("读取config.json失败: %w", err)
-	}
-
-	// 解析JSON
-	var configFile ConfigFile
-	if err := json.Unmarshal(data, &configFile); err != nil {
-		return nil, fmt.Errorf("解析config.json失败: %w", err)
-	}
-
-	return &configFile, nil
-}
-
 // syncConfigToDatabase 将配置同步到数据库
-func syncConfigToDatabase(database *config.Database, configFile *ConfigFile) error {
+func syncConfigToDatabase(database *config.Database, configFile *config.Config) error {
 	if configFile == nil {
 		return nil
 	}
@@ -168,12 +127,6 @@ func main() {
 	}
 
 	// 读取配置文件
-	configFile, err := loadConfigFile()
-	if err != nil {
-		log.Fatalf("❌ 读取config.json失败: %v", err)
-	}
-
-	// 加载配置到 config.Config 结构（用于初始化数据源）
 	cfg, err := config.LoadConfig("config.json")
 	if err != nil {
 		log.Printf("⚠️  读取config.json失败，使用默认配置: %v", err)
@@ -181,13 +134,7 @@ func main() {
 	}
 
 	// 初始化市场数据源
-	marketDataSource := ""
-	finnhubAPIKey := ""
-	if cfg != nil {
-		marketDataSource = cfg.MarketDataSource
-		finnhubAPIKey = cfg.FinnhubAPIKey
-	}
-	market.InitDataSource(marketDataSource, finnhubAPIKey)
+	market.InitDataSource(cfg.MarketDataSource, cfg.FinnhubAPIKey)
 
 	log.Printf("📋 初始化配置数据库: %s", dbPath)
 	database, err := config.NewDatabase(dbPath)
@@ -206,7 +153,7 @@ func main() {
 	log.Printf("✅ 加密服务初始化成功")
 
 	// 同步config.json到数据库
-	if err := syncConfigToDatabase(database, configFile); err != nil {
+	if err := syncConfigToDatabase(database, cfg); err != nil {
 		log.Printf("⚠️  同步config.json到数据库失败: %v", err)
 	}
 
@@ -316,14 +263,8 @@ func main() {
 		}
 	}
 
-	// 创建初始化上下文
-	// TODO : 传入实际配置, 现在并未实际使用，未来所有模块初始化都将通过上下文传递配置
-	// ctx := bootstrap.NewContext(&config.Config{})
-
-	// // 执行所有初始化钩子
-	// if err := bootstrap.Run(ctx); err != nil {
-	// 	log.Fatalf("初始化失败: %v", err)
-	// }
+	// NOTE: bootstrap系统 (bootstrap.NewContext / bootstrap.Run) 已就绪但尚未启用。
+	// 当前所有模块初始化在 main() 中直接完成。未来可迁移至 bootstrap 钩子机制。
 
 	fmt.Println()
 	fmt.Println("🤖 AI全权决策模式:")
@@ -374,8 +315,45 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// TODO: 启动数据库中配置为运行状态的交易员
-	// traderManager.StartAll()
+	// 自动启动数据库中配置为运行状态的交易员
+	go func() {
+		userIDs, err := database.GetAllUsers()
+		if err != nil {
+			log.Printf("⚠️  获取用户列表失败，跳过自动启动: %v", err)
+			return
+		}
+
+		startedCount := 0
+		for _, userID := range userIDs {
+			userTraders, err := database.GetTraders(userID)
+			if err != nil {
+				log.Printf("⚠️  获取用户 %s 的交易员失败: %v", userID, err)
+				continue
+			}
+			for _, traderCfg := range userTraders {
+				if !traderCfg.IsRunning {
+					continue
+				}
+				t, err := traderManager.GetTrader(traderCfg.ID)
+				if err != nil {
+					log.Printf("⚠️  自动启动: 交易员 %s 未加载到内存，跳过: %v", traderCfg.Name, err)
+					continue
+				}
+				traderID := traderCfg.ID
+				traderName := traderCfg.Name
+				go func() {
+					log.Printf("▶️  自动启动交易员 %s (%s)", traderName, traderID)
+					if err := t.Run(); err != nil {
+						log.Printf("❌ 交易员 %s 运行错误: %v", traderName, err)
+					}
+				}()
+				startedCount++
+			}
+		}
+		if startedCount > 0 {
+			log.Printf("🚀 自动启动了 %d 个交易员", startedCount)
+		}
+	}()
 
 	// 等待退出信号
 	<-sigChan
