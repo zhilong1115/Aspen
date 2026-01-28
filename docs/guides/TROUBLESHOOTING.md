@@ -226,7 +226,7 @@ docker info | grep -A 10 "Registry Mirrors"
 # Should show your configured mirrors
 ```
 
-**Related Issue:** [#168](https://github.com/tinkle-community/aspen/issues/168)
+**Related Issue:** [#168](https://github.com/zhilong1115/Aspen/issues/168)
 
 ---
 
@@ -340,7 +340,7 @@ Binance has strict API rate limits:
 - Reduce number of traders
 - Increase decision interval (e.g., from 1min to 3-5min)
 
-**Related Issue:** [#60](https://github.com/tinkle-community/aspen/issues/60)
+**Related Issue:** [#60](https://github.com/zhilong1115/Aspen/issues/60)
 
 ---
 
@@ -560,7 +560,7 @@ If you've tried all the above and still have problems:
 
 3. **Join Community:**
    - [Telegram Developer Community](https://t.me/aspen_dev_community)
-   - [GitHub Discussions](https://github.com/tinkle-community/aspen/discussions)
+   - [GitHub Discussions](https://github.com/zhilong1115/Aspen/discussions)
 
 ---
 

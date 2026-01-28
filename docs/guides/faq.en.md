@@ -80,7 +80,7 @@ Default: **3 positions**. This is a soft limit defined in the AI prompt, not har
 
 **Why**: Aspen uses `PositionSide(LONG/SHORT)` which requires Hedge Mode.
 
-See [Issue #202](https://github.com/tinkle-community/aspen/issues/202) and [Troubleshooting Guide](TROUBLESHOOTING.md#-only-opening-short-positions-issue-202).
+See [Issue #202](https://github.com/zhilong1115/Aspen/issues/202) and [Troubleshooting Guide](TROUBLESHOOTING.md#-only-opening-short-positions-issue-202).
 
 ---
 
@@ -179,13 +179,13 @@ See the comprehensive [Troubleshooting Guide](TROUBLESHOOTING.md) for:
 
 ### How do I report a bug?
 1. Check [Troubleshooting Guide](TROUBLESHOOTING.md) first
-2. Search [existing issues](https://github.com/tinkle-community/aspen/issues)
+2. Search [existing issues](https://github.com/zhilong1115/Aspen/issues)
 3. If not found, use our [Bug Report Template](../../.github/ISSUE_TEMPLATE/bug_report.md)
 
 ### Where can I get help?
-- [GitHub Discussions](https://github.com/tinkle-community/aspen/discussions)
+- [GitHub Discussions](https://github.com/zhilong1115/Aspen/discussions)
 - [Telegram Community](https://t.me/aspen_dev_community)
-- [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+- [GitHub Issues](https://github.com/zhilong1115/Aspen/issues)
 
 ---
 
@@ -199,7 +199,7 @@ Yes! We welcome contributions:
 - See [Contributing Guide](../CONTRIBUTING.md)
 
 ### How do I suggest new features?
-Open a [Feature Request](https://github.com/tinkle-community/aspen/issues/new/choose) with your idea!
+Open a [Feature Request](https://github.com/zhilong1115/Aspen/issues/new/choose) with your idea!
 
 ---
 

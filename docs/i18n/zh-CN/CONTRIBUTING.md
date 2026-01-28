@@ -85,7 +85,7 @@ git clone https://github.com/YOUR_USERNAME/aspen.git
 cd aspen
 
 # 添加 upstream remote
-git remote add upstream https://github.com/tinkle-community/aspen.git
+git remote add upstream https://github.com/zhilong1115/Aspen.git
 ```
 
 ### 2. 创建功能分支
@@ -440,7 +440,7 @@ docs: update Docker deployment guide
 
 ### 工作方式
 
-1. 查看[悬赏 issue](https://github.com/tinkle-community/aspen/labels/bounty)
+1. 查看[悬赏 issue](https://github.com/zhilong1115/Aspen/labels/bounty)
 2. 评论认领（先到先得）
 3. 在截止日期前完成工作
 4. 提交 PR 并填写悬赏认领部分
@@ -459,7 +459,7 @@ docs: update Docker deployment guide
 ## ❓ 问题？
 
 - **一般问题：** 加入我们的 [Telegram 社区](https://t.me/aspen_dev_community)
-- **技术问题：** 开启[讨论](https://github.com/tinkle-community/aspen/discussions)
+- **技术问题：** 开启[讨论](https://github.com/zhilong1115/Aspen/discussions)
 - **安全问题：** 查看[安全政策](../../../SECURITY.md)
 - **Bug 报告：** 使用 [Bug 报告模板](../../../.github/ISSUE_TEMPLATE/bug_report.md)
 

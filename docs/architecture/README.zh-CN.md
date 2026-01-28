@@ -555,11 +555,11 @@ cd web && npm run build
 
 **想要贡献？**
 - 阅读[贡献指南](../../CONTRIBUTING.md)
-- 查看[开放问题](https://github.com/tinkle-community/aspen/issues)
+- 查看[开放问题](https://github.com/zhilong1115/Aspen/issues)
 - 加入 [Telegram 社区](https://t.me/aspen_dev_community)
 
 **需要澄清？**
-- 开启 [GitHub 讨论](https://github.com/tinkle-community/aspen/discussions)
+- 开启 [GitHub 讨论](https://github.com/zhilong1115/Aspen/discussions)
 - 在 Telegram 提问
 
 ---

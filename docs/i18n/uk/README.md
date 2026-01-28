@@ -130,11 +130,11 @@ Aspen тепер підтримує **три основні біржі**: Binanc
 ## 📸 Скриншоти
 
 ### 🏆 Режим змагання - Битва AI в реальному часі
-![Сторінка змагання](../../../screenshots/competition-page.png)
+![Сторінка змагання](../../../screenshots/community-leaderboard.png)
 *Лідерборд з кількома AI та графіки порівняння продуктивності в реальному часі показують битву Qwen проти DeepSeek*
 
 ### 📊 Деталі трейдера - Повна торгова панель
-![Сторінка деталей](../../../screenshots/details-page.png)
+![Сторінка деталей](../../../screenshots/login-page.png)
 *Професійний торговий інтерфейс з кривими капіталу, живими позиціями та логами рішень AI з розкриваємими вхідними промптами та ланцюгом міркувань*
 
 ---
@@ -354,7 +354,7 @@ sudo apt-get install libta-lib0-dev
 ### 2. Клонування проєкту
 
 ```bash
-git clone https://github.com/tinkle-community/aspen.git
+git clone https://github.com/zhilong1115/Aspen.git
 cd aspen
 ```
 
@@ -1100,4 +1100,4 @@ API сервер: http://localhost:8080
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tinkle-community/aspen&type=Date)](https://star-history.com/#tinkle-community/aspen&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=zhilong1115/Aspen&type=Date)](https://star-history.com/#zhilong1115/Aspen&Date)

@@ -1,8 +1,8 @@
-# 📖 NoFx Prompt 编写指南
+# 📖 Aspen Prompt 编写指南
 
 **版本**: v1.0
 **更新日期**: 2025-01-09
-**适用系统版本**: NoFx v0.x+
+**适用系统版本**: Aspen v0.x+
 
 ---
 
@@ -96,7 +96,7 @@ Prompt 是你给 AI 交易员的"工作指令"，决定了 AI 如何分析市场
 
 ### Prompt 的工作原理
 
-NoFx 每3分钟会构建一个包含市场数据的消息发送给 AI：
+Aspen 每3分钟会构建一个包含市场数据的消息发送给 AI：
 
 ```mermaid
 graph LR
@@ -1484,7 +1484,7 @@ unrealized_pnl, peak_pnl_pct, margin_used, leverage, holding_duration
 
 ### 官方资源
 
-- **GitHub Issues**: https://github.com/NoFxAiOS/aspen/issues
+- **GitHub Issues**: https://github.com/AspenAiOS/aspen/issues
 - **官方文档**: 查看项目 README
 - **社区讨论**: GitHub Discussions
 
@@ -1527,4 +1527,4 @@ Prompt 内容：
 
 **文档版本**: v1.0
 **最后更新**: 2025-01-09
-**维护者**: Nofx Team CoderMageFox
+**维护者**: Aspen Team

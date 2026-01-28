@@ -85,7 +85,7 @@ git clone https://github.com/YOUR_USERNAME/aspen.git
 cd aspen
 
 # Add upstream remote
-git remote add upstream https://github.com/tinkle-community/aspen.git
+git remote add upstream https://github.com/zhilong1115/Aspen.git
 ```
 
 ### 2. Create a Feature Branch
@@ -440,7 +440,7 @@ Reviewers will check:
 
 ### How It Works
 
-1. Check [open bounty issues](https://github.com/tinkle-community/aspen/labels/bounty)
+1. Check [open bounty issues](https://github.com/zhilong1115/Aspen/labels/bounty)
 2. Comment to claim (first come, first served)
 3. Complete work within deadline
 4. Submit PR with bounty claim section filled
@@ -459,7 +459,7 @@ Reviewers will check:
 ## ❓ Questions?
 
 - **General questions:** Join our [Telegram Community](https://t.me/aspen_dev_community)
-- **Technical questions:** Open a [Discussion](https://github.com/tinkle-community/aspen/discussions)
+- **Technical questions:** Open a [Discussion](https://github.com/zhilong1115/Aspen/discussions)
 - **Security issues:** See [Security Policy](SECURITY.md)
 - **Bug reports:** Use [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md)
 

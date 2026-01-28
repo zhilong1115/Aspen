@@ -452,4 +452,4 @@ func initModule(ctx *bootstrap.Context) error {
 
 ## 许可证
 
-本模块为 NOFX 项目内部模块，遵循项目整体许可证。
+本模块为 Aspen 项目内部模块，遵循项目整体许可证。

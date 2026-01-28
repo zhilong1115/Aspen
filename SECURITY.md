@@ -153,11 +153,11 @@ api_key = "abc123..."  # NEVER DO THIS
 ### 2. Database Security
 ```bash
 # ✅ Set proper permissions
-chmod 600 nofx.db
+chmod 600 aspen.db
 chmod 600 config.json
 
 # ❌ DON'T: Leave files world-readable
-chmod 777 nofx.db  # NEVER DO THIS
+chmod 777 aspen.db  # NEVER DO THIS
 ```
 
 ### 3. Network Security
@@ -185,10 +185,10 @@ iptables -A INPUT -p tcp --dport 8080 -j DROP
 ```bash
 # Check for updates regularly
 git pull origin main
-go build -o nofx
+go build -o aspen
 
 # Subscribe to security advisories
-# Watch GitHub releases: https://github.com/tinkle-community/nofx/releases
+# Watch GitHub releases: https://github.com/zhilong1115/Aspen/releases
 ```
 
 ---
@@ -236,7 +236,7 @@ We thank the following security researchers for responsibly disclosing vulnerabi
 
 **For general questions:**
 - See [CONTRIBUTING.md](CONTRIBUTING.md)
-- Join [Telegram Community](https://t.me/nofx_dev_community)
+- Join [Telegram Community](https://t.me/aspen_dev_community)
 
 ---
 
@@ -393,11 +393,11 @@ api_key = "abc123..."  # 永远不要这样做
 ### 2. 数据库安全
 ```bash
 # ✅ 设置适当的权限
-chmod 600 nofx.db
+chmod 600 aspen.db
 chmod 600 config.json
 
 # ❌ 不要：让文件全局可读
-chmod 777 nofx.db  # 永远不要这样做
+chmod 777 aspen.db  # 永远不要这样做
 ```
 
 ### 3. 网络安全
@@ -425,10 +425,10 @@ iptables -A INPUT -p tcp --dport 8080 -j DROP
 ```bash
 # 定期检查更新
 git pull origin main
-go build -o nofx
+go build -o aspen
 
 # 订阅安全公告
-# 关注 GitHub 发布：https://github.com/tinkle-community/nofx/releases
+# 关注 GitHub 发布：https://github.com/zhilong1115/Aspen/releases
 ```
 
 ---
@@ -462,7 +462,7 @@ go build -o nofx
 - 🐦 **Twitter 私信：** [@Web3Tinkle](https://x.com/Web3Tinkle)
 
 **一般问题：**
-- 加入 [Telegram 社区](https://t.me/nofx_dev_community)
+- 加入 [Telegram 社区](https://t.me/aspen_dev_community)
 
 ---
 

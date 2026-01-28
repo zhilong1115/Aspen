@@ -555,11 +555,11 @@ cd web && npm run build
 
 **Want to contribute?**
 - Read [Contributing Guide](../../CONTRIBUTING.md)
-- Check [Open Issues](https://github.com/tinkle-community/aspen/issues)
+- Check [Open Issues](https://github.com/zhilong1115/Aspen/issues)
 - Join [Telegram Community](https://t.me/aspen_dev_community)
 
 **Need clarification?**
-- Open a [GitHub Discussion](https://github.com/tinkle-community/aspen/discussions)
+- Open a [GitHub Discussion](https://github.com/zhilong1115/Aspen/discussions)
 - Ask in Telegram
 
 ---

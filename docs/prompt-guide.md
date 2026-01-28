@@ -1,8 +1,8 @@
-# 📖 NoFx Prompt Writing Guide
+# 📖 Aspen Prompt Writing Guide
 
 **Version**: v1.0
 **Last Updated**: 2025-01-09
-**Compatible System Version**: NoFx v0.x+
+**Compatible System Version**: Aspen v0.x+
 
 ---
 
@@ -96,7 +96,7 @@ Final Prompt = Your Custom Strategy (Complete Replacement)
 
 ### How Prompts Work
 
-NoFx builds a message containing market data every 3 minutes to send to the AI:
+Aspen builds a message containing market data every 3 minutes to send to the AI:
 
 ```mermaid
 graph LR
@@ -1483,7 +1483,7 @@ Chain of thought analysis
 
 ### Official Resources
 
-- **GitHub Issues**: https://github.com/NoFxAiOS/aspen/issues
+- **GitHub Issues**: https://github.com/AspenAiOS/aspen/issues
 - **Official Documentation**: See project README
 - **Community Discussion**: GitHub Discussions
 
@@ -1526,4 +1526,4 @@ Actual Behavior: [What actually happened]
 
 **Document Version**: v1.0
 **Last Updated**: 2025-01-09
-**Maintainer**: Nofx Team CoderMageFox
+**Maintainer**: Aspen Team

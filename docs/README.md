@@ -61,7 +61,7 @@ Welcome to the Aspen documentation! This page helps you find the right documenta
 **Get Involved:**
 - 💬 [Telegram Community](https://t.me/aspen_dev_community)
 - 🐦 [Twitter @aspen_ai](https://x.com/aspen_ai)
-- 🐛 [Report Issues](https://github.com/tinkle-community/aspen/issues)
+- 🐛 [Report Issues](https://github.com/zhilong1115/Aspen/issues)
 
 ---
 
@@ -125,8 +125,8 @@ Welcome to the Aspen documentation! This page helps you find the right documenta
 
 ### I want to...
 - 🚀 **Get started quickly** → [Getting Started](getting-started/README.md) / [快速开始](getting-started/README.zh-CN.md)
-- 🐛 **Report a bug** → [GitHub Issues](https://github.com/tinkle-community/aspen/issues/new)
-- 💡 **Suggest a feature** → [Feature Request](https://github.com/tinkle-community/aspen/issues/new?template=feature_request.md)
+- 🐛 **Report a bug** → [GitHub Issues](https://github.com/zhilong1115/Aspen/issues/new)
+- 💡 **Suggest a feature** → [Feature Request](https://github.com/zhilong1115/Aspen/issues/new?template=feature_request.md)
 - 🔒 **Report security issue** → [Security Policy](../SECURITY.md)
 - 💰 **Claim a bounty** → [Bounty Guide](community/bounty-guide.md)
 - 🤝 **Contribute code** → [Contributing Guide](../CONTRIBUTING.md)
@@ -168,7 +168,7 @@ Welcome to the Aspen documentation! This page helps you find the right documenta
 1. **Search GitHub Issues** - Someone might have asked already
 2. **Join Telegram** - [Aspen Developer Community](https://t.me/aspen_dev_community)
 3. **Ask on Twitter** - Mention [@aspen_ai](https://x.com/aspen_ai)
-4. **Create an Issue** - [New Issue](https://github.com/tinkle-community/aspen/issues/new)
+4. **Create an Issue** - [New Issue](https://github.com/zhilong1115/Aspen/issues/new)
 
 ---
 
@@ -189,4 +189,4 @@ Found an error or want to improve the docs?
 ---
 
 **Last Updated:** 2025-11-01
-**Maintained by:** [Tinkle Community](https://github.com/tinkle-community)
+**Maintained by:** [Aspen](https://github.com/zhilong1115/Aspen)

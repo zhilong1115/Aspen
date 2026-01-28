@@ -129,7 +129,7 @@ sudo apt-get install libta-lib0-dev
 
 **找不到您需要的内容？**
 - 💬 [Telegram 社区](https://t.me/aspen_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+- 🐛 [GitHub Issues](https://github.com/zhilong1115/Aspen/issues)
 - 🐦 [Twitter @aspen_ai](https://x.com/aspen_ai)
 
 ---

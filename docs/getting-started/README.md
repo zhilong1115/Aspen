@@ -137,7 +137,7 @@ For single-tenant/self-hosted usage, you can enable strict admin-only access:
 **Need more help?**
 - 📖 [FAQ](../guides/faq.zh-CN.md)
 - 💬 [Telegram Community](https://t.me/aspen_dev_community)
-- 🐛 [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+- 🐛 [GitHub Issues](https://github.com/zhilong1115/Aspen/issues)
 
 ---
 

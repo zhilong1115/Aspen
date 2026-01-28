@@ -146,7 +146,7 @@ Files GitHub needs to see:
 ```
 
 **GitHub URLs automatically redirect!**
-- Old: `github.com/tinkle-community/aspen/blob/main/DOCKER_DEPLOY.en.md`
+- Old: `github.com/zhilong1115/Aspen/blob/main/DOCKER_DEPLOY.en.md`
 - Will redirect to: `github.com/.../docs/getting-started/docker-deploy.en.md`
 
 ## 🛠️ For Contributors
@@ -227,7 +227,7 @@ Closes #XXX
 3. Ask in [Telegram](https://t.me/aspen_dev_community)
 
 **Link broken?**
-- Report in [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+- Report in [GitHub Issues](https://github.com/zhilong1115/Aspen/issues)
 - We'll fix it ASAP!
 
 **Want to contribute docs?**

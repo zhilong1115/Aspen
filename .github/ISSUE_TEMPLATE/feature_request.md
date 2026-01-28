@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for NOFX
+about: Suggest a new feature for Aspen
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''

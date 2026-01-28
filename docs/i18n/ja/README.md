@@ -109,11 +109,11 @@ Binance互換の分散型無期限先物取引所！
 ## 📸 スクリーンショット
 
 ### 🏆 競争モード - リアルタイムAIバトル
-![競争ページ](screenshots/competition-page.png)
+![競争ページ](../../../screenshots/community-leaderboard.png)
 *QwenとDeepSeekのライブトレーディングバトルを示すリアルタイムパフォーマンス比較チャート付きマルチAIリーダーボード*
 
 ### 📊 トレーダー詳細 - 完全なトレーディングダッシュボード
-![詳細ページ](screenshots/details-page.png)
+![詳細ページ](../../../screenshots/login-page.png)
 *エクイティカーブ、ライブポジション、展開可能な入力プロンプトと思考連鎖推論を持つAI判断ログを備えたプロフェッショナルな取引インターフェース*
 
 ---
@@ -355,7 +355,7 @@ sudo apt-get install libta-lib0-dev
 ### 2. プロジェクトをクローン
 
 ```bash
-git clone https://github.com/tinkle-community/aspen.git
+git clone https://github.com/zhilong1115/Aspen.git
 cd aspen
 ```
 
@@ -1317,7 +1317,7 @@ IssueとPull Requestを歓迎します！
 
 
 ### 🐛 技術サポート
-- **GitHub Issues**: [Issueを提出](https://github.com/tinkle-community/aspen/issues)
+- **GitHub Issues**: [Issueを提出](https://github.com/zhilong1115/Aspen/issues)
 - **開発者コミュニティ**: [Telegramグループ](https://t.me/aspen_dev_community)
 
 ---
@@ -1340,4 +1340,4 @@ IssueとPull Requestを歓迎します！
 
 ## ⭐ Star履歴
 
-[![Star履歴チャート](https://api.star-history.com/svg?repos=tinkle-community/aspen&type=Date)](https://star-history.com/#tinkle-community/aspen&Date)
+[![Star履歴チャート](https://api.star-history.com/svg?repos=zhilong1115/Aspen&type=Date)](https://star-history.com/#zhilong1115/Aspen&Date)

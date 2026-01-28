@@ -129,11 +129,11 @@ Aspen теперь поддерживает **три основные биржи
 ## 📸 Скриншоты
 
 ### 🏆 Режим конкуренции - Битва AI в реальном времени
-![Страница конкуренции](../../../screenshots/competition-page.png)
+![Страница конкуренции](../../../screenshots/community-leaderboard.png)
 *Лидерборд с несколькими AI и графики сравнения производительности в реальном времени показывают битву Qwen против DeepSeek*
 
 ### 📊 Детали трейдера - Полная торговая панель
-![Страница деталей](../../../screenshots/details-page.png)
+![Страница деталей](../../../screenshots/login-page.png)
 *Профессиональный торговый интерфейс с кривыми капитала, живыми позициями и логами решений AI с раскрываемыми входными промптами и цепочкой рассуждений*
 
 ---
@@ -351,7 +351,7 @@ sudo apt-get install libta-lib0-dev
 ### 2. Клонирование проекта
 
 ```bash
-git clone https://github.com/tinkle-community/aspen.git
+git clone https://github.com/zhilong1115/Aspen.git
 cd aspen
 ```
 
@@ -1089,7 +1089,7 @@ sudo apt-get install libta-lib0-dev
 ## 📬 Контакты
 
 - **Twitter/X**: [@Web3Tinkle](https://x.com/Web3Tinkle)
-- **GitHub Issues**: [Создать Issue](https://github.com/tinkle-community/aspen/issues)
+- **GitHub Issues**: [Создать Issue](https://github.com/zhilong1115/Aspen/issues)
 
 ---
 
@@ -1128,4 +1128,4 @@ sudo apt-get install libta-lib0-dev
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tinkle-community/aspen&type=Date)](https://star-history.com/#tinkle-community/aspen&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=zhilong1115/Aspen&type=Date)](https://star-history.com/#zhilong1115/Aspen&Date)

@@ -28,14 +28,14 @@ We're introducing a new PR management system to improve code quality and make co
    - [Security Policy](../../SECURITY.md) - Report vulnerabilities
 
 2. **Find Something to Work On**
-   - Browse [GitHub Issues](https://github.com/tinkle-community/aspen/issues)
+   - Browse [GitHub Issues](https://github.com/zhilong1115/Aspen/issues)
    - Look for `good first issue` label
    - Check out [bounty tasks](#-bounty-program)
 
 3. **Join the Community**
    - 💬 [Telegram Developer Community](https://t.me/aspen_dev_community)
    - 🐦 [Twitter @aspen_ai](https://x.com/aspen_ai)
-   - 🐙 [GitHub Discussions](https://github.com/tinkle-community/aspen/discussions)
+   - 🐙 [GitHub Discussions](https://github.com/zhilong1115/Aspen/discussions)
 
 ---
 
@@ -139,7 +139,7 @@ Aspen offers bounties for valuable contributions:
 | Platform | Purpose | Link |
 |----------|---------|------|
 | 💬 Telegram | Real-time chat, questions | [Join](https://t.me/aspen_dev_community) |
-| 🐙 GitHub | Issues, PRs, discussions | [Visit](https://github.com/tinkle-community/aspen) |
+| 🐙 GitHub | Issues, PRs, discussions | [Visit](https://github.com/zhilong1115/Aspen) |
 | 🐦 Twitter | Announcements, updates | [@aspen_ai](https://x.com/aspen_ai) |
 
 ### Core Team
@@ -228,10 +228,10 @@ Aspen offers bounties for valuable contributions:
 
 | Metric | Count |
 |--------|-------|
-| GitHub Stars | Check [repo](https://github.com/tinkle-community/aspen) |
+| GitHub Stars | Check [repo](https://github.com/zhilong1115/Aspen) |
 | Contributors | 21+ |
-| Open Issues | Check [issues](https://github.com/tinkle-community/aspen/issues) |
-| Merged PRs | Check [pulls](https://github.com/tinkle-community/aspen/pulls?q=is%3Apr+is%3Amerged) |
+| Open Issues | Check [issues](https://github.com/zhilong1115/Aspen/issues) |
+| Merged PRs | Check [pulls](https://github.com/zhilong1115/Aspen/pulls?q=is%3Apr+is%3Amerged) |
 
 ---
 
