@@ -15,6 +15,18 @@ var (
 	telegramHook *TelegramHook
 )
 
+// init 确保Log始终有一个默认实例，避免nil pointer
+func init() {
+	Log = logrus.New()
+	Log.SetOutput(os.Stdout)
+	Log.SetLevel(logrus.InfoLevel)
+	Log.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05",
+		ForceColors:     true,
+	})
+}
+
 // ============================================================================
 // 初始化函数
 // ============================================================================
