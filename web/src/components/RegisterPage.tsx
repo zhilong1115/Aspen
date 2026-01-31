@@ -108,10 +108,10 @@ export function RegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <img src="/icons/aspen.svg" alt="Aspen" className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
             {t('appTitle', language)}
           </h1>
-          <p className="text-sm mt-2 text-gray-500">
+          <p className="text-sm mt-2 text-[var(--text-secondary)]">
             {step === 'register' && t('registerTitle', language)}
             {step === 'setup-otp' && t('setupTwoFactor', language)}
             {step === 'verify-otp' && t('verifyOTP', language)}
@@ -119,25 +119,25 @@ export function RegisterPage() {
         </div>
 
         {/* Form */}
-        <div className="rounded-2xl p-6 bg-neutral-900 border border-neutral-800">
+        <div className="rounded-2xl p-6 bg-[var(--surface)] border border-[var(--border)]">
           {step === 'register' && (
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('email', language)}
                 </label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-black border border-neutral-800 text-white placeholder-gray-600 focus:outline-none focus:border-[#00C805] transition"
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-disabled)] focus:outline-none focus:border-[#00C805] transition"
                   placeholder={t('emailPlaceholder', language)}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('password', language)}
                 </label>
                 <div className="relative">
@@ -145,7 +145,7 @@ export function RegisterPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 pr-12 rounded-xl bg-black border border-neutral-800 text-white placeholder-gray-600 focus:outline-none focus:border-[#00C805] transition"
+                    className="w-full px-4 py-3 pr-12 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-disabled)] focus:outline-none focus:border-[#00C805] transition"
                     placeholder={t('passwordPlaceholder', language)}
                     required
                   />
@@ -154,7 +154,7 @@ export function RegisterPage() {
                     aria-label={showPassword ? '隐藏密码' : '显示密码'}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-white transition"
+                    className="absolute inset-y-0 right-3 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -162,7 +162,7 @@ export function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('confirmPassword', language)}
                 </label>
                 <div className="relative">
@@ -170,7 +170,7 @@ export function RegisterPage() {
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 pr-12 rounded-xl bg-black border border-neutral-800 text-white placeholder-gray-600 focus:outline-none focus:border-[#00C805] transition"
+                    className="w-full px-4 py-3 pr-12 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-disabled)] focus:outline-none focus:border-[#00C805] transition"
                     placeholder={t('confirmPasswordPlaceholder', language)}
                     required
                   />
@@ -179,7 +179,7 @@ export function RegisterPage() {
                     aria-label={showConfirmPassword ? '隐藏密码' : '显示密码'}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setShowConfirmPassword((v) => !v)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-white transition"
+                    className="absolute inset-y-0 right-3 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
                   >
                     {showConfirmPassword ? (
                       <EyeOff size={18} />
@@ -191,8 +191,8 @@ export function RegisterPage() {
               </div>
 
               {/* Password rules */}
-              <div className="mt-1 text-xs text-gray-400">
-                <div className="mb-1 text-white">
+              <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                <div className="mb-1 text-[var(--text-primary)]">
                   {t('passwordRequirements', language)}
                 </div>
                 <PasswordChecklist
@@ -222,7 +222,7 @@ export function RegisterPage() {
 
               {betaMode && (
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-white">
+                  <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                     内测码 *
                   </label>
                   <input
@@ -233,12 +233,12 @@ export function RegisterPage() {
                         e.target.value.replace(/[^a-z0-9]/gi, '').toLowerCase()
                       )
                     }
-                    className="w-full px-4 py-3 rounded-xl font-mono bg-black border border-neutral-800 text-white focus:outline-none focus:border-[#00C805] transition"
+                    className="w-full px-4 py-3 rounded-xl font-mono bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] focus:outline-none focus:border-[#00C805] transition"
                     placeholder="请输入6位内测码"
                     maxLength={6}
                     required={betaMode}
                   />
-                  <p className="text-xs mt-1 text-gray-500">
+                  <p className="text-xs mt-1 text-[var(--text-secondary)]">
                     内测码由6位字母数字组成，区分大小写
                   </p>
                 </div>
@@ -268,35 +268,35 @@ export function RegisterPage() {
             <div className="space-y-4">
               <div className="text-center">
                 <div className="text-4xl mb-2">📱</div>
-                <h3 className="text-lg font-semibold mb-2 text-white">
+                <h3 className="text-lg font-semibold mb-2 text-[var(--text-primary)]">
                   {t('setupTwoFactor', language)}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--text-secondary)]">
                   {t('setupTwoFactorDesc', language)}
                 </p>
               </div>
 
               <div className="space-y-3">
-                <div className="p-3 rounded-xl bg-black border border-neutral-800">
-                  <p className="text-sm font-semibold mb-2 text-white">
+                <div className="p-3 rounded-xl bg-[var(--background)] border border-[var(--border)]">
+                  <p className="text-sm font-semibold mb-2 text-[var(--text-primary)]">
                     {t('authStep1Title', language)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     {t('authStep1Desc', language)}
                   </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-black border border-neutral-800">
-                  <p className="text-sm font-semibold mb-2 text-white">
+                <div className="p-3 rounded-xl bg-[var(--background)] border border-[var(--border)]">
+                  <p className="text-sm font-semibold mb-2 text-[var(--text-primary)]">
                     {t('authStep2Title', language)}
                   </p>
-                  <p className="text-xs mb-2 text-gray-500">
+                  <p className="text-xs mb-2 text-[var(--text-secondary)]">
                     {t('authStep2Desc', language)}
                   </p>
 
                   {qrCodeURL && (
                     <div className="mt-2">
-                      <p className="text-xs mb-2 text-gray-500">
+                      <p className="text-xs mb-2 text-[var(--text-secondary)]">
                         {t('qrCodeHint', language)}
                       </p>
                       <div className="bg-white p-2 rounded-xl text-center">
@@ -310,11 +310,11 @@ export function RegisterPage() {
                   )}
 
                   <div className="mt-2">
-                    <p className="text-xs mb-1 text-gray-500">
+                    <p className="text-xs mb-1 text-[var(--text-secondary)]">
                       {t('otpSecret', language)}
                     </p>
                     <div className="flex items-center gap-2">
-                      <code className="flex-1 px-2 py-1 text-xs rounded-lg font-mono bg-neutral-800 text-white">
+                      <code className="flex-1 px-2 py-1 text-xs rounded-lg font-mono bg-[var(--surface-hover)] text-[var(--text-primary)]">
                         {otpSecret}
                       </code>
                       <button
@@ -327,11 +327,11 @@ export function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-black border border-neutral-800">
-                  <p className="text-sm font-semibold mb-2 text-white">
+                <div className="p-3 rounded-xl bg-[var(--background)] border border-[var(--border)]">
+                  <p className="text-sm font-semibold mb-2 text-[var(--text-primary)]">
                     {t('authStep3Title', language)}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     {t('authStep3Desc', language)}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ export function RegisterPage() {
             <form onSubmit={handleOTPVerify} className="space-y-4">
               <div className="text-center mb-4">
                 <div className="text-4xl mb-2">🔐</div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--text-secondary)]">
                   {t('enterOTPCode', language)}
                   <br />
                   {t('completeRegistrationSubtitle', language)}
@@ -358,7 +358,7 @@ export function RegisterPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('otpCode', language)}
                 </label>
                 <input
@@ -367,7 +367,7 @@ export function RegisterPage() {
                   onChange={(e) =>
                     setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))
                   }
-                  className="w-full px-4 py-3 rounded-xl text-center text-2xl font-mono bg-black border border-neutral-800 text-white focus:outline-none focus:border-[#00C805] transition"
+                  className="w-full px-4 py-3 rounded-xl text-center text-2xl font-mono bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] focus:outline-none focus:border-[#00C805] transition"
                   placeholder={t('otpPlaceholder', language)}
                   maxLength={6}
                   required
@@ -384,7 +384,7 @@ export function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setStep('setup-otp')}
-                  className="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-neutral-800 text-gray-300 hover:bg-neutral-700 transition"
+                  className="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:bg-[var(--surface-active)] transition"
                 >
                   {t('back', language)}
                 </button>
@@ -405,7 +405,7 @@ export function RegisterPage() {
         {/* Login Link */}
         {step === 'register' && (
           <div className="text-center mt-6">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--text-secondary)]">
               已有账户？{' '}
               <button
                 onClick={() => navigate('/login')}

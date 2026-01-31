@@ -81,27 +81,27 @@ export function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <img src="/icons/aspen.svg" alt="Aspen" className="w-16 h-16 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
             {t('signIn', language) || '登录'} Aspen
           </h1>
-          <p className="text-sm mt-2 text-gray-500">
+          <p className="text-sm mt-2 text-[var(--text-secondary)]">
             {step === 'login' ? '请输入您的邮箱和密码' : '请输入两步验证码'}
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="rounded-2xl p-6 bg-neutral-900 border border-neutral-800">
+        <div className="rounded-2xl p-6 bg-[var(--surface)] border border-[var(--border)]">
           {adminMode ? (
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   管理员密码
                 </label>
                 <input
                   type="password"
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-black border border-neutral-800 text-white focus:outline-none focus:border-[#00C805] transition"
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] focus:outline-none focus:border-[#00C805] transition"
                   placeholder="请输入管理员密码"
                   required
                 />
@@ -124,21 +124,21 @@ export function LoginPage() {
           ) : step === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('email', language)}
                 </label>
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-black border border-neutral-800 text-white placeholder-gray-600 focus:outline-none focus:border-[#00C805] transition"
+                  className="w-full px-4 py-3 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-disabled)] focus:outline-none focus:border-[#00C805] transition"
                   placeholder={t('emailPlaceholder', language)}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('password', language)}
                 </label>
                 <div className="relative">
@@ -146,7 +146,7 @@ export function LoginPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 pr-12 rounded-xl bg-black border border-neutral-800 text-white placeholder-gray-600 focus:outline-none focus:border-[#00C805] transition"
+                    className="w-full px-4 py-3 pr-12 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-disabled)] focus:outline-none focus:border-[#00C805] transition"
                     placeholder={t('passwordPlaceholder', language)}
                     required
                   />
@@ -155,7 +155,7 @@ export function LoginPage() {
                     aria-label={showPassword ? '隐藏密码' : '显示密码'}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-white transition"
+                    className="absolute inset-y-0 right-3 flex items-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -189,7 +189,7 @@ export function LoginPage() {
             <form onSubmit={handleOTPVerify} className="space-y-4">
               <div className="text-center mb-4">
                 <div className="text-4xl mb-2">📱</div>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-[var(--text-secondary)]">
                   {t('scanQRCodeInstructions', language)}
                   <br />
                   {t('enterOTPCode', language)}
@@ -197,7 +197,7 @@ export function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
+                <label className="block text-sm font-semibold mb-2 text-[var(--text-primary)]">
                   {t('otpCode', language)}
                 </label>
                 <input
@@ -206,7 +206,7 @@ export function LoginPage() {
                   onChange={(e) =>
                     setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))
                   }
-                  className="w-full px-4 py-3 rounded-xl text-center text-2xl font-mono bg-black border border-neutral-800 text-white focus:outline-none focus:border-[#00C805] transition"
+                  className="w-full px-4 py-3 rounded-xl text-center text-2xl font-mono bg-[var(--background)] border border-[var(--border)] text-[var(--text-primary)] focus:outline-none focus:border-[#00C805] transition"
                   placeholder={t('otpPlaceholder', language)}
                   maxLength={6}
                   required
@@ -223,7 +223,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setStep('login')}
-                  className="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-neutral-800 text-gray-300 hover:bg-neutral-700 transition"
+                  className="flex-1 px-4 py-3 rounded-full text-sm font-bold bg-[var(--surface-hover)] text-[var(--text-secondary)] hover:bg-[var(--surface-active)] transition"
                 >
                   {t('back', language)}
                 </button>
@@ -242,7 +242,7 @@ export function LoginPage() {
         {/* Register Link */}
         {!adminMode && (
           <div className="text-center mt-6">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-[var(--text-secondary)]">
               还没有账户？{' '}
               <button
                 onClick={() => navigate('/register')}

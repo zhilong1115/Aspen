@@ -29,13 +29,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <div className="min-h-screen w-full bg-black text-white font-sans flex flex-col">
+    <div className="min-h-screen w-full bg-[var(--background)] text-[var(--text-primary)] font-sans flex flex-col">
       {/* Top Navigation */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isDesktop
-            ? 'bg-black/90 backdrop-blur-md h-20 border-b border-neutral-900'
-            : 'bg-black h-14'
+            ? 'bg-[var(--background)]/90 backdrop-blur-md h-20 border-b border-[var(--border)]'
+            : 'bg-[var(--background)] h-14'
         }`}
       >
         <div className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
@@ -45,7 +45,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
             className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <img src="/icons/aspen.svg" alt="Aspen" className="w-8 h-8" />
-            <span className="font-bold text-xl tracking-tighter hidden md:block text-white">
+            <span className="font-bold text-xl tracking-tighter hidden md:block text-[var(--text-primary)]">
               Aspen
             </span>
           </Link>
@@ -83,7 +83,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <User
                 size={24}
                 className={
-                  isActive('/profile') ? 'text-[#00C805]' : 'text-white'
+                  isActive('/profile') ? 'text-[#00C805]' : 'text-[var(--text-primary)]'
                 }
               />
             </button>
@@ -106,7 +106,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
       {/* Mobile Bottom Navigation */}
       {!isDesktop && (
-        <div className="fixed bottom-0 left-0 right-0 bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-800 pb-safe pt-2 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-[var(--surface)]/95 backdrop-blur-xl border-t border-[var(--border)] pb-safe pt-2 z-50">
           <div className="flex justify-around items-center h-16">
             <MobNavBtn
               icon={<Wallet size={22} />}
@@ -152,7 +152,7 @@ function NavBtn({
     <button
       onClick={onClick}
       className={`text-sm font-bold transition-colors ${
-        active ? 'text-[#00C805]' : 'text-gray-400 hover:text-white'
+        active ? 'text-[#00C805]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
       }`}
     >
       {label}
@@ -175,7 +175,7 @@ function MobNavBtn({
     <button
       onClick={onClick}
       className={`flex flex-col items-center gap-1 w-20 transition-all ${
-        active ? 'text-[#00C805] scale-110' : 'text-gray-500'
+        active ? 'text-[#00C805] scale-110' : 'text-[var(--text-tertiary)]'
       }`}
     >
       {icon}
