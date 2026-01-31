@@ -14,6 +14,9 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import useSWR from 'swr'
+import { ErrorBoundary } from './ui/ErrorBoundary'
+import { ErrorState } from './ui/ErrorState'
+import { TradersSkeleton } from './ui/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { t } from '../i18n/translations'
@@ -40,7 +43,7 @@ interface AITradersPageProps {
   onTraderSelect?: (traderId: string) => void
 }
 
-export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
+function AITradersPageContent({ onTraderSelect }: AITradersPageProps) {
   const { language } = useLanguage()
   const { user, token } = useAuth()
   const navigate = useNavigate()
@@ -64,11 +67,14 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     oiTopUrl: '',
   })
 
-  const { data: traders, mutate: mutateTraders } = useSWR<TraderInfo[]>(
-    user && token ? 'traders' : null,
-    api.getTraders,
-    { refreshInterval: 5000 }
-  )
+  const {
+    data: traders,
+    error: tradersError,
+    isLoading: tradersLoading,
+    mutate: mutateTraders,
+  } = useSWR<TraderInfo[]>(user && token ? 'traders' : null, api.getTraders, {
+    refreshInterval: 5000,
+  })
 
   // 加载AI模型和交易所配置
   useEffect(() => {
@@ -121,6 +127,24 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     }
     loadConfigs()
   }, [user, token])
+
+  // ── Loading/Error States ─────────────────────────────────
+  // Show loading skeleton (only on initial load, not during refresh)
+  if (tradersLoading && !traders) {
+    return <TradersSkeleton />
+  }
+
+  // Show error state
+  if (tradersError) {
+    return (
+      <ErrorState
+        error={tradersError}
+        title="Failed to load traders"
+        description="We couldn't load your AI traders. Please try again."
+        onRetry={() => mutateTraders()}
+      />
+    )
+  }
 
   // 只显示已配置的模型和交易所
   // 注意：后端返回的数据不包含敏感信息（apiKey等），所以通过其他字段判断是否已配置
@@ -456,12 +480,12 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         updatedModels = updatedModels.map((m) =>
           m.id === modelId
             ? {
-              ...m,
-              apiKey,
-              customApiUrl: customApiUrl || '',
-              customModelName: customModelName || '',
-              enabled: true,
-            }
+                ...m,
+                apiKey,
+                customApiUrl: customApiUrl || '',
+                customModelName: customModelName || '',
+                enabled: true,
+              }
             : m
         )
       } else {
@@ -477,7 +501,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         }
 
         // 从支持列表中查找对应的模型信息
-        const modelTemplate = supportedModels?.find((m) => m.provider === provider)
+        const modelTemplate = supportedModels?.find(
+          (m) => m.provider === provider
+        )
         if (!modelTemplate) {
           toast.error(t('modelNotExist', language))
           return
@@ -563,7 +589,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               aster_user: exchange.asterUser || '',
               aster_signer: exchange.asterSigner || '',
               aster_private_key: exchange.asterPrivateKey || '',
-              paper_trading_initial_usdc: exchange.paperTradingInitialUSDC || 10000.0,
+              paper_trading_initial_usdc:
+                exchange.paperTradingInitialUSDC || 10000.0,
             },
           ])
         ),
@@ -613,17 +640,17 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
           allExchanges?.map((e) =>
             e.id === exchangeId
               ? {
-                ...e,
-                apiKey,
-                secretKey,
-                testnet,
-                hyperliquidWalletAddr,
-                asterUser,
-                asterSigner,
-                asterPrivateKey,
-                paperTradingInitialUSDC,
-                enabled: true,
-              }
+                  ...e,
+                  apiKey,
+                  secretKey,
+                  testnet,
+                  hyperliquidWalletAddr,
+                  asterUser,
+                  asterSigner,
+                  asterPrivateKey,
+                  paperTradingInitialUSDC,
+                  enabled: true,
+                }
               : e
           ) || []
       } else {
@@ -656,7 +683,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               aster_user: exchange.asterUser || '',
               aster_signer: exchange.asterSigner || '',
               aster_private_key: exchange.asterPrivateKey || '',
-              paper_trading_initial_usdc: exchange.paperTradingInitialUSDC || 10000.0,
+              paper_trading_initial_usdc:
+                exchange.paperTradingInitialUSDC || 10000.0,
             },
           ])
         ),
@@ -716,7 +744,10 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       animate="visible"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
+      <motion.div
+        variants={itemVariants}
+        className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0"
+      >
         <div>
           <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-white">
             {t('aiTraders', language)}
@@ -759,10 +790,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             disabled={
               configuredModels.length === 0 || configuredExchanges.length === 0
             }
-            className={`px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 whitespace-nowrap ${configuredModels.length > 0 && configuredExchanges.length > 0
-              ? 'bg-[#00C805] text-black'
-              : 'bg-neutral-800 text-neutral-600'
-              }`}
+            className={`px-3 md:px-4 py-2 rounded-full text-xs md:text-sm font-bold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 whitespace-nowrap ${
+              configuredModels.length > 0 && configuredExchanges.length > 0
+                ? 'bg-[#00C805] text-black'
+                : 'bg-neutral-800 text-neutral-600'
+            }`}
           >
             <Plus className="w-4 h-4" />
             {t('createTrader', language)}
@@ -792,7 +824,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                   {t('signalSourceWarningMessage', language)}
                 </p>
                 <p>
-                  <strong className="text-neutral-300">{t('solutions', language)}</strong>
+                  <strong className="text-neutral-300">
+                    {t('solutions', language)}
+                  </strong>
                 </p>
                 <ul className="list-disc list-inside space-y-1 ml-2 mt-1">
                   <li>点击"{t('signalSource', language)}"按钮配置API地址</li>
@@ -811,11 +845,18 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         )}
 
       {/* Configuration Status */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+      <motion.div
+        variants={itemVariants}
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6"
+      >
         {/* AI Models */}
         <div className="rounded-xl border border-neutral-900 p-4 md:p-5">
           <h3 className="text-base md:text-lg font-bold mb-4 flex items-center gap-3 text-white">
-            <img src="/icons/ai-models.svg" alt="AI Models" className="w-8 h-8" />
+            <img
+              src="/icons/ai-models.svg"
+              alt="AI Models"
+              className="w-8 h-8"
+            />
             {t('aiModels', language)}
           </h3>
           <div className="space-y-2 md:space-y-3">
@@ -825,7 +866,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               let displayName: string
               if (model.id.startsWith('openrouter-')) {
                 // OpenRouter 模型：显示为 "OpenRouter-ModelName"
-                const modelName = model.customModelName || model.id.replace('openrouter-', '').replace(/-/g, '/')
+                const modelName =
+                  model.customModelName ||
+                  model.id.replace('openrouter-', '').replace(/-/g, '/')
                 displayName = `OpenRouter-${modelName.split('/').pop() || modelName}`
               } else if (model.customModelName) {
                 // 其他模型：如果有自定义模型名称，显示它
@@ -835,27 +878,30 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                 displayName = getModelDisplayName(model.provider || model.id)
               }
               // 如果 ID 包含时间戳（多个实例），在名称后添加标识
-              const modelIdSuffix = model.id.includes('_') && model.id !== model.provider && !model.id.startsWith('openrouter-')
-                ? ` #${model.id.split('_').slice(1).join('_')}`
-                : ''
+              const modelIdSuffix =
+                model.id.includes('_') &&
+                model.id !== model.provider &&
+                !model.id.startsWith('openrouter-')
+                  ? ` #${model.id.split('_').slice(1).join('_')}`
+                  : ''
               return (
                 <div
                   key={model.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded-lg transition-colors border border-neutral-900 ${inUse
-                    ? 'cursor-not-allowed bg-neutral-900/30'
-                    : 'cursor-pointer hover:bg-neutral-800/50 bg-transparent'
-                    }`}
+                  className={`flex items-center justify-between p-2 md:p-3 rounded-lg transition-colors border border-neutral-900 ${
+                    inUse
+                      ? 'cursor-not-allowed bg-neutral-900/30'
+                      : 'cursor-pointer hover:bg-neutral-800/50 bg-transparent'
+                  }`}
                   onClick={() => handleModelClick(model.id)}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div
-                      className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold bg-neutral-800 text-[#00C805] flex-shrink-0"
-                    >
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold bg-neutral-800 text-[#00C805] flex-shrink-0">
                       {getShortName(model.name)[0]}
                     </div>
                     <div className="min-w-0">
                       <div className="font-semibold text-sm md:text-base truncate text-white">
-                        {displayName}{modelIdSuffix}
+                        {displayName}
+                        {modelIdSuffix}
                       </div>
                       <div className="text-xs text-neutral-500">
                         {inUse
@@ -897,10 +943,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
               return (
                 <div
                   key={exchange.id}
-                  className={`flex items-center justify-between p-2 md:p-3 rounded-lg transition-colors border border-neutral-900 ${inUse
-                    ? 'cursor-not-allowed bg-neutral-900/30'
-                    : 'cursor-pointer hover:bg-neutral-800/50 bg-transparent'
-                    }`}
+                  className={`flex items-center justify-between p-2 md:p-3 rounded-lg transition-colors border border-neutral-900 ${
+                    inUse
+                      ? 'cursor-not-allowed bg-neutral-900/30'
+                      : 'cursor-pointer hover:bg-neutral-800/50 bg-transparent'
+                  }`}
                   onClick={() => handleExchangeClick(exchange.id)}
                 >
                   <div className="flex items-center gap-2 md:gap-3">
@@ -940,10 +987,17 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       </motion.div>
 
       {/* Traders List */}
-      <motion.div variants={itemVariants} className="rounded-xl border border-neutral-900 p-4 md:p-6">
+      <motion.div
+        variants={itemVariants}
+        className="rounded-xl border border-neutral-900 p-4 md:p-6"
+      >
         <div className="flex items-center justify-between mb-5 md:mb-6">
           <h2 className="text-lg md:text-xl font-bold flex items-center gap-3 text-white">
-            <img src="/icons/my-traders.svg" alt="My Traders" className="w-8 h-8" />
+            <img
+              src="/icons/my-traders.svg"
+              alt="My Traders"
+              className="w-8 h-8"
+            />
             {t('currentTraders', language)}
           </h2>
         </div>
@@ -976,10 +1030,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                   {/* Status */}
                   <div className="text-center">
                     <div
-                      className={`px-2 md:px-3 py-1 rounded text-xs font-bold ${trader.is_running
-                        ? 'bg-[#00C805]/20 text-[#00C805]'
-                        : 'bg-neutral-800 text-neutral-500'
-                        }`}
+                      className={`px-2 md:px-3 py-1 rounded text-xs font-bold ${
+                        trader.is_running
+                          ? 'bg-[#00C805]/20 text-[#00C805]'
+                          : 'bg-neutral-800 text-neutral-500'
+                      }`}
                     >
                       {trader.is_running
                         ? t('running', language)
@@ -1056,15 +1111,15 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             </div>
             {(configuredModels.length === 0 ||
               configuredExchanges.length === 0) && (
-                <div className="text-xs md:text-sm text-[#FF5000]">
-                  {configuredModels.length === 0 &&
-                    configuredExchanges.length === 0
-                    ? t('configureModelsAndExchangesFirst', language)
-                    : configuredModels.length === 0
-                      ? t('configureModelsFirst', language)
-                      : t('configureExchangesFirst', language)}
-                </div>
-              )}
+              <div className="text-xs md:text-sm text-[#FF5000]">
+                {configuredModels.length === 0 &&
+                configuredExchanges.length === 0
+                  ? t('configureModelsAndExchangesFirst', language)
+                  : configuredModels.length === 0
+                    ? t('configureModelsFirst', language)
+                    : t('configureExchangesFirst', language)}
+              </div>
+            )}
           </div>
         )}
       </motion.div>
@@ -1144,5 +1199,14 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         />
       )}
     </motion.div>
+  )
+}
+
+// Export wrapped with ErrorBoundary
+export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
+  return (
+    <ErrorBoundary>
+      <AITradersPageContent onTraderSelect={onTraderSelect} />
+    </ErrorBoundary>
   )
 }

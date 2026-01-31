@@ -13,6 +13,9 @@ import {
   YAxis,
 } from 'recharts'
 import useSWR from 'swr'
+import { ErrorBoundary } from '../components/ui/ErrorBoundary'
+import { ErrorState } from '../components/ui/ErrorState'
+import { PortfolioSkeleton } from '../components/ui/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
 import type { AccountInfo, TraderInfo } from '../types'
@@ -128,7 +131,11 @@ function ChartTooltip({ active, payload }: any) {
         })}
       </p>
       {payload.map((entry: any, i: number) => (
-        <p key={i} className="text-sm font-semibold" style={{ color: entry.color || GREEN }}>
+        <p
+          key={i}
+          className="text-sm font-semibold"
+          style={{ color: entry.color || GREEN }}
+        >
           {entry.name === 'value'
             ? fmt(entry.value)
             : `${entry.name}: ${fmt(entry.value)}`}
@@ -201,12 +208,17 @@ function TraderCard({
       <div className="flex items-center gap-3 min-w-0">
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-          style={{ backgroundColor: TRADER_COLORS[index % TRADER_COLORS.length] + '22', color: TRADER_COLORS[index % TRADER_COLORS.length] }}
+          style={{
+            backgroundColor: TRADER_COLORS[index % TRADER_COLORS.length] + '22',
+            color: TRADER_COLORS[index % TRADER_COLORS.length],
+          }}
         >
           {trader.trader_name?.charAt(0) || 'T'}
         </div>
         <div className="text-left min-w-0">
-          <p className="text-white font-medium text-sm truncate">{trader.trader_name}</p>
+          <p className="text-white font-medium text-sm truncate">
+            {trader.trader_name}
+          </p>
           <p className="text-neutral-500 text-xs truncate">
             {getModelDisplayName(trader.ai_model)}
           </p>
@@ -241,7 +253,7 @@ function TraderCard({
 }
 
 // ── Main Portfolio Page ────────────────────────────────────
-export function PortfolioPage() {
+function PortfolioPageContent() {
   const { user, token } = useAuth()
   const navigate = useNavigate()
   const [timeRange, setTimeRange] = useState<TimeRange>('1M')
@@ -251,7 +263,12 @@ export function PortfolioPage() {
   const [hoverChangePct, setHoverChangePct] = useState<number | null>(null)
 
   // Fetch traders
-  const { data: traders } = useSWR<TraderInfo[]>(
+  const {
+    data: traders,
+    error: tradersError,
+    isLoading: tradersLoading,
+    mutate: mutateTraders,
+  } = useSWR<TraderInfo[]>(
     user && token ? 'my-traders' : null,
     api.getTraders,
     { refreshInterval: 15000 }
@@ -281,7 +298,10 @@ export function PortfolioPage() {
   const { data: histories } = useSWR(
     traderIds.length > 0 ? `histories-${traderIds.join(',')}` : null,
     async () => {
-      const results: Record<string, Array<{ timestamp: string; total_equity: number; pnl_pct: number }>> = {}
+      const results: Record<
+        string,
+        Array<{ timestamp: string; total_equity: number; pnl_pct: number }>
+      > = {}
       await Promise.all(
         traderIds.map(async (id) => {
           try {
@@ -300,7 +320,10 @@ export function PortfolioPage() {
   // Compute per-trader equity from the LAST equity history point (most accurate)
   // Falls back to account API data if history isn't available yet
   const traderEquities = useMemo(() => {
-    const result: Record<string, { equity: number; pnl: number; pnlPct: number; initial: number }> = {}
+    const result: Record<
+      string,
+      { equity: number; pnl: number; pnlPct: number; initial: number }
+    > = {}
     for (const id of traderIds) {
       const h = histories?.[id]
       const acc = accounts?.[id]
@@ -337,7 +360,8 @@ export function PortfolioPage() {
     return Object.values(traderEquities).reduce((sum, t) => sum + t.initial, 0)
   }, [traderEquities])
 
-  const totalPnlPct = totalInitial > 0 ? ((totalEquity - totalInitial) / totalInitial) * 100 : 0
+  const totalPnlPct =
+    totalInitial > 0 ? ((totalEquity - totalInitial) / totalInitial) * 100 : 0
 
   // Combined portfolio chart data
   const portfolioChartData = useMemo(() => {
@@ -356,9 +380,15 @@ export function PortfolioPage() {
 
     const combined = Array.from(timeMap.entries())
       .map(([timestamp, value]) => ({ timestamp, value }))
-      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      )
 
-    return filterByRange(combined, timeRange) as Array<{ timestamp: string; value: number }>
+    return filterByRange(combined, timeRange) as Array<{
+      timestamp: string
+      value: number
+    }>
   }, [histories, traderIds, timeRange])
 
   // Comparison chart data
@@ -408,7 +438,8 @@ export function PortfolioPage() {
   const accentColor = isPositive ? GREEN : RED
 
   // First point for calculating change on hover
-  const firstValue = portfolioChartData.length > 0 ? portfolioChartData[0].value : totalInitial
+  const firstValue =
+    portfolioChartData.length > 0 ? portfolioChartData[0].value : totalInitial
 
   const handleChartHover = useCallback(
     (state: any) => {
@@ -431,6 +462,24 @@ export function PortfolioPage() {
     setHoverChangePct(null)
   }, [])
 
+  // ── Loading/Error States ─────────────────────────────────
+  // Show loading skeleton while fetching traders
+  if (tradersLoading) {
+    return <PortfolioSkeleton />
+  }
+
+  // Show error state if traders failed to load
+  if (tradersError) {
+    return (
+      <ErrorState
+        error={tradersError}
+        title="Failed to load portfolio"
+        description="We couldn't load your portfolio data. Please try again."
+        onRetry={() => mutateTraders()}
+      />
+    )
+  }
+
   // ── Render ───────────────────────────────────────────────
   return (
     <div className="max-w-3xl md:max-w-6xl mx-auto pb-8">
@@ -445,7 +494,9 @@ export function PortfolioPage() {
             className="px-2 pt-2"
           >
             <p className="text-neutral-500 text-sm font-medium mb-1">
-              {viewMode === 'portfolio' ? 'Total Portfolio' : 'Comparing Traders'}
+              {viewMode === 'portfolio'
+                ? 'Total Portfolio'
+                : 'Comparing Traders'}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
               {fmt(displayValue)}
@@ -456,7 +507,10 @@ export function PortfolioPage() {
               ) : (
                 <TrendingDown size={16} style={{ color: accentColor }} />
               )}
-              <span className="text-sm font-medium" style={{ color: accentColor }}>
+              <span
+                className="text-sm font-medium"
+                style={{ color: accentColor }}
+              >
                 {fmtChange(displayChange)} ({fmtPct(displayChangePct)})
               </span>
               <span className="text-neutral-600 text-sm">
@@ -480,9 +534,23 @@ export function PortfolioPage() {
                   onMouseLeave={handleChartLeave}
                 >
                   <defs>
-                    <linearGradient id="portfolioGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={accentColor} stopOpacity={0.15} />
-                      <stop offset="100%" stopColor={accentColor} stopOpacity={0} />
+                    <linearGradient
+                      id="portfolioGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor={accentColor}
+                        stopOpacity={0.15}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={accentColor}
+                        stopOpacity={0}
+                      />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="timestamp" hide />
@@ -511,9 +579,14 @@ export function PortfolioPage() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            ) : viewMode === 'compare' && compareChartData.length > 0 && traders ? (
+            ) : viewMode === 'compare' &&
+              compareChartData.length > 0 &&
+              traders ? (
               <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={compareChartData} onMouseLeave={handleChartLeave}>
+                <LineChart
+                  data={compareChartData}
+                  onMouseLeave={handleChartLeave}
+                >
                   <XAxis dataKey="timestamp" hide />
                   <YAxis domain={['auto', 'auto']} hide />
                   <Tooltip content={<ChartTooltip />} />
@@ -550,7 +623,14 @@ export function PortfolioPage() {
                       ? 'text-white'
                       : 'text-neutral-500 hover:text-neutral-300'
                   }`}
-                  style={timeRange === r ? { backgroundColor: accentColor + '22', color: accentColor } : {}}
+                  style={
+                    timeRange === r
+                      ? {
+                          backgroundColor: accentColor + '22',
+                          color: accentColor,
+                        }
+                      : {}
+                  }
                 >
                   {r}
                 </button>
@@ -599,13 +679,17 @@ export function PortfolioPage() {
                     trader={trader}
                     equityData={traderEquities[trader.trader_id]}
                     historyData={sparklines[trader.trader_id]}
-                    onClick={() => navigate(`/dashboard?trader=${trader.trader_id}`)}
+                    onClick={() =>
+                      navigate(`/dashboard?trader=${trader.trader_id}`)
+                    }
                     index={i}
                   />
                 ))
               ) : (
                 <div className="py-12 text-center">
-                  <p className="text-neutral-600 text-sm">No traders configured yet</p>
+                  <p className="text-neutral-600 text-sm">
+                    No traders configured yet
+                  </p>
                   <button
                     onClick={() => navigate('/traders')}
                     className="mt-3 text-sm font-medium hover:underline"
@@ -629,9 +713,13 @@ export function PortfolioPage() {
                 <div key={t.trader_id} className="flex items-center gap-1.5">
                   <div
                     className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: TRADER_COLORS[i % TRADER_COLORS.length] }}
+                    style={{
+                      backgroundColor: TRADER_COLORS[i % TRADER_COLORS.length],
+                    }}
                   />
-                  <span className="text-xs text-neutral-400">{t.trader_name}</span>
+                  <span className="text-xs text-neutral-400">
+                    {t.trader_name}
+                  </span>
                 </div>
               ))}
             </motion.div>
@@ -639,5 +727,14 @@ export function PortfolioPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Export wrapped with ErrorBoundary
+export function PortfolioPage() {
+  return (
+    <ErrorBoundary>
+      <PortfolioPageContent />
+    </ErrorBoundary>
   )
 }

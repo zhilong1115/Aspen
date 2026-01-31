@@ -1,9 +1,12 @@
 import { RouterProvider } from 'react-router-dom'
 import { ConfirmDialogProvider } from './components/ConfirmDialog'
+import { PageErrorBoundary } from './components/ui/ErrorBoundary'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
+import { ThemeProvider } from './contexts/ThemeContext'
 import { useSystemConfig } from './hooks/useSystemConfig'
 import { t } from './i18n/translations'
+import { SWRProvider } from './lib/swr'
 import { router } from './routes'
 
 function LoadingScreen() {
@@ -33,18 +36,20 @@ function AppContent() {
   return <RouterProvider router={router} />
 }
 
-import { ThemeProvider } from './contexts/ThemeContext'
-
 export default function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <ConfirmDialogProvider>
-          <ThemeProvider>
-            <AppContent />
-          </ThemeProvider>
-        </ConfirmDialogProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <PageErrorBoundary>
+      <SWRProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <ConfirmDialogProvider>
+              <ThemeProvider>
+                <AppContent />
+              </ThemeProvider>
+            </ConfirmDialogProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </SWRProvider>
+    </PageErrorBoundary>
   )
 }

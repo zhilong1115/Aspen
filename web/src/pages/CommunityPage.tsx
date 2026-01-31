@@ -1,6 +1,17 @@
 import { motion } from 'framer-motion'
-import { TrendingUp, TrendingDown, Users, Loader2, AlertCircle, Trophy, Target, BarChart3, Minus } from 'lucide-react'
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  Trophy,
+  Target,
+  BarChart3,
+  Minus,
+} from 'lucide-react'
 import useSWR from 'swr'
+import { ErrorBoundary } from '../components/ui/ErrorBoundary'
+import { ErrorState } from '../components/ui/ErrorState'
+import { CommunitySkeleton } from '../components/ui/Skeleton'
 import { api } from '../lib/api'
 import type { CommunityData, CommunityTraderProfile } from '../types'
 
@@ -30,17 +41,29 @@ const GREEN = '#00C805'
 const RED = '#FF5000'
 
 const RANK_COLORS = [
-  { bg: '#D4A017', text: '#000' },   // Gold
-  { bg: '#A8A9AD', text: '#000' },   // Silver
-  { bg: '#CD7F32', text: '#000' },   // Bronze
+  { bg: '#D4A017', text: '#000' }, // Gold
+  { bg: '#A8A9AD', text: '#000' }, // Silver
+  { bg: '#CD7F32', text: '#000' }, // Bronze
 ]
 
 // Deterministic avatar color from trader name
 const AVATAR_COLORS = [
-  '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
-  '#ec4899', '#f43f5e', '#ef4444', '#f97316',
-  '#eab308', '#84cc16', '#22c55e', '#14b8a6',
-  '#06b6d4', '#3b82f6', '#2563eb', '#7c3aed',
+  '#6366f1',
+  '#8b5cf6',
+  '#a855f7',
+  '#d946ef',
+  '#ec4899',
+  '#f43f5e',
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#84cc16',
+  '#22c55e',
+  '#14b8a6',
+  '#06b6d4',
+  '#3b82f6',
+  '#2563eb',
+  '#7c3aed',
 ]
 
 function getAvatarColor(name: string): string {
@@ -79,8 +102,10 @@ function StatsHeader({ traders }: { traders: CommunityTraderProfile[] }) {
   const best = traders.length > 0 ? traders[0] : null
   const avgWinRate =
     traders.length > 0
-      ? traders.reduce((sum, t) => sum + (t.total_trades > 0 ? t.win_rate : 0), 0) /
-        traders.filter((t) => t.total_trades > 0).length || 0
+      ? traders.reduce(
+          (sum, t) => sum + (t.total_trades > 0 ? t.win_rate : 0),
+          0
+        ) / traders.filter((t) => t.total_trades > 0).length || 0
       : 0
 
   const stats = [
@@ -92,10 +117,10 @@ function StatsHeader({ traders }: { traders: CommunityTraderProfile[] }) {
     },
     {
       label: 'Top Performer',
-      value: best
-        ? `${best.trader_name}`
-        : '—',
-      sub: best ? `${best.total_return_pct >= 0 ? '+' : ''}${best.total_return_pct.toFixed(2)}%` : undefined,
+      value: best ? `${best.trader_name}` : '—',
+      sub: best
+        ? `${best.total_return_pct >= 0 ? '+' : ''}${best.total_return_pct.toFixed(2)}%`
+        : undefined,
       subColor: best ? (best.total_return_pct >= 0 ? GREEN : RED) : undefined,
       icon: Trophy,
       color: '#D4A017',
@@ -133,7 +158,10 @@ function StatsHeader({ traders }: { traders: CommunityTraderProfile[] }) {
             <div className="text-white font-semibold text-sm truncate">
               {s.value}
               {s.sub && (
-                <span className="ml-1.5 text-xs font-bold" style={{ color: s.subColor }}>
+                <span
+                  className="ml-1.5 text-xs font-bold"
+                  style={{ color: s.subColor }}
+                >
                   {s.sub}
                 </span>
               )}
@@ -265,8 +293,8 @@ function TraderCard({
 }
 
 // ── Component ──────────────────────────────────────────────
-export function CommunityPage() {
-  const { data, error, isLoading } = useSWR<CommunityData>(
+function CommunityPageContent() {
+  const { data, error, isLoading, mutate } = useSWR<CommunityData>(
     'community',
     () => api.getCommunity(),
     { refreshInterval: 30000 }
@@ -310,23 +338,22 @@ export function CommunityPage() {
       >
         <BarChart3 size={18} className="text-neutral-500 shrink-0" />
         <p className="text-neutral-500 text-sm">
-          Ranked by total return. Win rate, Sharpe ratio, and profit factor from live trading history.
+          Ranked by total return. Win rate, Sharpe ratio, and profit factor from
+          live trading history.
         </p>
       </motion.div>
 
       {/* Loading */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-neutral-500" />
-        </div>
-      )}
+      {isLoading && <CommunitySkeleton />}
 
       {/* Error */}
       {error && !isLoading && (
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <AlertCircle size={32} className="text-red-500" />
-          <p className="text-neutral-400 text-sm">Failed to load community data</p>
-        </div>
+        <ErrorState
+          error={error}
+          title="Failed to load community data"
+          description="We couldn't load the leaderboard. Please try again."
+          onRetry={() => mutate()}
+        />
       )}
 
       {/* Empty State */}
@@ -368,5 +395,14 @@ export function CommunityPage() {
         </motion.div>
       )}
     </div>
+  )
+}
+
+// Export wrapped with ErrorBoundary
+export function CommunityPage() {
+  return (
+    <ErrorBoundary>
+      <CommunityPageContent />
+    </ErrorBoundary>
   )
 }
