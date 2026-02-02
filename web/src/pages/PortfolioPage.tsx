@@ -367,19 +367,30 @@ function PortfolioPageContent() {
   const portfolioChartData = useMemo(() => {
     if (!histories || !traderIds.length) return []
     // Merge all histories by timestamp into combined value
+    // Round timestamps to nearest minute to aggregate traders with slightly different cycle times
     const timeMap = new Map<string, number>()
+
+    const roundToMinute = (ts: string) => {
+      const d = new Date(ts)
+      d.setSeconds(0, 0)
+      return d.toISOString().slice(0, 16) // "YYYY-MM-DDTHH:MM"
+    }
 
     for (const id of traderIds) {
       const h = histories[id]
       if (!h) continue
       for (const point of h) {
-        const existing = timeMap.get(point.timestamp) || 0
-        timeMap.set(point.timestamp, existing + point.total_equity)
+        const roundedTs = roundToMinute(point.timestamp)
+        const existing = timeMap.get(roundedTs) || 0
+        timeMap.set(roundedTs, existing + point.total_equity)
       }
     }
 
     const combined = Array.from(timeMap.entries())
-      .map(([timestamp, value]) => ({ timestamp, value }))
+      .map(([timestamp, value]) => ({ 
+        timestamp: new Date(timestamp).toISOString(), // Convert back to full ISO string for display
+        value 
+      }))
       .sort(
         (a, b) =>
           new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
