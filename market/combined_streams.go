@@ -134,8 +134,8 @@ func (c *CombinedStreamsClient) subscribeBybitKlines(symbols []string, interval 
 		"args": args,
 	}
 
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if c.conn == nil {
 		return fmt.Errorf("WebSocket未连接")
@@ -168,8 +168,8 @@ func (c *CombinedStreamsClient) subscribeStreams(streams []string) error {
 		"id":     time.Now().UnixNano(),
 	}
 
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if c.conn == nil {
 		return fmt.Errorf("WebSocket未连接")
@@ -180,8 +180,8 @@ func (c *CombinedStreamsClient) subscribeStreams(streams []string) error {
 }
 
 func (c *CombinedStreamsClient) sendJSON(msg interface{}) error {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	if c.conn == nil {
 		return fmt.Errorf("WebSocket未连接")
