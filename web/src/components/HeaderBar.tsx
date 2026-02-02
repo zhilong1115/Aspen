@@ -60,9 +60,10 @@ export default function HeaderBar({
   }, [])
 
   const navButtonClass = (isActive: boolean) =>
-    `text-sm font-medium transition-all duration-200 relative px-4 py-1.5 rounded-full flex items-center gap-2 ${isActive
-      ? 'text-[var(--google-blue)] bg-[var(--surface-soft-blue)] font-semibold'
-      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
+    `text-sm font-medium transition-all duration-200 relative px-4 py-1.5 rounded-full flex items-center gap-2 ${
+      isActive
+        ? 'text-[var(--google-blue)] bg-[var(--surface-soft-blue)] font-semibold'
+        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)]'
     }`
 
   return (
@@ -74,7 +75,10 @@ export default function HeaderBar({
           className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
         >
           <img src="/icons/aspen.svg" alt="Aspen" className="w-8 h-8" />
-          <span className="text-2xl font-bold tracking-tight text-white" style={{ fontFamily: "'Google Sans', sans-serif" }}>
+          <span
+            className="text-2xl font-bold tracking-tight text-white"
+            style={{ fontFamily: "'Google Sans', sans-serif" }}
+          >
             Aspen
           </span>
           <span className="text-sm hidden sm:block text-[var(--text-secondary)] ml-1 font-medium border-l border-[var(--border)] pl-3 py-0.5">
@@ -93,7 +97,11 @@ export default function HeaderBar({
                   onClick={() => navigate('/competition')}
                   className={navButtonClass(currentPage === 'competition')}
                 >
-                  <img src="/icons/icon-live-google.png" alt="" className="w-4 h-4 opacity-70" />
+                  <img
+                    src="/icons/icon-live-google.png"
+                    alt=""
+                    className="w-4 h-4 opacity-70"
+                  />
                   {t('realtimeNav', language)}
                 </button>
 
@@ -101,7 +109,12 @@ export default function HeaderBar({
                   onClick={() => navigate('/traders')}
                   className={navButtonClass(currentPage === 'traders')}
                 >
-                  <img src="/icons/icon-config-google.png" alt="" className="w-4 h-4 opacity-70" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  <img
+                    src="/icons/icon-config-google.png"
+                    alt=""
+                    className="w-4 h-4 opacity-70"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
                   {t('configNav', language)}
                 </button>
 
@@ -109,7 +122,12 @@ export default function HeaderBar({
                   onClick={() => navigate('/dashboard')}
                   className={navButtonClass(currentPage === 'trader')}
                 >
-                  <img src="/icons/icon-dashboard-google.png" alt="" className="w-4 h-4 opacity-70" onError={(e) => e.currentTarget.style.display = 'none'} />
+                  <img
+                    src="/icons/icon-dashboard-google.png"
+                    alt=""
+                    className="w-4 h-4 opacity-70"
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                  />
                   {t('dashboardNav', language)}
                 </button>
               </>
@@ -120,7 +138,11 @@ export default function HeaderBar({
                   href="/competition"
                   className={navButtonClass(currentPage === 'competition')}
                 >
-                  <img src="/icons/icon-live-google.png" alt="" className="w-4 h-4 opacity-70" />
+                  <img
+                    src="/icons/icon-live-google.png"
+                    alt=""
+                    className="w-4 h-4 opacity-70"
+                  />
                   {t('realtimeNav', language)}
                 </a>
               </>
@@ -230,7 +252,9 @@ export default function HeaderBar({
             <button
               onClick={toggleTheme}
               className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-[var(--surface-hover)] transition-colors text-[var(--text-secondary)]"
-              title={isAuto ? t('autoTheme', language) : t('toggleTheme', language)}
+              title={
+                isAuto ? t('autoTheme', language) : t('toggleTheme', language)
+              }
             >
               {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
@@ -254,8 +278,11 @@ export default function HeaderBar({
                       onLanguageChange?.('zh')
                       setLanguageDropdownOpen(false)
                     }}
-                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors hover:bg-[var(--surface-hover)] ${language === 'zh' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
-                      }`}
+                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors hover:bg-[var(--surface-hover)] ${
+                      language === 'zh'
+                        ? 'bg-blue-50 text-[var(--google-blue)]'
+                        : 'text-[var(--text-primary)]'
+                    }`}
                   >
                     <span className="text-base">🇨🇳</span>
                     <span className="text-sm">中文</span>
@@ -265,8 +292,11 @@ export default function HeaderBar({
                       onLanguageChange?.('en')
                       setLanguageDropdownOpen(false)
                     }}
-                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors hover:bg-[var(--surface-hover)] ${language === 'en' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
-                      }`}
+                    className={`w-full flex items-center gap-2 px-4 py-2 transition-colors hover:bg-[var(--surface-hover)] ${
+                      language === 'en'
+                        ? 'bg-blue-50 text-[var(--google-blue)]'
+                        : 'text-[var(--text-primary)]'
+                    }`}
                   >
                     <span className="text-base">🇺🇸</span>
                     <span className="text-sm">English</span>
@@ -310,20 +340,22 @@ export default function HeaderBar({
                 onPageChange?.('competition')
                 setMobileMenuOpen(false)
               }}
-              className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'competition'
-                ? 'bg-blue-50 text-[var(--google-blue)]'
-                : 'text-[var(--text-primary)]'
-                }`}
+              className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${
+                currentPage === 'competition'
+                  ? 'bg-blue-50 text-[var(--google-blue)]'
+                  : 'text-[var(--text-primary)]'
+              }`}
             >
               {t('realtimeNav', language)}
             </button>
           ) : (
             <a
               href="/competition"
-              className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'competition'
-                ? 'bg-blue-50 text-[var(--google-blue)]'
-                : 'text-[var(--text-primary)]'
-                }`}
+              className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${
+                currentPage === 'competition'
+                  ? 'bg-blue-50 text-[var(--google-blue)]'
+                  : 'text-[var(--text-primary)]'
+              }`}
             >
               {t('realtimeNav', language)}
             </a>
@@ -340,10 +372,11 @@ export default function HeaderBar({
                   }
                   setMobileMenuOpen(false)
                 }}
-                className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'traders'
-                  ? 'bg-blue-50 text-[var(--google-blue)]'
-                  : 'text-[var(--text-primary)]'
-                  }`}
+                className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${
+                  currentPage === 'traders'
+                    ? 'bg-blue-50 text-[var(--google-blue)]'
+                    : 'text-[var(--text-primary)]'
+                }`}
               >
                 {t('configNav', language)}
               </button>
@@ -356,10 +389,11 @@ export default function HeaderBar({
                   }
                   setMobileMenuOpen(false)
                 }}
-                className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${currentPage === 'trader'
-                  ? 'bg-blue-50 text-[var(--google-blue)]'
-                  : 'text-[var(--text-primary)]'
-                  }`}
+                className={`block w-full text-left px-4 py-3 rounded-md text-sm font-medium ${
+                  currentPage === 'trader'
+                    ? 'bg-blue-50 text-[var(--google-blue)]'
+                    : 'text-[var(--text-primary)]'
+                }`}
               >
                 {t('dashboardNav', language)}
               </button>
@@ -407,8 +441,11 @@ export default function HeaderBar({
                   onLanguageChange?.('zh')
                   setMobileMenuOpen(false)
                 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${language === 'zh' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
-                  }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
+                  language === 'zh'
+                    ? 'bg-blue-50 text-[var(--google-blue)]'
+                    : 'text-[var(--text-primary)]'
+                }`}
               >
                 <span>🇨🇳</span> 中文
               </button>
@@ -417,8 +454,11 @@ export default function HeaderBar({
                   onLanguageChange?.('en')
                   setMobileMenuOpen(false)
                 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${language === 'en' ? 'bg-blue-50 text-[var(--google-blue)]' : 'text-[var(--text-primary)]'
-                  }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
+                  language === 'en'
+                    ? 'bg-blue-50 text-[var(--google-blue)]'
+                    : 'text-[var(--text-primary)]'
+                }`}
               >
                 <span>🇺🇸</span> English
               </button>
@@ -456,24 +496,26 @@ export default function HeaderBar({
           )}
 
           {/* Login/Register for Mobile */}
-          {!isLoggedIn && currentPage !== 'login' && currentPage !== 'register' && (
-            <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-[var(--border-light)]">
-              <a
-                href="/login"
-                className="flex items-center justify-center px-4 py-2 text-sm font-medium text-[var(--google-blue)] bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
-              >
-                {t('signIn', language)}
-              </a>
-              <a
-                href="/register"
-                className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--google-blue)] rounded-md hover:bg-blue-600 transition-colors shadow-sm"
-              >
-                {t('signUp', language)}
-              </a>
-            </div>
-          )}
+          {!isLoggedIn &&
+            currentPage !== 'login' &&
+            currentPage !== 'register' && (
+              <div className="grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-[var(--border-light)]">
+                <a
+                  href="/login"
+                  className="flex items-center justify-center px-4 py-2 text-sm font-medium text-[var(--google-blue)] bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                >
+                  {t('signIn', language)}
+                </a>
+                <a
+                  href="/register"
+                  className="flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[var(--google-blue)] rounded-md hover:bg-blue-600 transition-colors shadow-sm"
+                >
+                  {t('signUp', language)}
+                </a>
+              </div>
+            )}
         </div>
       </motion.div>
-    </nav >
+    </nav>
   )
 }

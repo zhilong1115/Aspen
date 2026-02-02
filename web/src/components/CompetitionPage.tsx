@@ -71,12 +71,8 @@ export function CompetitionPage() {
         {/* Competition Header - 精简版 */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
           <div className="flex items-center gap-3 md:gap-4">
-            <div
-              className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-[var(--surface-soft-yellow)] shadow-sm"
-            >
-              <Trophy
-                className="w-6 h-6 md:w-7 md:h-7 text-[var(--google-yellow)]"
-              />
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-[var(--surface-soft-yellow)] shadow-sm">
+              <Trophy className="w-6 h-6 md:w-7 md:h-7 text-[var(--google-yellow)]" />
             </div>
             <div>
               <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-[var(--text-primary)]">
@@ -119,12 +115,8 @@ export function CompetitionPage() {
       {/* Competition Header - 精简版 */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
         <div className="flex items-center gap-3 md:gap-4">
-          <div
-            className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-[var(--surface-soft-yellow)] shadow-sm"
-          >
-            <Trophy
-              className="w-6 h-6 md:w-7 md:h-7 text-[var(--google-yellow)]"
-            />
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center bg-[var(--surface-soft-yellow)] shadow-sm">
+            <Trophy className="w-6 h-6 md:w-7 md:h-7 text-[var(--google-yellow)]" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2 text-[var(--text-primary)]">
@@ -200,10 +192,11 @@ export function CompetitionPage() {
                 <div
                   key={trader.trader_id}
                   onClick={() => handleTraderClick(trader.trader_id)}
-                  className={`rounded-xl p-3 transition-all duration-300 hover:translate-y-[-1px] cursor-pointer hover:shadow-md border ${isLeader
+                  className={`rounded-xl p-3 transition-all duration-300 hover:translate-y-[-1px] cursor-pointer hover:shadow-md border ${
+                    isLeader
                       ? 'bg-[var(--surface-soft-yellow)] border-[var(--google-yellow)]/30'
                       : 'bg-[var(--surface)] border-[var(--border-light)]'
-                    }`}
+                  }`}
                 >
                   <div className="flex items-center justify-between">
                     {/* Rank & Name */}
@@ -290,13 +283,13 @@ export function CompetitionPage() {
                           style={
                             trader.is_running
                               ? {
-                                background: 'var(--surface-soft-green)',
-                                color: 'var(--google-green)',
-                              }
+                                  background: 'var(--surface-soft-green)',
+                                  color: 'var(--google-green)',
+                                }
                               : {
-                                background: 'var(--surface-soft)',
-                                color: 'var(--google-red)',
-                              }
+                                  background: 'var(--surface-soft)',
+                                  color: 'var(--google-red)',
+                                }
                           }
                         >
                           {trader.is_running ? '●' : '○'}
@@ -339,10 +332,11 @@ export function CompetitionPage() {
               return (
                 <div
                   key={trader.trader_id}
-                  className={`p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] border ${isWinning
+                  className={`p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] border ${
+                    isWinning
                       ? 'bg-[var(--surface-soft-green)] border-[var(--google-green)]/30 shadow-sm'
                       : 'bg-[var(--surface)] border-[var(--border-light)] shadow-sm'
-                    }`}
+                  }`}
                 >
                   <div className="text-center">
                     <div
@@ -361,7 +355,7 @@ export function CompetitionPage() {
                       }}
                     >
                       {trader.total_pnl_pct != null &&
-                        !isNaN(trader.total_pnl_pct)
+                      !isNaN(trader.total_pnl_pct)
                         ? `${trader.total_pnl_pct >= 0 ? '+' : ''}${trader.total_pnl_pct.toFixed(2)}%`
                         : '—'}
                     </div>

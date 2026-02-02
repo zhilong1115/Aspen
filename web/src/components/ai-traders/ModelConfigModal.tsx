@@ -243,7 +243,8 @@ export function ModelConfigModal({
                   })}
                 </select>
                 <div className="text-xs mt-1 text-neutral-500">
-                  可以为同一个 provider 创建多个实例（使用不同的 API Key 或模型）
+                  可以为同一个 provider 创建多个实例（使用不同的 API Key
+                  或模型）
                 </div>
               </div>
             )}
@@ -257,11 +258,11 @@ export function ModelConfigModal({
                       height: 32,
                     }) || (
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-neutral-800 text-white">
-                        {(
-                          selectedModel.name ||
-                          selectedModel.provider ||
-                          '?'
-                        )[0]}
+                        {
+                          (selectedModel.name ||
+                            selectedModel.provider ||
+                            '?')[0]
+                        }
                       </div>
                     )}
                   </div>

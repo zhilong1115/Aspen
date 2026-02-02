@@ -107,7 +107,11 @@ export function RegisterPage() {
       <div className="w-full max-w-md px-6">
         {/* Logo */}
         <div className="text-center mb-8">
-          <img src="/icons/aspen.svg" alt="Aspen" className="w-16 h-16 mx-auto mb-4" />
+          <img
+            src="/icons/aspen.svg"
+            alt="Aspen"
+            className="w-16 h-16 mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">
             {t('appTitle', language)}
           </h1>

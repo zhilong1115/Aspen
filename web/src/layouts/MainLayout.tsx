@@ -76,14 +76,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
           {/* Mobile Profile Icon */}
           {!isDesktop && (
-            <button
-              onClick={() => navigate('/profile')}
-              className="p-2"
-            >
+            <button onClick={() => navigate('/profile')} className="p-2">
               <User
                 size={24}
                 className={
-                  isActive('/profile') ? 'text-[#00C805]' : 'text-[var(--text-primary)]'
+                  isActive('/profile')
+                    ? 'text-[#00C805]'
+                    : 'text-[var(--text-primary)]'
                 }
               />
             </button>
@@ -152,7 +151,9 @@ function NavBtn({
     <button
       onClick={onClick}
       className={`text-sm font-bold transition-colors ${
-        active ? 'text-[#00C805]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+        active
+          ? 'text-[#00C805]'
+          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
       }`}
     >
       {label}

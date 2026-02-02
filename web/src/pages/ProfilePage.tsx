@@ -56,10 +56,14 @@ export function ProfilePage() {
             >
               <div className="flex items-center gap-3">
                 <div className="text-[var(--text-secondary)]">{item.icon}</div>
-                <span className="font-medium text-[var(--text-primary)]">{item.label}</span>
+                <span className="font-medium text-[var(--text-primary)]">
+                  {item.label}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-[var(--text-secondary)]">{item.value}</span>
+                <span className="text-sm text-[var(--text-secondary)]">
+                  {item.value}
+                </span>
                 <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)]" />
               </div>
             </div>
@@ -79,7 +83,9 @@ export function ProfilePage() {
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">🇺🇸</span>
-              <span className="font-medium text-[var(--text-primary)]">English</span>
+              <span className="font-medium text-[var(--text-primary)]">
+                English
+              </span>
             </div>
             {language === 'en' && (
               <div className="w-2 h-2 rounded-full bg-[#00C805]" />
@@ -91,7 +97,9 @@ export function ProfilePage() {
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">🇨🇳</span>
-              <span className="font-medium text-[var(--text-primary)]">中文</span>
+              <span className="font-medium text-[var(--text-primary)]">
+                中文
+              </span>
             </div>
             {language === 'zh' && (
               <div className="w-2 h-2 rounded-full bg-[#00C805]" />

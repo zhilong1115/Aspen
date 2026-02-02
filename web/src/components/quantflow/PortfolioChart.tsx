@@ -36,9 +36,7 @@ const PortfolioChart: React.FC<PortfolioChartProps> = ({
       .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
       .join(' ')
 
-    const area =
-      linePath +
-      ` L 100 100 L 0 100 Z`
+    const area = linePath + ` L 100 100 L 0 100 Z`
 
     return { path: linePath, areaPath: area }
   }, [data])

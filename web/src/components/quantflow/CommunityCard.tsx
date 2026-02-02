@@ -22,9 +22,10 @@ const CommunityCard: React.FC<CommunityCardProps> = ({
   onClick,
   onCopy,
 }) => {
-  const creatorInitial = strategy.creator.length > 1 
-    ? strategy.creator[1].toUpperCase() 
-    : strategy.creator[0].toUpperCase()
+  const creatorInitial =
+    strategy.creator.length > 1
+      ? strategy.creator[1].toUpperCase()
+      : strategy.creator[0].toUpperCase()
 
   return (
     <div
