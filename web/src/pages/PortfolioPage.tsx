@@ -366,35 +366,50 @@ function PortfolioPageContent() {
   // Combined portfolio chart data
   const portfolioChartData = useMemo(() => {
     if (!histories || !traderIds.length) return []
-    // Merge all histories by timestamp into combined value
-    // Round timestamps to nearest minute to aggregate traders with slightly different cycle times
-    const timeMap = new Map<string, number>()
-
-    const roundToMinute = (ts: string) => {
-      const d = new Date(ts)
-      d.setSeconds(0, 0)
-      return d.toISOString().slice(0, 16) // "YYYY-MM-DDTHH:MM"
-    }
-
+    
+    // Strategy: For each timestamp, sum the LATEST known value from each trader
+    // This handles traders reporting at different times correctly
+    
+    // 1. Collect all unique timestamps across all traders
+    const allTimestamps = new Set<string>()
     for (const id of traderIds) {
       const h = histories[id]
       if (!h) continue
       for (const point of h) {
-        const roundedTs = roundToMinute(point.timestamp)
-        const existing = timeMap.get(roundedTs) || 0
-        timeMap.set(roundedTs, existing + point.total_equity)
+        allTimestamps.add(point.timestamp)
       }
     }
-
-    const combined = Array.from(timeMap.entries())
-      .map(([timestamp, value]) => ({ 
-        timestamp: new Date(timestamp).toISOString(), // Convert back to full ISO string for display
-        value 
-      }))
-      .sort(
-        (a, b) =>
-          new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      )
+    
+    // 2. Sort timestamps chronologically
+    const sortedTimestamps = Array.from(allTimestamps).sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    )
+    
+    // 3. For each timestamp, calculate total portfolio value
+    // by summing each trader's latest known value up to that time
+    const combined: Array<{ timestamp: string; value: number }> = []
+    const latestValues: Record<string, number> = {}
+    
+    // Initialize with 0 for all traders
+    for (const id of traderIds) {
+      latestValues[id] = 0
+    }
+    
+    for (const ts of sortedTimestamps) {
+      // Update latest values for any trader that reported at this timestamp
+      for (const id of traderIds) {
+        const h = histories[id]
+        if (!h) continue
+        const point = h.find(p => p.timestamp === ts)
+        if (point) {
+          latestValues[id] = point.total_equity
+        }
+      }
+      
+      // Sum all traders' latest values
+      const totalValue = Object.values(latestValues).reduce((sum, v) => sum + v, 0)
+      combined.push({ timestamp: ts, value: totalValue })
+    }
 
     return filterByRange(combined, timeRange) as Array<{
       timestamp: string
