@@ -22,6 +22,9 @@ const (
 	ProviderDeepSeek   Provider = "deepseek"
 	ProviderQwen       Provider = "qwen"
 	ProviderOpenRouter Provider = "openrouter"
+	ProviderAnthropic  Provider = "anthropic"
+	ProviderOpenAI     Provider = "openai"
+	ProviderGoogle     Provider = "google"
 	ProviderCustom     Provider = "custom"
 )
 
@@ -133,6 +136,75 @@ func (client *Client) SetOpenRouterAPIKey(apiKey string, modelName string) {
 	}
 }
 
+// SetAnthropicAPIKey 设置Anthropic (Claude) API密钥
+// modelName 为空时使用默认模型 claude-sonnet-4-20250514
+func (client *Client) SetAnthropicAPIKey(apiKey string, modelName string) {
+	client.Provider = ProviderAnthropic
+	client.APIKey = apiKey
+	client.BaseURL = "https://api.anthropic.com/v1"
+	client.UseFullURL = false
+
+	if modelName != "" {
+		client.Model = modelName
+		log.Printf("🔧 [MCP] Anthropic 使用模型: %s", modelName)
+	} else {
+		client.Model = "claude-sonnet-4-20250514"
+		log.Printf("🔧 [MCP] Anthropic 使用默认模型: %s", client.Model)
+	}
+
+	client.Timeout = 180 * time.Second
+
+	if len(apiKey) > 8 {
+		log.Printf("🔧 [MCP] Anthropic API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetOpenAIAPIKey 设置OpenAI (GPT) API密钥
+// modelName 为空时使用默认模型 gpt-4o
+func (client *Client) SetOpenAIAPIKey(apiKey string, modelName string) {
+	client.Provider = ProviderOpenAI
+	client.APIKey = apiKey
+	client.BaseURL = "https://api.openai.com/v1"
+	client.UseFullURL = false
+
+	if modelName != "" {
+		client.Model = modelName
+		log.Printf("🔧 [MCP] OpenAI 使用模型: %s", modelName)
+	} else {
+		client.Model = "gpt-4o"
+		log.Printf("🔧 [MCP] OpenAI 使用默认模型: %s", client.Model)
+	}
+
+	client.Timeout = 180 * time.Second
+
+	if len(apiKey) > 8 {
+		log.Printf("🔧 [MCP] OpenAI API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetGoogleAPIKey 设置Google (Gemini) API密钥
+// modelName 为空时使用默认模型 gemini-2.0-flash
+func (client *Client) SetGoogleAPIKey(apiKey string, modelName string) {
+	client.Provider = ProviderGoogle
+	client.APIKey = apiKey
+	client.BaseURL = "https://generativelanguage.googleapis.com/v1beta"
+	client.UseFullURL = true // Google API 使用不同的路径格式
+
+	if modelName != "" {
+		client.Model = modelName
+		log.Printf("🔧 [MCP] Google 使用模型: %s", modelName)
+	} else {
+		client.Model = "gemini-2.0-flash"
+		log.Printf("🔧 [MCP] Google 使用默认模型: %s", client.Model)
+	}
+
+	client.Timeout = 180 * time.Second
+
+	if len(apiKey) > 8 {
+		log.Printf("🔧 [MCP] Google API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
 // SetCustomAPI 设置自定义OpenAI兼容API
 func (client *Client) SetCustomAPI(apiURL, apiKey, modelName string) {
 	client.Provider = ProviderCustom
@@ -225,6 +297,20 @@ func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) 
 		log.Printf("   API Key: %s...%s", client.APIKey[:4], client.APIKey[len(client.APIKey)-4:])
 	}
 
+	// 根据 Provider 选择不同的 API 调用方式
+	switch client.Provider {
+	case ProviderAnthropic:
+		return client.callAnthropic(systemPrompt, userPrompt)
+	case ProviderGoogle:
+		return client.callGoogle(systemPrompt, userPrompt)
+	default:
+		// OpenAI-compatible API (DeepSeek, Qwen, OpenRouter, OpenAI, Custom)
+		return client.callOpenAICompatible(systemPrompt, userPrompt)
+	}
+}
+
+// callOpenAICompatible 调用 OpenAI 兼容 API（DeepSeek, Qwen, OpenRouter, OpenAI, Custom）
+func (client *Client) callOpenAICompatible(systemPrompt, userPrompt string) (string, error) {
 	// 构建 messages 数组
 	messages := []map[string]string{}
 
@@ -413,4 +499,227 @@ func isRetryableError(err error) bool {
 		}
 	}
 	return false
+}
+
+// callAnthropic 调用 Anthropic (Claude) Messages API
+func (client *Client) callAnthropic(systemPrompt, userPrompt string) (string, error) {
+	// Anthropic Messages API 格式
+	// https://docs.anthropic.com/en/api/messages
+	requestBody := map[string]interface{}{
+		"model":      client.Model,
+		"max_tokens": client.MaxTokens,
+		"messages": []map[string]string{
+			{"role": "user", "content": userPrompt},
+		},
+	}
+
+	// Anthropic 的 system prompt 是顶级参数，不在 messages 里
+	if systemPrompt != "" {
+		requestBody["system"] = systemPrompt
+	}
+
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("序列化请求失败: %w", err)
+	}
+
+	url := fmt.Sprintf("%s/messages", client.BaseURL)
+	log.Printf("📡 [MCP] Anthropic 请求 URL: %s", url)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("创建请求失败: %w", err)
+	}
+
+	// Anthropic 特殊头部
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", client.APIKey)
+	req.Header.Set("anthropic-version", "2023-06-01")
+
+	// 发送请求
+	httpClient := &http.Client{Timeout: client.Timeout}
+	ctx, cancel := context.WithTimeout(context.Background(), client.Timeout)
+	defer cancel()
+	req = req.WithContext(ctx)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("请求超时（%v）: %w", client.Timeout, err)
+		}
+		return "", fmt.Errorf("发送请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "failed").Inc()
+		return "", fmt.Errorf("API返回错误 (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// 解析 Anthropic 响应格式
+	var result struct {
+		Content []struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		} `json:"content"`
+		Usage struct {
+			InputTokens  int `json:"input_tokens"`
+			OutputTokens int `json:"output_tokens"`
+		} `json:"usage"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "parse_error").Inc()
+		return "", fmt.Errorf("解析响应失败: %w", err)
+	}
+
+	if len(result.Content) == 0 {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "empty_response").Inc()
+		return "", fmt.Errorf("API返回空响应")
+	}
+
+	// 记录Token使用量
+	if result.Usage.InputTokens > 0 || result.Usage.OutputTokens > 0 {
+		metrics.AITokensTotal.WithLabelValues(string(client.Provider), client.Model, "prompt").Add(float64(result.Usage.InputTokens))
+		metrics.AITokensTotal.WithLabelValues(string(client.Provider), client.Model, "completion").Add(float64(result.Usage.OutputTokens))
+
+		cost := metrics.EstimateTokenCost(string(client.Provider), client.Model, result.Usage.InputTokens, result.Usage.OutputTokens)
+		if cost > 0 {
+			metrics.AIEstimatedCost.WithLabelValues(string(client.Provider), client.Model).Add(cost)
+		}
+
+		log.Printf("📊 [MCP] Token使用: input=%d, output=%d, 估算成本=$%.6f",
+			result.Usage.InputTokens, result.Usage.OutputTokens, cost)
+	}
+
+	// 提取文本内容
+	for _, content := range result.Content {
+		if content.Type == "text" {
+			return content.Text, nil
+		}
+	}
+
+	return "", fmt.Errorf("未找到文本响应")
+}
+
+// callGoogle 调用 Google (Gemini) Generative AI API
+func (client *Client) callGoogle(systemPrompt, userPrompt string) (string, error) {
+	// Google Gemini API 格式
+	// https://ai.google.dev/gemini-api/docs/text-generation
+
+	// 构建 contents
+	contents := []map[string]interface{}{
+		{
+			"role": "user",
+			"parts": []map[string]string{
+				{"text": userPrompt},
+			},
+		},
+	}
+
+	requestBody := map[string]interface{}{
+		"contents": contents,
+		"generationConfig": map[string]interface{}{
+			"temperature":     0.5,
+			"maxOutputTokens": client.MaxTokens,
+		},
+	}
+
+	// Google 的 system instruction 是单独的参数
+	if systemPrompt != "" {
+		requestBody["systemInstruction"] = map[string]interface{}{
+			"parts": []map[string]string{
+				{"text": systemPrompt},
+			},
+		}
+	}
+
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("序列化请求失败: %w", err)
+	}
+
+	// Google API URL 格式: /models/{model}:generateContent?key={apiKey}
+	url := fmt.Sprintf("%s/models/%s:generateContent?key=%s", client.BaseURL, client.Model, client.APIKey)
+	log.Printf("📡 [MCP] Google 请求 URL: %s/models/%s:generateContent?key=***", client.BaseURL, client.Model)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("创建请求失败: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	// 发送请求
+	httpClient := &http.Client{Timeout: client.Timeout}
+	ctx, cancel := context.WithTimeout(context.Background(), client.Timeout)
+	defer cancel()
+	req = req.WithContext(ctx)
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("请求超时（%v）: %w", client.Timeout, err)
+		}
+		return "", fmt.Errorf("发送请求失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取响应失败: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "failed").Inc()
+		return "", fmt.Errorf("API返回错误 (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// 解析 Google Gemini 响应格式
+	var result struct {
+		Candidates []struct {
+			Content struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
+			} `json:"content"`
+		} `json:"candidates"`
+		UsageMetadata struct {
+			PromptTokenCount     int `json:"promptTokenCount"`
+			CandidatesTokenCount int `json:"candidatesTokenCount"`
+			TotalTokenCount      int `json:"totalTokenCount"`
+		} `json:"usageMetadata"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "parse_error").Inc()
+		return "", fmt.Errorf("解析响应失败: %w", err)
+	}
+
+	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
+		metrics.AIRequestsTotal.WithLabelValues(string(client.Provider), client.Model, "empty_response").Inc()
+		return "", fmt.Errorf("API返回空响应")
+	}
+
+	// 记录Token使用量
+	if result.UsageMetadata.PromptTokenCount > 0 || result.UsageMetadata.CandidatesTokenCount > 0 {
+		metrics.AITokensTotal.WithLabelValues(string(client.Provider), client.Model, "prompt").Add(float64(result.UsageMetadata.PromptTokenCount))
+		metrics.AITokensTotal.WithLabelValues(string(client.Provider), client.Model, "completion").Add(float64(result.UsageMetadata.CandidatesTokenCount))
+
+		cost := metrics.EstimateTokenCost(string(client.Provider), client.Model, result.UsageMetadata.PromptTokenCount, result.UsageMetadata.CandidatesTokenCount)
+		if cost > 0 {
+			metrics.AIEstimatedCost.WithLabelValues(string(client.Provider), client.Model).Add(cost)
+		}
+
+		log.Printf("📊 [MCP] Token使用: prompt=%d, completion=%d, total=%d, 估算成本=$%.6f",
+			result.UsageMetadata.PromptTokenCount, result.UsageMetadata.CandidatesTokenCount,
+			result.UsageMetadata.TotalTokenCount, cost)
+	}
+
+	return result.Candidates[0].Content.Parts[0].Text, nil
 }

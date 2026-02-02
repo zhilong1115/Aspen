@@ -73,17 +73,39 @@ func EstimateTokenCost(provider, model string, promptTokens, completionTokens in
 
 	// 常见模型定价
 	pricing := map[string]Pricing{
-		// DeepSeek
+		// DeepSeek (直连)
 		"deepseek-chat":       {0.14, 0.28},
 		"deepseek-coder":      {0.14, 0.28},
 		"deepseek-reasoner":   {0.55, 2.19},
 		"deepseek/deepseek-chat": {0.14, 0.28},
 		
-		// Qwen
+		// Qwen (直连)
 		"qwen-turbo":          {0.3, 0.6},
 		"qwen-plus":           {0.8, 2.0},
 		"qwen-max":            {2.4, 9.6},
 		"qwen3-max":           {2.4, 9.6},
+		
+		// Anthropic (直连) - 2025年1月价格
+		"claude-sonnet-4-20250514":       {3.0, 15.0},
+		"claude-3-5-sonnet-20241022": {3.0, 15.0},
+		"claude-3-5-haiku-20241022":  {0.8, 4.0},
+		"claude-3-opus-20240229":     {15.0, 75.0},
+		"claude-3-haiku-20240307":    {0.25, 1.25},
+		
+		// OpenAI (直连) - 2025年1月价格
+		"gpt-4o":              {2.5, 10.0},
+		"gpt-4o-mini":         {0.15, 0.6},
+		"gpt-4-turbo":         {10.0, 30.0},
+		"gpt-4":               {30.0, 60.0},
+		"gpt-3.5-turbo":       {0.5, 1.5},
+		"o1":                  {15.0, 60.0},
+		"o1-mini":             {3.0, 12.0},
+		
+		// Google (直连) - 2025年1月价格
+		"gemini-2.0-flash":    {0.1, 0.4},
+		"gemini-2.0-flash-lite": {0.075, 0.3},
+		"gemini-1.5-pro":      {1.25, 5.0},
+		"gemini-1.5-flash":    {0.075, 0.3},
 		
 		// OpenAI via OpenRouter
 		"openai/gpt-4o":       {2.5, 10.0},

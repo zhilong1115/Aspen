@@ -283,6 +283,27 @@ func (tm *TraderManager) addTraderFromDB(traderCfg *config.TraderRecord, aiModel
 		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 		log.Printf("✓ 交易员 %s 使用 OpenRouter 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "anthropic" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Anthropic) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.AnthropicKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 Anthropic Claude 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "openai" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (OpenAI) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.OpenAIKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 OpenAI GPT 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "google" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Google) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.GoogleKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 Google Gemini 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
 	} else if aiModelCfg.Provider == "custom" {
 		if aiModelCfg.APIKey == "" {
 			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
@@ -418,6 +439,27 @@ func (tm *TraderManager) AddTraderFromDB(traderCfg *config.TraderRecord, aiModel
 		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 		log.Printf("✓ 交易员 %s 使用 OpenRouter 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "anthropic" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Anthropic) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.AnthropicKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 Anthropic Claude 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "openai" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (OpenAI) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.OpenAIKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 OpenAI GPT 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "google" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Google) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.GoogleKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 Google Gemini 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
 	} else if aiModelCfg.Provider == "custom" {
 		if aiModelCfg.APIKey == "" {
 			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
@@ -1317,6 +1359,27 @@ func (tm *TraderManager) loadSingleTrader(traderCfg *config.TraderRecord, aiMode
 		// 例如: "openai/gpt-4o", "anthropic/claude-3.5-sonnet", "google/gemini-pro" 等
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 		log.Printf("✓ 交易员 %s 使用 OpenRouter 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "anthropic" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Anthropic) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.AnthropicKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 Anthropic Claude 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "openai" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (OpenAI) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.OpenAIKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 OpenAI GPT 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "google" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Google) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.GoogleKey = aiModelCfg.APIKey
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Printf("✓ 交易员 %s 使用 Google Gemini 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
 	} else if aiModelCfg.Provider == "custom" {
 		if aiModelCfg.APIKey == "" {
 			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)

@@ -27,6 +27,10 @@ export const getModelIcon = (modelType: string, props: IconProps = {}) => {
     case 'openai':
       iconPath = '/icons/gpt.svg'
       break
+    case 'claude':
+    case 'anthropic':
+      iconPath = '/icons/claude.svg'
+      break
     case 'gemini':
     case 'google':
       iconPath = '/icons/gemini.svg'
@@ -40,6 +44,8 @@ export const getModelIcon = (modelType: string, props: IconProps = {}) => {
       // Partial match fallback
       if (lower.includes('grok')) {
         iconPath = '/icons/grok.svg'
+      } else if (lower.includes('claude') || lower.includes('anthropic')) {
+        iconPath = '/icons/claude.svg'
       } else if (lower.includes('gemini')) {
         iconPath = '/icons/gemini.svg'
       } else if (lower.includes('gpt') || lower.includes('openai')) {

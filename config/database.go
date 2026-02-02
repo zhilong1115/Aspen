@@ -308,6 +308,9 @@ func (d *Database) initDefaultData() error {
 		{"deepseek", "DeepSeek", "deepseek"},
 		{"qwen", "Qwen", "qwen"},
 		{"openrouter", "OpenRouter", "openrouter"},
+		{"anthropic", "Anthropic Claude", "anthropic"},
+		{"openai", "OpenAI GPT", "openai"},
+		{"google", "Google Gemini", "google"},
 	}
 
 	for _, model := range aiModels {

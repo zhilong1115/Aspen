@@ -46,10 +46,13 @@ type AutoTraderConfig struct {
 	CoinPoolAPIURL string
 
 	// AI配置
-	UseQwen     bool
-	DeepSeekKey string
-	QwenKey     string
+	UseQwen       bool
+	DeepSeekKey   string
+	QwenKey       string
 	OpenRouterKey string // OpenRouter API密钥
+	AnthropicKey  string // Anthropic (Claude) API密钥
+	OpenAIKey     string // OpenAI (GPT) API密钥
+	GoogleKey     string // Google (Gemini) API密钥
 
 	// 自定义AI API配置
 	CustomAPIURL    string
@@ -166,6 +169,39 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 		} else {
 			logger.Infof("🤖 [%s] 使用阿里云Qwen AI", config.Name)
 		}
+	} else if config.AIModel == "anthropic" {
+		// 使用Anthropic (Claude)
+		if config.AnthropicKey == "" {
+			return nil, fmt.Errorf("Anthropic API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetAnthropicAPIKey(config.AnthropicKey, config.CustomModelName)
+		modelName := config.CustomModelName
+		if modelName == "" {
+			modelName = "claude-sonnet-4-20250514"
+		}
+		logger.Infof("🤖 [%s] 使用Anthropic Claude AI (模型: %s)", config.Name, modelName)
+	} else if config.AIModel == "openai" {
+		// 使用OpenAI (GPT)
+		if config.OpenAIKey == "" {
+			return nil, fmt.Errorf("OpenAI API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetOpenAIAPIKey(config.OpenAIKey, config.CustomModelName)
+		modelName := config.CustomModelName
+		if modelName == "" {
+			modelName = "gpt-4o"
+		}
+		logger.Infof("🤖 [%s] 使用OpenAI GPT AI (模型: %s)", config.Name, modelName)
+	} else if config.AIModel == "google" {
+		// 使用Google (Gemini)
+		if config.GoogleKey == "" {
+			return nil, fmt.Errorf("Google API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetGoogleAPIKey(config.GoogleKey, config.CustomModelName)
+		modelName := config.CustomModelName
+		if modelName == "" {
+			modelName = "gemini-2.0-flash"
+		}
+		logger.Infof("🤖 [%s] 使用Google Gemini AI (模型: %s)", config.Name, modelName)
 	} else {
 		// 默认使用DeepSeek (支持自定义URL和Model)
 		if config.DeepSeekKey == "" {
