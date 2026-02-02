@@ -798,6 +798,11 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 		"wait":               true,
 	}
 
+	// Fallback: treat empty action as "wait" (some models like Gemini 3 may return empty action)
+	if d.Action == "" {
+		d.Action = "wait"
+	}
+
 	if !validActions[d.Action] {
 		return fmt.Errorf("无效的action: %s", d.Action)
 	}
