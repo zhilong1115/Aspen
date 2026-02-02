@@ -798,9 +798,15 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 		"wait":               true,
 	}
 
-	// Fallback: treat empty action as "wait" (some models like Gemini 3 may return empty action)
+	// Fallback: treat empty action as "wait" ONLY if reasoning is present
+	// (some models like Gemini 3, Claude may return empty action when they mean "wait")
+	// If no reasoning either, it's a real parsing failure
 	if d.Action == "" {
-		d.Action = "wait"
+		if d.Reasoning != "" {
+			d.Action = "wait" // Has analysis but no action = intentional wait
+		} else {
+			return fmt.Errorf("无效的action: (空字符串且无reasoning，可能是解析失败)")
+		}
 	}
 
 	if !validActions[d.Action] {
