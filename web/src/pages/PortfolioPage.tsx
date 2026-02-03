@@ -119,6 +119,9 @@ function ChartTooltip({ active, payload }: any) {
   const d = payload[0]?.payload
   if (!d) return null
 
+  // Check if this is compare mode (values are percentages, not currency)
+  const isCompareMode = payload[0]?.name !== 'value'
+
   return (
     <div className="bg-neutral-900/95 backdrop-blur-sm border border-neutral-800 rounded-lg px-3 py-2 shadow-xl">
       <p className="text-xs text-neutral-400">
@@ -130,17 +133,24 @@ function ChartTooltip({ active, payload }: any) {
           minute: '2-digit',
         })}
       </p>
-      {payload.map((entry: any, i: number) => (
-        <p
-          key={i}
-          className="text-sm font-semibold"
-          style={{ color: entry.color || GREEN }}
-        >
-          {entry.name === 'value'
-            ? fmt(entry.value)
-            : `${entry.name}: ${fmt(entry.value)}`}
-        </p>
-      ))}
+      {payload.map((entry: any, i: number) => {
+        const value = entry.value
+        const isPositive = value >= 0
+        const formattedValue = isCompareMode
+          ? `${isPositive ? '+' : ''}${value.toFixed(2)}%`
+          : fmt(value)
+        return (
+          <p
+            key={i}
+            className="text-sm font-semibold"
+            style={{ color: isCompareMode ? (isPositive ? GREEN : RED) : (entry.color || GREEN) }}
+          >
+            {entry.name === 'value'
+              ? formattedValue
+              : `${entry.name}: ${formattedValue}`}
+          </p>
+        )
+      })}
     </div>
   )
 }
@@ -417,7 +427,7 @@ function PortfolioPageContent() {
     }>
   }, [histories, traderIds, timeRange])
 
-  // Comparison chart data
+  // Comparison chart data - normalized to % change from starting point
   const compareChartData = useMemo(() => {
     if (!histories || !traders?.length) return []
     // Build unified timeline with each trader as a column
@@ -430,13 +440,27 @@ function PortfolioPageContent() {
       (a, b) => new Date(a).getTime() - new Date(b).getTime()
     )
 
+    // Get starting equity for each trader (first data point)
+    const startingEquity: Record<string, number> = {}
+    traders?.forEach((t) => {
+      const h = histories[t.trader_id]
+      if (h && h.length > 0) {
+        startingEquity[t.trader_name || t.trader_id] = h[0].total_equity
+      }
+    })
+
     const data = sorted.map((ts) => {
       const row: { timestamp: string; [k: string]: unknown } = { timestamp: ts }
       traders?.forEach((t) => {
+        const key = t.trader_name || t.trader_id
         const h = histories[t.trader_id]
         if (!h) return
         const point = h.find((p) => p.timestamp === ts)
-        if (point) row[t.trader_name || t.trader_id] = point.total_equity
+        if (point && startingEquity[key]) {
+          // Calculate % change from starting point
+          const pctChange = ((point.total_equity - startingEquity[key]) / startingEquity[key]) * 100
+          row[key] = pctChange
+        }
       })
       return row
     })
@@ -522,7 +546,7 @@ function PortfolioPageContent() {
             <p className="text-neutral-500 text-sm font-medium mb-1">
               {viewMode === 'portfolio'
                 ? 'Total Portfolio'
-                : 'Comparing Traders'}
+                : 'Performance Comparison'}
             </p>
             <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
               {fmt(displayValue)}
