@@ -625,6 +625,7 @@ function PortfolioPageContent() {
                       strokeWidth={2}
                       dot={false}
                       activeDot={{ r: 3 }}
+                      connectNulls={true}
                     />
                   ))}
                 </LineChart>
