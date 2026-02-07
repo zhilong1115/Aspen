@@ -145,8 +145,8 @@ func (w *WSClient) subscribe(stream string) error {
 }
 
 func (w *WSClient) sendJSON(msg interface{}) error {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
+	w.mu.Lock()
+	defer w.mu.Unlock()
 
 	if w.conn == nil {
 		return fmt.Errorf("WebSocket未连接")
