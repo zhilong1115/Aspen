@@ -1,11 +1,8 @@
 import { motion } from 'framer-motion'
 import {
-  Check,
   ChevronDown,
   TrendingDown,
   TrendingUp,
-  X,
-  XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -18,12 +15,13 @@ import {
   YAxis,
 } from 'recharts'
 import useSWR from 'swr'
+import AIDecisionLog from '../components/AIDecisionLog'
 import { ErrorBoundary } from '../components/ui/ErrorBoundary'
 import { ErrorState } from '../components/ui/ErrorState'
 import { DashboardSkeleton } from '../components/ui/Skeleton'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
-import { t, type Language } from '../i18n/translations'
+import { t } from '../i18n/translations'
 import { api } from '../lib/api'
 import type {
   AccountInfo,
@@ -222,15 +220,21 @@ function TraderDashboardContent() {
     }
   )
 
-  const { data: decisions } = useSWR<DecisionRecord[]>(
-    effectiveSelectedId ? `decisions/latest-${effectiveSelectedId}` : null,
-    () => api.getLatestDecisions(effectiveSelectedId),
+  const { data: allDecisions, isLoading: allDecisionsLoading } = useSWR<DecisionRecord[]>(
+    effectiveSelectedId ? `decisions-all-${effectiveSelectedId}` : null,
+    () => api.getDecisions(effectiveSelectedId),
     {
-      refreshInterval: 30000,
+      refreshInterval: 60000,
       revalidateOnFocus: false,
-      dedupingInterval: 20000,
+      dedupingInterval: 30000,
     }
   )
+
+  // Reverse allDecisions so newest first for the log panel
+  const allDecisionsReversed = useMemo(() => {
+    if (!allDecisions) return undefined
+    return [...allDecisions].reverse()
+  }, [allDecisions])
 
   const { data: _stats } = useSWR<Statistics>(
     effectiveSelectedId ? `statistics-${effectiveSelectedId}` : null,
@@ -679,134 +683,25 @@ function TraderDashboardContent() {
           </motion.div>
         </div>
 
-        {/* ── Right Column: Decisions ── */}
+        {/* ── Right Column: AI Decision Log ── */}
         <div className="md:col-span-2 md:border-l md:border-neutral-900 md:pl-8">
           {/* Divider — mobile only */}
           <div className="border-t border-neutral-900 mt-6 md:hidden" />
 
-          {/* Decisions */}
+          {/* AI Decision Log Panel */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.4 }}
             className="mt-4 md:mt-0 px-2 md:px-0"
           >
-            <h2 className="text-lg font-bold text-white mb-3">
-              {t('recentDecisions', language)}
-            </h2>
-            <div className="rounded-xl overflow-hidden border border-neutral-900">
-              {decisions && decisions.length > 0 ? (
-                decisions.map((decision, i) => (
-                  <DecisionRow
-                    key={i}
-                    decision={decision}
-                    language={language}
-                  />
-                ))
-              ) : (
-                <div className="py-12 text-center">
-                  <p className="text-neutral-600 text-sm">
-                    {t('noDecisionsYet', language)}
-                  </p>
-                </div>
-              )}
-            </div>
+            <AIDecisionLog
+              decisions={allDecisionsReversed}
+              isLoading={allDecisionsLoading}
+            />
           </motion.div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// ── Decision Row ───────────────────────────────────────────
-function DecisionRow({
-  decision,
-  language: _language,
-}: {
-  decision: DecisionRecord
-  language: Language
-}) {
-  const [expanded, setExpanded] = useState(false)
-
-  return (
-    <div className="px-4 py-3 border-b border-neutral-900 transition-colors hover:bg-neutral-900/50">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-white text-sm font-medium">
-            Cycle #{decision.cycle_number}
-          </span>
-          <span className="text-xs text-neutral-500 ml-2">
-            {new Date(decision.timestamp).toLocaleString()}
-          </span>
-        </div>
-        <span
-          className={`px-2 py-0.5 rounded text-xs font-bold ${
-            decision.success
-              ? 'bg-[#00C805]/20 text-[#00C805]'
-              : 'bg-[#FF5000]/20 text-[#FF5000]'
-          }`}
-        >
-          {decision.success ? 'Success' : 'Failed'}
-        </span>
-      </div>
-
-      {/* Actions preview */}
-      {decision.decisions && decision.decisions.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {decision.decisions.slice(0, 3).map((action, j) => (
-            <div key={j} className="flex items-center gap-1.5 text-xs">
-              <span className="font-mono font-bold text-white">
-                {action.symbol}
-              </span>
-              <span
-                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                  action.action.includes('open')
-                    ? 'bg-neutral-800 text-neutral-300'
-                    : 'bg-neutral-800 text-neutral-300'
-                }`}
-              >
-                {action.action}
-              </span>
-              {action.success ? (
-                <Check size={12} className="text-[#00C805]" />
-              ) : (
-                <X size={12} className="text-[#FF5000]" />
-              )}
-            </div>
-          ))}
-          {decision.decisions.length > 3 && (
-            <span className="text-xs text-neutral-500">
-              +{decision.decisions.length - 3} more
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Expand for details */}
-      {(decision.cot_trace || decision.input_prompt) && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-1.5 text-xs text-neutral-400 hover:text-neutral-300 transition-colors"
-        >
-          {expanded ? 'Hide details' : 'Show details'}
-        </button>
-      )}
-
-      {expanded && (
-        <div className="mt-2">
-          {decision.cot_trace && (
-            <div className="text-xs bg-neutral-900/50 rounded-lg p-3 font-mono text-neutral-400 max-h-40 overflow-y-auto whitespace-pre-wrap">
-              {decision.cot_trace}
-            </div>
-          )}
-        </div>
-      )}
-
-      {decision.error_message && (
-        <div className="mt-1.5 text-xs text-[#FF5000] flex items-center gap-1">
-          <XCircle size={12} /> {decision.error_message}
-        </div>
-      )}
     </div>
   )
 }
