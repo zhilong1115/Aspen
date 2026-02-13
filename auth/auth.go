@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"sync"
 	"time"
 
@@ -57,7 +57,7 @@ func LoadBlacklistFromDB() {
 
 	tokens, err := db.GetAllBlacklistedTokens()
 	if err != nil {
-		log.Printf("auth: 从数据库加载token黑名单失败: %v", err)
+		log.Error().Msgf("auth: 从数据库加载token黑名单失败: %v", err)
 		return
 	}
 
@@ -67,7 +67,7 @@ func LoadBlacklistFromDB() {
 		tokenBlacklist.items[hash] = exp
 	}
 
-	log.Printf("auth: 从数据库恢复了 %d 个黑名单token", len(tokens))
+	log.Info().Msgf("auth: 从数据库恢复了 %d 个黑名单token", len(tokens))
 }
 
 // StartBlacklistCleaner 启动后台协程定期清理过期的黑名单token
@@ -90,9 +90,9 @@ func StartBlacklistCleaner(interval time.Duration) {
 			if db != nil {
 				cleaned, err := db.CleanExpiredTokens()
 				if err != nil {
-					log.Printf("auth: 清理过期黑名单token失败: %v", err)
+					log.Error().Msgf("auth: 清理过期黑名单token失败: %v", err)
 				} else if cleaned > 0 {
-					log.Printf("auth: 清理了 %d 个过期黑名单token", cleaned)
+					log.Info().Msgf("auth: 清理了 %d 个过期黑名单token", cleaned)
 				}
 			}
 		}
@@ -133,7 +133,7 @@ func BlacklistToken(token string, exp time.Time) {
 	// 持久化到数据库
 	if db != nil {
 		if err := db.BlacklistToken(hash, exp); err != nil {
-			log.Printf("auth: 持久化黑名单token失败: %v", err)
+			log.Error().Msgf("auth: 持久化黑名单token失败: %v", err)
 		}
 	}
 }

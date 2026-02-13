@@ -4,7 +4,7 @@ import (
 	"aspen/crypto"
 	"database/sql"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"os"
 
 	_ "modernc.org/sqlite"
@@ -22,19 +22,19 @@ func main() {
 	// Initialize crypto service
 	cryptoService, err := crypto.NewCryptoService("secrets/rsa_key")
 	if err != nil {
-		log.Fatalf("Failed to init crypto service: %v", err)
+		log.Fatal().Msgf("Failed to init crypto service: %v", err)
 	}
 
 	// Encrypt the API key
 	encryptedKey, err := cryptoService.EncryptForStorage(newAPIKey)
 	if err != nil {
-		log.Fatalf("Failed to encrypt API key: %v", err)
+		log.Fatal().Msgf("Failed to encrypt API key: %v", err)
 	}
 
 	// Open database
 	db, err := sql.Open("sqlite", "config.db")
 	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
+		log.Fatal().Msgf("Failed to open database: %v", err)
 	}
 	defer db.Close()
 
@@ -45,7 +45,7 @@ func main() {
 		WHERE id LIKE ? AND provider = 'openrouter'
 	`, encryptedKey, modelPrefix+"%")
 	if err != nil {
-		log.Fatalf("Failed to update: %v", err)
+		log.Fatal().Msgf("Failed to update: %v", err)
 	}
 
 	rows, _ := result.RowsAffected()

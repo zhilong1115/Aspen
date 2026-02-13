@@ -4,7 +4,7 @@ import (
 	"aspen/metrics"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"strings"
 	"sync"
 	"time"
@@ -46,7 +46,7 @@ func NewWSMonitor(batchSize int) *WSMonitor {
 }
 
 func (m *WSMonitor) Initialize(coins []string) error {
-	log.Println("初始化WebSocket监控器...")
+	log.Info().Msg("初始化WebSocket监控器...")
 	// 获取交易对信息
 	apiClient := NewAPIClient()
 	// 如果不指定交易对，则使用market市场的所有交易对币种
@@ -67,14 +67,14 @@ func (m *WSMonitor) Initialize(coins []string) error {
 		m.symbols = coins
 	}
 
-	log.Printf("找到 %d 个交易对", len(m.symbols))
+	log.Info().Msgf("找到 %d 个交易对", len(m.symbols))
 	
 	// 记录订阅的币种数量
 	metrics.SetSubscribedSymbols(len(m.symbols))
 	
 	// 初始化历史数据
 	if err := m.initializeHistoricalData(); err != nil {
-		log.Printf("初始化历史数据失败: %v", err)
+		log.Error().Msgf("初始化历史数据失败: %v", err)
 	}
 
 	return nil
@@ -97,22 +97,22 @@ func (m *WSMonitor) initializeHistoricalData() error {
 			// 获取历史K线数据
 			klines, err := apiClient.GetKlines(s, "3m", 100)
 			if err != nil {
-				log.Printf("获取 %s 历史数据失败: %v", s, err)
+				log.Error().Msgf("获取 %s 历史数据失败: %v", s, err)
 				return
 			}
 			if len(klines) > 0 {
 				m.klineDataMap3m.Store(s, klines)
-				log.Printf("已加载 %s 的历史K线数据-3m: %d 条", s, len(klines))
+				log.Info().Msgf("已加载 %s 的历史K线数据-3m: %d 条", s, len(klines))
 			}
 			// 获取历史K线数据
 			klines4h, err := apiClient.GetKlines(s, "4h", 100)
 			if err != nil {
-				log.Printf("获取 %s 历史数据失败: %v", s, err)
+				log.Error().Msgf("获取 %s 历史数据失败: %v", s, err)
 				return
 			}
 			if len(klines4h) > 0 {
 				m.klineDataMap4h.Store(s, klines4h)
-				log.Printf("已加载 %s 的历史K线数据-4h: %d 条", s, len(klines4h))
+				log.Info().Msgf("已加载 %s 的历史K线数据-4h: %d 条", s, len(klines4h))
 			}
 		}(symbol)
 	}
@@ -122,23 +122,23 @@ func (m *WSMonitor) initializeHistoricalData() error {
 }
 
 func (m *WSMonitor) Start(coins []string) {
-	log.Printf("启动WebSocket实时监控...")
+	log.Info().Msgf("启动WebSocket实时监控...")
 	// 初始化交易对
 	err := m.Initialize(coins)
 	if err != nil {
-		log.Printf("❌ 初始化币种失败: %v", err)
+		log.Error().Msgf("❌ 初始化币种失败: %v", err)
 		return
 	}
 
 	err = m.combinedClient.Connect()
 	if err != nil {
-		log.Printf("❌ 批量订阅流失败: %v", err)
+		log.Error().Msgf("❌ 批量订阅流失败: %v", err)
 		return
 	}
 	// 订阅所有交易对
 	err = m.subscribeAll()
 	if err != nil {
-		log.Printf("❌ 订阅币种交易对失败: %v", err)
+		log.Error().Msgf("❌ 订阅币种交易对失败: %v", err)
 		return
 	}
 }
@@ -168,7 +168,7 @@ func (m *WSMonitor) subscribeSymbol(symbol, st string) []string {
 }
 func (m *WSMonitor) subscribeAll() error {
 	// 执行批量订阅
-	log.Println("开始订阅所有交易对...")
+	log.Info().Msg("开始订阅所有交易对...")
 	for _, symbol := range m.symbols {
 		for _, st := range subKlineTime {
 			m.subscribeSymbol(symbol, st)
@@ -177,11 +177,11 @@ func (m *WSMonitor) subscribeAll() error {
 	for _, st := range subKlineTime {
 		err := m.combinedClient.BatchSubscribeKlines(m.symbols, st)
 		if err != nil {
-			log.Printf("❌ 订阅 %s K线失败: %v", st, err)
+			log.Error().Msgf("❌ 订阅 %s K线失败: %v", st, err)
 			return err
 		}
 	}
-	log.Println("所有交易对订阅完成")
+	log.Info().Msg("所有交易对订阅完成")
 	return nil
 }
 
@@ -189,7 +189,7 @@ func (m *WSMonitor) handleKlineData(symbol string, ch <-chan []byte, _time strin
 	for data := range ch {
 		var klineData KlineWSData
 		if err := json.Unmarshal(data, &klineData); err != nil {
-			log.Printf("解析Kline数据失败: %v", err)
+			log.Error().Msgf("解析Kline数据失败: %v", err)
 			continue
 		}
 		m.processKlineUpdate(symbol, klineData, _time)
@@ -255,11 +255,11 @@ func (m *WSMonitor) GetCurrentKlines(symbol string, _time string) ([]Kline, erro
 	value, exists := m.getKlineDataMap(_time).Load(symbol)
 	if !exists {
 		// 如果Ws数据未初始化完成时,单独使用api获取 - 兼容性代码 (防止在未初始化完成是,已经有交易员运行)
-		log.Printf("📡 [Market] WebSocket缓存中无 %s 的 %s K线数据，使用API直接获取...", symbol, _time)
+		log.Info().Msgf("📡 [Market] WebSocket缓存中无 %s 的 %s K线数据，使用API直接获取...", symbol, _time)
 		apiClient := NewAPIClient()
 		klines, err := apiClient.GetKlines(symbol, _time, 100)
 		if err != nil {
-			log.Printf("❌ [Market] 获取 %s 的 %s K线数据失败: %v", symbol, _time, err)
+			log.Error().Msgf("❌ [Market] 获取 %s 的 %s K线数据失败: %v", symbol, _time, err)
 			return nil, fmt.Errorf("获取%v分钟K线失败: %v", _time, err)
 		}
 
@@ -269,9 +269,9 @@ func (m *WSMonitor) GetCurrentKlines(symbol string, _time string) ([]Kline, erro
 		// 订阅 WebSocket 流
 		subStr := m.subscribeSymbol(symbol, _time)
 		subErr := m.combinedClient.subscribeStreams(subStr)
-		log.Printf("动态订阅流: %v", subStr)
+		log.Info().Msgf("动态订阅流: %v", subStr)
 		if subErr != nil {
-			log.Printf("警告: 动态订阅%v分钟K线失败: %v (使用API数据)", _time, subErr)
+			log.Error().Msgf("警告: 动态订阅%v分钟K线失败: %v (使用API数据)", _time, subErr)
 		}
 
 		// ✅ FIX: 返回深拷贝而非引用

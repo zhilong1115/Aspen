@@ -10,7 +10,7 @@ import (
 	"aspen/pool"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -27,7 +27,7 @@ func syncConfigToDatabase(database *config.Database, configFile *config.Config) 
 		return nil
 	}
 
-	log.Printf("🔄 开始同步config.json到数据库...")
+	log.Info().Msgf("🔄 开始同步config.json到数据库...")
 
 	// 同步各配置项到数据库
 	configs := map[string]string{
@@ -65,13 +65,13 @@ func syncConfigToDatabase(database *config.Database, configFile *config.Config) 
 	// 更新数据库配置
 	for key, value := range configs {
 		if err := database.SetSystemConfig(key, value); err != nil {
-			log.Printf("⚠️  更新配置 %s 失败: %v", key, err)
+			log.Warn().Msgf("⚠️  更新配置 %s 失败: %v", key, err)
 		} else {
-			log.Printf("✓ 同步配置: %s = %s", key, value)
+			log.Info().Msgf("✓ 同步配置: %s = %s", key, value)
 		}
 	}
 
-	log.Printf("✅ config.json同步完成")
+	log.Info().Msgf("✅ config.json同步完成")
 	return nil
 }
 
@@ -81,7 +81,7 @@ func loadBetaCodesToDatabase(database *config.Database) error {
 
 	// 检查内测码文件是否存在
 	if _, err := os.Stat(betaCodeFile); os.IsNotExist(err) {
-		log.Printf("📄 内测码文件 %s 不存在，跳过加载", betaCodeFile)
+		log.Info().Msgf("📄 内测码文件 %s 不存在，跳过加载", betaCodeFile)
 		return nil
 	}
 
@@ -91,7 +91,7 @@ func loadBetaCodesToDatabase(database *config.Database) error {
 		return fmt.Errorf("获取内测码文件信息失败: %w", err)
 	}
 
-	log.Printf("🔄 发现内测码文件 %s (%.1f KB)，开始加载...", betaCodeFile, float64(fileInfo.Size())/1024)
+	log.Info().Msgf("🔄 发现内测码文件 %s (%.1f KB)，开始加载...", betaCodeFile, float64(fileInfo.Size())/1024)
 
 	// 加载内测码到数据库
 	err = database.LoadBetaCodesFromFile(betaCodeFile)
@@ -102,9 +102,9 @@ func loadBetaCodesToDatabase(database *config.Database) error {
 	// 显示统计信息
 	total, used, err := database.GetBetaCodeStats()
 	if err != nil {
-		log.Printf("⚠️  获取内测码统计失败: %v", err)
+		log.Warn().Msgf("⚠️  获取内测码统计失败: %v", err)
 	} else {
-		log.Printf("✅ 内测码加载完成: 总计 %d 个，已使用 %d 个，剩余 %d 个", total, used, total-used)
+		log.Info().Msgf("✅ 内测码加载完成: 总计 %d 个，已使用 %d 个，剩余 %d 个", total, used, total-used)
 	}
 
 	return nil
@@ -129,37 +129,37 @@ func main() {
 	// 读取配置文件
 	cfg, err := config.LoadConfig("config.json")
 	if err != nil {
-		log.Printf("⚠️  读取config.json失败，使用默认配置: %v", err)
+		log.Warn().Msgf("⚠️  读取config.json失败，使用默认配置: %v", err)
 		cfg = &config.Config{}
 	}
 
 	// 初始化市场数据源
 	market.InitDataSource(cfg.MarketDataSource, cfg.FinnhubAPIKey)
 
-	log.Printf("📋 初始化配置数据库: %s", dbPath)
+	log.Info().Msgf("📋 初始化配置数据库: %s", dbPath)
 	database, err := config.NewDatabase(dbPath)
 	if err != nil {
-		log.Fatalf("❌ 初始化数据库失败: %v", err)
+		log.Fatal().Msgf("❌ 初始化数据库失败: %v", err)
 	}
 	defer database.Close()
 
 	// 初始化加密服务
-	log.Printf("🔐 初始化加密服务...")
+	log.Info().Msgf("🔐 初始化加密服务...")
 	cryptoService, err := crypto.NewCryptoService("secrets/rsa_key")
 	if err != nil {
-		log.Fatalf("❌ 初始化加密服务失败: %v", err)
+		log.Fatal().Msgf("❌ 初始化加密服务失败: %v", err)
 	}
 	database.SetCryptoService(cryptoService)
-	log.Printf("✅ 加密服务初始化成功")
+	log.Info().Msgf("✅ 加密服务初始化成功")
 
 	// 同步config.json到数据库
 	if err := syncConfigToDatabase(database, cfg); err != nil {
-		log.Printf("⚠️  同步config.json到数据库失败: %v", err)
+		log.Warn().Msgf("⚠️  同步config.json到数据库失败: %v", err)
 	}
 
 	// 加载内测码到数据库
 	if err := loadBetaCodesToDatabase(database); err != nil {
-		log.Printf("⚠️  加载内测码到数据库失败: %v", err)
+		log.Warn().Msgf("⚠️  加载内测码到数据库失败: %v", err)
 	}
 
 	// 获取系统配置
@@ -174,12 +174,12 @@ func main() {
 		jwtSecret, _ = database.GetSystemConfig("jwt_secret")
 		if jwtSecret == "" {
 			jwtSecret = "your-jwt-secret-key-change-in-production-make-it-long-and-random"
-			log.Printf("⚠️  使用默认JWT密钥，建议使用加密设置脚本生成安全密钥")
+			log.Warn().Msgf("⚠️  使用默认JWT密钥，建议使用加密设置脚本生成安全密钥")
 		} else {
-			log.Printf("🔑 使用数据库中JWT密钥")
+			log.Info().Msgf("🔑 使用数据库中JWT密钥")
 		}
 	} else {
-		log.Printf("🔑 使用环境变量JWT密钥")
+		log.Info().Msgf("🔑 使用环境变量JWT密钥")
 	}
 	auth.SetJWTSecret(jwtSecret)
 
@@ -190,7 +190,7 @@ func main() {
 
 	// 管理员模式下需要管理员密码，缺失则退出
 
-	log.Printf("✓ 配置数据库初始化成功")
+	log.Info().Msgf("✓ 配置数据库初始化成功")
 	fmt.Println()
 
 	// 从数据库读取默认主流币种列表
@@ -200,35 +200,35 @@ func main() {
 	if defaultCoinsJSON != "" {
 		// 尝试从JSON解析
 		if err := json.Unmarshal([]byte(defaultCoinsJSON), &defaultCoins); err != nil {
-			log.Printf("⚠️  解析default_coins配置失败: %v，使用硬编码默认值", err)
+			log.Warn().Msgf("⚠️  解析default_coins配置失败: %v，使用硬编码默认值", err)
 			defaultCoins = []string{"BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "HYPEUSDT"}
 		} else {
-			log.Printf("✓ 从数据库加载默认币种列表（共%d个）: %v", len(defaultCoins), defaultCoins)
+			log.Info().Msgf("✓ 从数据库加载默认币种列表（共%d个）: %v", len(defaultCoins), defaultCoins)
 		}
 	} else {
 		// 如果数据库中没有配置，使用硬编码默认值
 		defaultCoins = []string{"BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "HYPEUSDT"}
-		log.Printf("⚠️  数据库中未配置default_coins，使用硬编码默认值")
+		log.Warn().Msgf("⚠️  数据库中未配置default_coins，使用硬编码默认值")
 	}
 
 	pool.SetDefaultCoins(defaultCoins)
 	// 设置是否使用默认主流币种
 	pool.SetUseDefaultCoins(useDefaultCoins)
 	if useDefaultCoins {
-		log.Printf("✓ 已启用默认主流币种列表")
+		log.Info().Msgf("✓ 已启用默认主流币种列表")
 	}
 
 	// 设置币种池API URL
 	coinPoolAPIURL, _ := database.GetSystemConfig("coin_pool_api_url")
 	if coinPoolAPIURL != "" {
 		pool.SetCoinPoolAPI(coinPoolAPIURL)
-		log.Printf("✓ 已配置AI500币种池API")
+		log.Info().Msgf("✓ 已配置AI500币种池API")
 	}
 
 	oiTopAPIURL, _ := database.GetSystemConfig("oi_top_api_url")
 	if oiTopAPIURL != "" {
 		pool.SetOITopAPI(oiTopAPIURL)
-		log.Printf("✓ 已配置OI Top API")
+		log.Info().Msgf("✓ 已配置OI Top API")
 	}
 
 	// 创建TraderManager
@@ -237,13 +237,13 @@ func main() {
 	// 从数据库加载所有交易员到内存
 	err = traderManager.LoadTradersFromDatabase(database)
 	if err != nil {
-		log.Fatalf("❌ 加载交易员失败: %v", err)
+		log.Fatal().Msgf("❌ 加载交易员失败: %v", err)
 	}
 
 	// 获取数据库中的所有交易员配置（用于显示，使用default用户）
 	traders, err := database.GetTraders("default")
 	if err != nil {
-		log.Fatalf("❌ 获取交易员列表失败: %v", err)
+		log.Fatal().Msgf("❌ 获取交易员列表失败: %v", err)
 	}
 
 	// 显示加载的交易员信息
@@ -286,25 +286,25 @@ func main() {
 	if envPort := strings.TrimSpace(os.Getenv("ATRADE_BACKEND_PORT")); envPort != "" {
 		if port, err := strconv.Atoi(envPort); err == nil && port > 0 {
 			apiPort = port
-			log.Printf("🔌 使用环境变量端口: %d (ATRADE_BACKEND_PORT)", apiPort)
+			log.Info().Msgf("🔌 使用环境变量端口: %d (ATRADE_BACKEND_PORT)", apiPort)
 		} else {
-			log.Printf("⚠️  环境变量 ATRADE_BACKEND_PORT 无效: %s", envPort)
+			log.Warn().Msgf("⚠️  环境变量 ATRADE_BACKEND_PORT 无效: %s", envPort)
 		}
 	} else if apiPortStr != "" {
 		// 2. 从数据库配置读取（config.json 同步过来的）
 		if port, err := strconv.Atoi(apiPortStr); err == nil && port > 0 {
 			apiPort = port
-			log.Printf("🔌 使用数据库配置端口: %d (api_server_port)", apiPort)
+			log.Info().Msgf("🔌 使用数据库配置端口: %d (api_server_port)", apiPort)
 		}
 	} else {
-		log.Printf("🔌 使用默认端口: %d", apiPort)
+		log.Info().Msgf("🔌 使用默认端口: %d", apiPort)
 	}
 
 	// 创建并启动API服务器
 	apiServer := api.NewServer(traderManager, database, cryptoService, apiPort, cfg.CORS)
 	go func() {
 		if err := apiServer.Start(); err != nil {
-			log.Printf("❌ API服务器错误: %v", err)
+			log.Error().Msgf("❌ API服务器错误: %v", err)
 		}
 	}()
 
@@ -319,7 +319,7 @@ func main() {
 	go func() {
 		userIDs, err := database.GetAllUsers()
 		if err != nil {
-			log.Printf("⚠️  获取用户列表失败，跳过自动启动: %v", err)
+			log.Warn().Msgf("⚠️  获取用户列表失败，跳过自动启动: %v", err)
 			return
 		}
 
@@ -327,7 +327,7 @@ func main() {
 		for _, userID := range userIDs {
 			userTraders, err := database.GetTraders(userID)
 			if err != nil {
-				log.Printf("⚠️  获取用户 %s 的交易员失败: %v", userID, err)
+				log.Warn().Msgf("⚠️  获取用户 %s 的交易员失败: %v", userID, err)
 				continue
 			}
 			for _, traderCfg := range userTraders {
@@ -336,22 +336,22 @@ func main() {
 				}
 				t, err := traderManager.GetTrader(traderCfg.ID)
 				if err != nil {
-					log.Printf("⚠️  自动启动: 交易员 %s 未加载到内存，跳过: %v", traderCfg.Name, err)
+					log.Warn().Msgf("⚠️  自动启动: 交易员 %s 未加载到内存，跳过: %v", traderCfg.Name, err)
 					continue
 				}
 				traderID := traderCfg.ID
 				traderName := traderCfg.Name
 				go func() {
-					log.Printf("▶️  自动启动交易员 %s (%s)", traderName, traderID)
+					log.Info().Msgf("▶️  自动启动交易员 %s (%s)", traderName, traderID)
 					if err := t.Run(); err != nil {
-						log.Printf("❌ 交易员 %s 运行错误: %v", traderName, err)
+						log.Error().Msgf("❌ 交易员 %s 运行错误: %v", traderName, err)
 					}
 				}()
 				startedCount++
 			}
 		}
 		if startedCount > 0 {
-			log.Printf("🚀 自动启动了 %d 个交易员", startedCount)
+			log.Info().Msgf("🚀 自动启动了 %d 个交易员", startedCount)
 		}
 	}()
 
@@ -359,27 +359,27 @@ func main() {
 	<-sigChan
 	fmt.Println()
 	fmt.Println()
-	log.Println("📛 收到退出信号，正在优雅关闭...")
+	log.Info().Msg("📛 收到退出信号，正在优雅关闭...")
 
 	// 步骤 1: 停止所有交易员
-	log.Println("⏸️  停止所有交易员...")
+	log.Info().Msg("⏸️  停止所有交易员...")
 	traderManager.StopAll()
-	log.Println("✅ 所有交易员已停止")
+	log.Info().Msg("✅ 所有交易员已停止")
 
 	// 步骤 2: 关闭 API 服务器
-	log.Println("🛑 停止 API 服务器...")
+	log.Info().Msg("🛑 停止 API 服务器...")
 	if err := apiServer.Shutdown(); err != nil {
-		log.Printf("⚠️  关闭 API 服务器时出错: %v", err)
+		log.Warn().Msgf("⚠️  关闭 API 服务器时出错: %v", err)
 	} else {
-		log.Println("✅ API 服务器已安全关闭")
+		log.Info().Msg("✅ API 服务器已安全关闭")
 	}
 
 	// 步骤 3: 关闭数据库连接 (确保所有写入完成)
-	log.Println("💾 关闭数据库连接...")
+	log.Info().Msg("💾 关闭数据库连接...")
 	if err := database.Close(); err != nil {
-		log.Printf("❌ 关闭数据库失败: %v", err)
+		log.Error().Msgf("❌ 关闭数据库失败: %v", err)
 	} else {
-		log.Println("✅ 数据库已安全关闭，所有数据已持久化")
+		log.Info().Msg("✅ 数据库已安全关闭，所有数据已持久化")
 	}
 
 	fmt.Println()

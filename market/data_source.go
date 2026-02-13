@@ -2,7 +2,7 @@ package market
 
 import (
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 )
 
 // DataSource 数据源类型
@@ -99,24 +99,24 @@ func InitDataSource(source string, apiKey string) {
 			if cfg, ok := dataSourceConfigs[DataSourceFinnhub]; ok {
 				cfg.APIKey = apiKey
 			}
-			log.Printf("📊 [Market] 使用数据源: Finnhub (需要 API key，无期货数据)")
+			log.Info().Msgf("📊 [Market] 使用数据源: Finnhub (需要 API key，无期货数据)")
 		} else {
-			log.Printf("⚠️  [Market] Finnhub 数据源需要 API key，请在 config.json 中配置 finnhub_api_key")
+			log.Warn().Msgf("⚠️  [Market] Finnhub 数据源需要 API key，请在 config.json 中配置 finnhub_api_key")
 		}
 	case DataSourceBybit:
 		currentDataSource = DataSourceBybit
-		log.Printf("📊 [Market] 使用数据源: Bybit (推荐给美国用户)")
+		log.Info().Msgf("📊 [Market] 使用数据源: Bybit (推荐给美国用户)")
 	case DataSourceBinanceUS:
 		currentDataSource = DataSourceBinanceUS
-		log.Printf("⚠️  [Market] 使用数据源: Binance.US (注意：仅支持现货数据，无期货 Open Interest 和 Funding Rate)")
+		log.Warn().Msgf("⚠️  [Market] 使用数据源: Binance.US (注意：仅支持现货数据，无期货 Open Interest 和 Funding Rate)")
 	case DataSourceHyperliquid:
 		currentDataSource = DataSourceHyperliquid
-		log.Printf("📊 [Market] 使用数据源: Hyperliquid (DEX)")
+		log.Info().Msgf("📊 [Market] 使用数据源: Hyperliquid (DEX)")
 	case DataSourceBinance:
 		fallthrough
 	default:
 		currentDataSource = DataSourceBinance
-		log.Printf("📊 [Market] 使用数据源: Binance")
+		log.Info().Msgf("📊 [Market] 使用数据源: Binance")
 	}
 }
 
@@ -129,7 +129,7 @@ func GetCurrentDataSource() DataSource {
 func GetDataSourceConfig() *DataSourceConfig {
 	cfg, ok := dataSourceConfigs[currentDataSource]
 	if !ok {
-		log.Printf("⚠️  [Market] 数据源配置不存在，使用 Binance 默认配置")
+		log.Warn().Msgf("⚠️  [Market] 数据源配置不存在，使用 Binance 默认配置")
 		return dataSourceConfigs[DataSourceBinance]
 	}
 	return cfg

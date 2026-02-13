@@ -6,7 +6,7 @@ import (
 	"aspen/pool"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"regexp"
 	"strings"
 	"time"
@@ -205,7 +205,7 @@ func fetchMarketDataForContext(ctx *Context) error {
 		if err != nil {
 			// 单个币种失败不影响整体，记录错误
 			failedCount++
-			log.Printf("⚠️  获取 %s 市场数据失败: %v", symbol, err)
+			log.Warn().Msgf("⚠️  获取 %s 市场数据失败: %v", symbol, err)
 			continue
 		}
 
@@ -223,7 +223,7 @@ func fetchMarketDataForContext(ctx *Context) error {
 
 			// 如果 OI 为 0，可能是数据获取问题，记录警告但不过滤（避免误过滤）
 			if data.OpenInterest.Latest == 0 {
-				log.Printf("⚠️  %s OpenInterest 为 0（可能是数据获取问题），保留在候选列表中", symbol)
+				log.Warn().Msgf("⚠️  %s OpenInterest 为 0（可能是数据获取问题），保留在候选列表中", symbol)
 			} else if oiValueInMillions < minOIThresholdMillions {
 				filteredCount++
 				log.Printf("⚠️  %s 持仓价值过低(%.2fM USD < %.1fM)，跳过此币种 [持仓量:%.0f × 价格:%.4f]",
@@ -232,7 +232,7 @@ func fetchMarketDataForContext(ctx *Context) error {
 			}
 		} else if !isExistingPosition && data.OpenInterest == nil {
 			// 如果没有 OI 数据，记录警告但不过滤（可能是新币种或数据源问题）
-			log.Printf("⚠️  %s 没有持仓量(OI)数据，但保留在候选列表中", symbol)
+			log.Warn().Msgf("⚠️  %s 没有持仓量(OI)数据，但保留在候选列表中", symbol)
 		}
 
 		ctx.MarketDataMap[symbol] = data
@@ -241,7 +241,7 @@ func fetchMarketDataForContext(ctx *Context) error {
 
 	// 输出统计信息
 	if failedCount > 0 || filteredCount > 0 {
-		log.Printf("📊 市场数据获取统计: 成功 %d 个, 失败 %d 个, 流动性过滤 %d 个", successCount, failedCount, filteredCount)
+		log.Error().Msgf("📊 市场数据获取统计: 成功 %d 个, 失败 %d 个, 流动性过滤 %d 个", successCount, failedCount, filteredCount)
 	}
 
 	// 加载OI Top数据（不影响主流程）
@@ -332,15 +332,15 @@ func buildSystemPrompt(accountEquity float64, btcEthLeverage, altcoinLeverage in
 	template, err := GetPromptTemplate(templateName)
 	if err != nil {
 		// 如果模板不存在，记录错误并使用 hybrid 作为 fallback
-		log.Printf("⚠️  提示词模板 '%s' 不存在，使用 hybrid: %v", templateName, err)
+		log.Warn().Msgf("⚠️  提示词模板 '%s' 不存在，使用 hybrid: %v", templateName, err)
 		template, err = GetPromptTemplate("hybrid")
 		if err != nil {
 			// 如果连 hybrid 都不存在，尝试使用 default
-			log.Printf("⚠️  hybrid 模板不存在，尝试使用 default: %v", err)
+			log.Warn().Msgf("⚠️  hybrid 模板不存在，尝试使用 default: %v", err)
 			template, err = GetPromptTemplate("default")
 			if err != nil {
 				// 如果连 default 都不存在，使用内置的简化版本
-				log.Printf("❌ 无法加载任何提示词模板，使用内置简化版本")
+				log.Error().Msgf("❌ 无法加载任何提示词模板，使用内置简化版本")
 				sb.WriteString("你是专业的加密货币交易AI。请根据市场数据做出交易决策。\n\n")
 			} else {
 				sb.WriteString(template.Content)
@@ -417,7 +417,7 @@ func buildUserPrompt(ctx *Context) string {
 		// 如果 BTC 数据获取失败，记录警告但继续
 		dataSourceName := string(market.GetCurrentDataSource())
 		sb.WriteString(fmt.Sprintf("BTC: 数据获取失败（请检查网络连接或 %s API 状态）\n\n", strings.ToUpper(dataSourceName)))
-		log.Printf("⚠️  警告: BTC 市场数据获取失败，这可能会影响 AI 决策质量")
+		log.Warn().Msgf("⚠️  警告: BTC 市场数据获取失败，这可能会影响 AI 决策质量")
 	}
 
 	// 账户
@@ -570,20 +570,20 @@ func parseFullDecisionResponse(aiResponse string, accountEquity float64, btcEthL
 func extractCoTTrace(response string) string {
 	// 方法1: 优先尝试提取 <reasoning> 标签内容
 	if match := reReasoningTag.FindStringSubmatch(response); match != nil && len(match) > 1 {
-		log.Printf("✓ 使用 <reasoning> 标签提取思维链")
+		log.Info().Msgf("✓ 使用 <reasoning> 标签提取思维链")
 		return strings.TrimSpace(match[1])
 	}
 
 	// 方法2: 如果没有 <reasoning> 标签，但有 <decision> 标签，提取 <decision> 之前的内容
 	if decisionIdx := strings.Index(response, "<decision>"); decisionIdx > 0 {
-		log.Printf("✓ 提取 <decision> 标签之前的内容作为思维链")
+		log.Info().Msgf("✓ 提取 <decision> 标签之前的内容作为思维链")
 		return strings.TrimSpace(response[:decisionIdx])
 	}
 
 	// 方法3: 后备方案 - 查找JSON数组的开始位置
 	jsonStart := strings.Index(response, "[")
 	if jsonStart > 0 {
-		log.Printf("⚠️  使用旧版格式（[ 字符分离）提取思维链")
+		log.Warn().Msgf("⚠️  使用旧版格式（[ 字符分离）提取思维链")
 		return strings.TrimSpace(response[:jsonStart])
 	}
 
@@ -605,11 +605,11 @@ func extractDecisions(response string) ([]Decision, error) {
 	var jsonPart string
 	if match := reDecisionTag.FindStringSubmatch(s); match != nil && len(match) > 1 {
 		jsonPart = strings.TrimSpace(match[1])
-		log.Printf("✓ 使用 <decision> 标签提取JSON")
+		log.Info().Msgf("✓ 使用 <decision> 标签提取JSON")
 	} else {
 		// 后备方案：使用整个响应
 		jsonPart = s
-		log.Printf("⚠️  未找到 <decision> 标签，使用全文搜索JSON")
+		log.Warn().Msgf("⚠️  未找到 <decision> 标签，使用全文搜索JSON")
 	}
 
 	// 修复 jsonPart 中的全角字符
@@ -635,7 +635,7 @@ func extractDecisions(response string) ([]Decision, error) {
 	jsonContent := strings.TrimSpace(reJSONArray.FindString(jsonPart))
 	if jsonContent == "" {
 		// 🔧 安全回退 (Safe Fallback)：当AI只输出思维链没有JSON时，生成保底决策（避免系统崩溃）
-		log.Printf("⚠️  [SafeFallback] AI未输出JSON决策，进入安全等待模式 (AI response without JSON, entering safe wait mode)")
+		log.Warn().Msgf("⚠️  [SafeFallback] AI未输出JSON决策，进入安全等待模式 (AI response without JSON, entering safe wait mode)")
 
 		// 提取思维链摘要（最多 240 字符）
 		cotSummary := jsonPart

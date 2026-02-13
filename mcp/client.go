@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"strconv"
@@ -45,9 +45,9 @@ func New() *Client {
 	if envMaxTokens := os.Getenv("AI_MAX_TOKENS"); envMaxTokens != "" {
 		if parsed, err := strconv.Atoi(envMaxTokens); err == nil && parsed > 0 {
 			maxTokens = parsed
-			log.Printf("🔧 [MCP] 使用环境变量 AI_MAX_TOKENS: %d", maxTokens)
+			log.Info().Msgf("🔧 [MCP] 使用环境变量 AI_MAX_TOKENS: %d", maxTokens)
 		} else {
-			log.Printf("⚠️  [MCP] 环境变量 AI_MAX_TOKENS 无效 (%s)，使用默认值: %d", envMaxTokens, maxTokens)
+			log.Warn().Msgf("⚠️  [MCP] 环境变量 AI_MAX_TOKENS 无效 (%s)，使用默认值: %d", envMaxTokens, maxTokens)
 		}
 	}
 
@@ -68,21 +68,21 @@ func (client *Client) SetDeepSeekAPIKey(apiKey string, customURL string, customM
 	client.APIKey = apiKey
 	if customURL != "" {
 		client.BaseURL = customURL
-		log.Printf("🔧 [MCP] DeepSeek 使用自定义 BaseURL: %s", customURL)
+		log.Info().Msgf("🔧 [MCP] DeepSeek 使用自定义 BaseURL: %s", customURL)
 	} else {
 		client.BaseURL = "https://api.deepseek.com/v1"
-		log.Printf("🔧 [MCP] DeepSeek 使用默认 BaseURL: %s", client.BaseURL)
+		log.Info().Msgf("🔧 [MCP] DeepSeek 使用默认 BaseURL: %s", client.BaseURL)
 	}
 	if customModel != "" {
 		client.Model = customModel
-		log.Printf("🔧 [MCP] DeepSeek 使用自定义 Model: %s", customModel)
+		log.Info().Msgf("🔧 [MCP] DeepSeek 使用自定义 Model: %s", customModel)
 	} else {
 		client.Model = "deepseek-chat"
-		log.Printf("🔧 [MCP] DeepSeek 使用默认 Model: %s", client.Model)
+		log.Info().Msgf("🔧 [MCP] DeepSeek 使用默认 Model: %s", client.Model)
 	}
 	// 打印 API Key 的前后各4位用于验证
 	if len(apiKey) > 8 {
-		log.Printf("🔧 [MCP] DeepSeek API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+		log.Info().Msgf("🔧 [MCP] DeepSeek API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 
@@ -93,21 +93,21 @@ func (client *Client) SetQwenAPIKey(apiKey string, customURL string, customModel
 	client.APIKey = apiKey
 	if customURL != "" {
 		client.BaseURL = customURL
-		log.Printf("🔧 [MCP] Qwen 使用自定义 BaseURL: %s", customURL)
+		log.Info().Msgf("🔧 [MCP] Qwen 使用自定义 BaseURL: %s", customURL)
 	} else {
 		client.BaseURL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-		log.Printf("🔧 [MCP] Qwen 使用默认 BaseURL: %s", client.BaseURL)
+		log.Info().Msgf("🔧 [MCP] Qwen 使用默认 BaseURL: %s", client.BaseURL)
 	}
 	if customModel != "" {
 		client.Model = customModel
-		log.Printf("🔧 [MCP] Qwen 使用自定义 Model: %s", customModel)
+		log.Info().Msgf("🔧 [MCP] Qwen 使用自定义 Model: %s", customModel)
 	} else {
 		client.Model = "qwen3-max"
-		log.Printf("🔧 [MCP] Qwen 使用默认 Model: %s", client.Model)
+		log.Info().Msgf("🔧 [MCP] Qwen 使用默认 Model: %s", client.Model)
 	}
 	// 打印 API Key 的前后各4位用于验证
 	if len(apiKey) > 8 {
-		log.Printf("🔧 [MCP] Qwen API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+		log.Info().Msgf("🔧 [MCP] Qwen API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 
@@ -122,17 +122,17 @@ func (client *Client) SetOpenRouterAPIKey(apiKey string, modelName string) {
 
 	if modelName != "" {
 		client.Model = modelName
-		log.Printf("🔧 [MCP] OpenRouter 使用模型: %s", modelName)
+		log.Info().Msgf("🔧 [MCP] OpenRouter 使用模型: %s", modelName)
 	} else {
 		client.Model = "openai/gpt-4o"
-		log.Printf("🔧 [MCP] OpenRouter 使用默认模型: %s", client.Model)
+		log.Info().Msgf("🔧 [MCP] OpenRouter 使用默认模型: %s", client.Model)
 	}
 
 	client.Timeout = 180 * time.Second
 
 	// 打印 API Key 的前后各4位用于验证
 	if len(apiKey) > 8 {
-		log.Printf("🔧 [MCP] OpenRouter API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+		log.Info().Msgf("🔧 [MCP] OpenRouter API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 
@@ -146,16 +146,16 @@ func (client *Client) SetAnthropicAPIKey(apiKey string, modelName string) {
 
 	if modelName != "" {
 		client.Model = modelName
-		log.Printf("🔧 [MCP] Anthropic 使用模型: %s", modelName)
+		log.Info().Msgf("🔧 [MCP] Anthropic 使用模型: %s", modelName)
 	} else {
 		client.Model = "claude-sonnet-4-20250514"
-		log.Printf("🔧 [MCP] Anthropic 使用默认模型: %s", client.Model)
+		log.Info().Msgf("🔧 [MCP] Anthropic 使用默认模型: %s", client.Model)
 	}
 
 	client.Timeout = 180 * time.Second
 
 	if len(apiKey) > 8 {
-		log.Printf("🔧 [MCP] Anthropic API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+		log.Info().Msgf("🔧 [MCP] Anthropic API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 
@@ -169,16 +169,16 @@ func (client *Client) SetOpenAIAPIKey(apiKey string, modelName string) {
 
 	if modelName != "" {
 		client.Model = modelName
-		log.Printf("🔧 [MCP] OpenAI 使用模型: %s", modelName)
+		log.Info().Msgf("🔧 [MCP] OpenAI 使用模型: %s", modelName)
 	} else {
 		client.Model = "gpt-4o"
-		log.Printf("🔧 [MCP] OpenAI 使用默认模型: %s", client.Model)
+		log.Info().Msgf("🔧 [MCP] OpenAI 使用默认模型: %s", client.Model)
 	}
 
 	client.Timeout = 180 * time.Second
 
 	if len(apiKey) > 8 {
-		log.Printf("🔧 [MCP] OpenAI API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+		log.Info().Msgf("🔧 [MCP] OpenAI API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 
@@ -192,16 +192,16 @@ func (client *Client) SetGoogleAPIKey(apiKey string, modelName string) {
 
 	if modelName != "" {
 		client.Model = modelName
-		log.Printf("🔧 [MCP] Google 使用模型: %s", modelName)
+		log.Info().Msgf("🔧 [MCP] Google 使用模型: %s", modelName)
 	} else {
 		client.Model = "gemini-2.0-flash"
-		log.Printf("🔧 [MCP] Google 使用默认模型: %s", client.Model)
+		log.Info().Msgf("🔧 [MCP] Google 使用默认模型: %s", client.Model)
 	}
 
 	client.Timeout = 180 * time.Second
 
 	if len(apiKey) > 8 {
-		log.Printf("🔧 [MCP] Google API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+		log.Info().Msgf("🔧 [MCP] Google API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 
@@ -288,13 +288,13 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 // callOnce 单次调用AI API（内部使用）
 func (client *Client) callOnce(systemPrompt, userPrompt string) (string, error) {
 	// 打印当前 AI 配置
-	log.Printf("📡 [MCP] AI 请求配置:")
-	log.Printf("   Provider: %s", client.Provider)
-	log.Printf("   BaseURL: %s", client.BaseURL)
-	log.Printf("   Model: %s", client.Model)
-	log.Printf("   UseFullURL: %v", client.UseFullURL)
+	log.Info().Msgf("📡 [MCP] AI 请求配置:")
+	log.Info().Msgf("   Provider: %s", client.Provider)
+	log.Info().Msgf("   BaseURL: %s", client.BaseURL)
+	log.Info().Msgf("   Model: %s", client.Model)
+	log.Info().Msgf("   UseFullURL: %v", client.UseFullURL)
 	if len(client.APIKey) > 8 {
-		log.Printf("   API Key: %s...%s", client.APIKey[:4], client.APIKey[len(client.APIKey)-4:])
+		log.Info().Msgf("   API Key: %s...%s", client.APIKey[:4], client.APIKey[len(client.APIKey)-4:])
 	}
 
 	// 根据 Provider 选择不同的 API 调用方式
@@ -353,7 +353,7 @@ func (client *Client) callOpenAICompatible(systemPrompt, userPrompt string) (str
 		// 默认行为：添加/chat/completions
 		url = fmt.Sprintf("%s/chat/completions", client.BaseURL)
 	}
-	log.Printf("📡 [MCP] 请求 URL: %s", url)
+	log.Info().Msgf("📡 [MCP] 请求 URL: %s", url)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -524,7 +524,7 @@ func (client *Client) callAnthropic(systemPrompt, userPrompt string) (string, er
 	}
 
 	url := fmt.Sprintf("%s/messages", client.BaseURL)
-	log.Printf("📡 [MCP] Anthropic 请求 URL: %s", url)
+	log.Info().Msgf("📡 [MCP] Anthropic 请求 URL: %s", url)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {
@@ -646,7 +646,7 @@ func (client *Client) callGoogle(systemPrompt, userPrompt string) (string, error
 
 	// Google API URL 格式: /models/{model}:generateContent?key={apiKey}
 	url := fmt.Sprintf("%s/models/%s:generateContent?key=%s", client.BaseURL, client.Model, client.APIKey)
-	log.Printf("📡 [MCP] Google 请求 URL: %s/models/%s:generateContent?key=***", client.BaseURL, client.Model)
+	log.Info().Msgf("📡 [MCP] Google 请求 URL: %s/models/%s:generateContent?key=***", client.BaseURL, client.Model)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
 	if err != nil {

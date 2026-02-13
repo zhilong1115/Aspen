@@ -180,7 +180,7 @@ func (t *HyperliquidTrader) GetBalance() (map[string]interface{}, error) {
 
 	// 🔍 调试：打印API返回的完整摘要结构
 	summaryJSON, _ := json.MarshalIndent(summary, "  ", "  ")
-	logger.Debugf("🔍 [DEBUG] Hyperliquid API %s 完整数据:", summaryType)
+	logger.Debugf("🔍 Hyperliquid API %s 完整数据:", summaryType)
 	logger.Debugf("%s", string(summaryJSON))
 
 	// ⚠️ 关键修复：从所有持仓中累加真正的未实现盈亏

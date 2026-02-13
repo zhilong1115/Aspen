@@ -3,7 +3,7 @@ package crypto
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"time"
 )
 
@@ -70,7 +70,7 @@ func (ss *SecureStorage) SaveEncryptedExchangeConfig(userID, exchangeID, apiKey,
 	// 記錄審計日誌
 	ss.logAudit(userID, "exchange_config_update", exchangeID, "密鑰已更新")
 
-	log.Printf("🔐 [%s] 交易所 %s 的密鑰已加密保存", userID, exchangeID)
+	log.Info().Msgf("🔐 [%s] 交易所 %s 的密鑰已加密保存", userID, exchangeID)
 	return nil
 }
 
@@ -138,7 +138,7 @@ func (ss *SecureStorage) SaveEncryptedAIModelConfig(userID, modelID, apiKey stri
 	}
 
 	ss.logAudit(userID, "ai_model_config_update", modelID, "API Key 已更新")
-	log.Printf("🔐 [%s] AI 模型 %s 的 API Key 已加密保存", userID, modelID)
+	log.Info().Msgf("🔐 [%s] AI 模型 %s 的 API Key 已加密保存", userID, modelID)
 	return nil
 }
 
@@ -196,7 +196,7 @@ func (ss *SecureStorage) logAudit(userID, action, resource, details string) {
 	`, userID, action, resource, details)
 
 	if err != nil {
-		log.Printf("⚠️ 審計日誌記錄失敗: %v", err)
+		log.Warn().Msgf("⚠️ 審計日誌記錄失敗: %v", err)
 	}
 }
 
@@ -242,7 +242,7 @@ type AuditLog struct {
 
 // MigrateToEncrypted 將舊的明文數據遷移到加密格式
 func (ss *SecureStorage) MigrateToEncrypted() error {
-	log.Println("🔄 開始遷移明文數據到加密格式...")
+	log.Info().Msg("🔄 開始遷移明文數據到加密格式...")
 
 	tx, err := ss.db.Begin()
 	if err != nil {
@@ -297,6 +297,6 @@ func (ss *SecureStorage) MigrateToEncrypted() error {
 		return err
 	}
 
-	log.Printf("✅ 已遷移 %d 個交易所配置到加密格式", count)
+	log.Info().Msgf("✅ 已遷移 %d 個交易所配置到加密格式", count)
 	return nil
 }

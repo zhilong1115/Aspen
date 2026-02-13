@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"github.com/rs/zerolog/log"
 	"math"
 	"net/http"
 	"strconv"
@@ -46,7 +46,7 @@ func Get(symbol string) (*Data, error) {
 	// 获取30分钟K线数据（择时用）
 	klines30m, err = WSMonitorCli.GetCurrentKlines(symbol, "30m")
 	if err != nil {
-		log.Printf("获取30分钟K线失败: %v", err)
+		log.Error().Msgf("获取30分钟K线失败: %v", err)
 		klines30m = []Kline{}
 	}
 
@@ -438,7 +438,7 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 			} `json:"result"`
 		}
 		if err := json.Unmarshal(body, &response); err != nil {
-			log.Printf("❌ [Market] 解析Bybit OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
+			log.Error().Msgf("❌ [Market] 解析Bybit OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
 			return nil, fmt.Errorf("解析Bybit JSON响应失败: %w", err)
 		}
 		if response.RetCode != 0 {
@@ -446,7 +446,7 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 		}
 		oi, err = strconv.ParseFloat(response.Result.OpenInterest, 64)
 		if err != nil {
-			log.Printf("❌ [Market] 解析Bybit OpenInterest数值失败, symbol=%s, value=%s", symbol, response.Result.OpenInterest)
+			log.Error().Msgf("❌ [Market] 解析Bybit OpenInterest数值失败, symbol=%s, value=%s", symbol, response.Result.OpenInterest)
 			return nil, fmt.Errorf("解析OpenInterest数值失败: %w", err)
 		}
 	} else {
@@ -457,18 +457,18 @@ func getOpenInterestData(symbol string) (*OIData, error) {
 			Time         int64  `json:"time"`
 		}
 		if err := json.Unmarshal(body, &result); err != nil {
-			log.Printf("❌ [Market] 解析OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
+			log.Error().Msgf("❌ [Market] 解析OpenInterest数据失败, symbol=%s, 响应内容: %s", symbol, string(body))
 			return nil, fmt.Errorf("解析JSON响应失败: %w", err)
 		}
 		oi, err = strconv.ParseFloat(result.OpenInterest, 64)
 		if err != nil {
-			log.Printf("❌ [Market] 解析OpenInterest数值失败, symbol=%s, value=%s", symbol, result.OpenInterest)
+			log.Error().Msgf("❌ [Market] 解析OpenInterest数值失败, symbol=%s, value=%s", symbol, result.OpenInterest)
 			return nil, fmt.Errorf("解析OpenInterest数值失败: %w", err)
 		}
 	}
 
 	if oi == 0 {
-		log.Printf("⚠️  [Market] %s 的 OpenInterest 为 0（可能是数据问题或币种未交易）", symbol)
+		log.Warn().Msgf("⚠️  [Market] %s 的 OpenInterest 为 0（可能是数据问题或币种未交易）", symbol)
 	}
 
 	return &OIData{

@@ -13,7 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"github.com/rs/zerolog/log"
 	"os"
 	"sync"
 )
@@ -54,7 +54,7 @@ func newEncryptionManager() (*EncryptionManager, error) {
 		return nil, fmt.Errorf("初始化主密鑰失敗: %w", err)
 	}
 
-	log.Println("🔐 加密管理器初始化成功")
+	log.Info().Msg("🔐 加密管理器初始化成功")
 	return em, nil
 }
 
@@ -80,7 +80,7 @@ func (em *EncryptionManager) loadOrGenerateRSAKeyPair() error {
 	}
 
 	// 生成新密鑰對
-	log.Println("🔑 生成新的 RSA-4096 密鑰對...")
+	log.Info().Msg("🔑 生成新的 RSA-4096 密鑰對...")
 	privateKey, err := rsa.GenerateKey(rand.Reader, rsaKeySize)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (em *EncryptionManager) loadOrGenerateRSAKeyPair() error {
 	}
 
 	em.publicKeyPEM = string(publicKeyPEM)
-	log.Println("✅ RSA 密鑰對已生成並保存")
+	log.Info().Msg("✅ RSA 密鑰對已生成並保存")
 	return nil
 }
 
@@ -142,7 +142,7 @@ func (em *EncryptionManager) loadRSAKeyPair() error {
 	}
 	em.publicKeyPEM = string(publicKeyPEM)
 
-	log.Println("✅ RSA 密鑰對已加載")
+	log.Info().Msg("✅ RSA 密鑰對已加載")
 	return nil
 }
 
@@ -228,10 +228,10 @@ func (em *EncryptionManager) loadOrGenerateMasterKey() error {
 		decoded, err := base64.StdEncoding.DecodeString(envKey)
 		if err == nil && len(decoded) == 32 {
 			em.masterKey = decoded
-			log.Println("✅ 從環境變數加載主密鑰")
+			log.Info().Msg("✅ 從環境變數加載主密鑰")
 			return nil
 		}
-		log.Println("⚠️ 環境變數中的主密鑰無效，使用文件密鑰")
+		log.Warn().Msg("⚠️ 環境變數中的主密鑰無效，使用文件密鑰")
 	}
 
 	// 嘗試從文件加載
@@ -245,12 +245,12 @@ func (em *EncryptionManager) loadOrGenerateMasterKey() error {
 			return errors.New("主密鑰文件損壞")
 		}
 		em.masterKey = decoded
-		log.Println("✅ 從文件加載主密鑰")
+		log.Info().Msg("✅ 從文件加載主密鑰")
 		return nil
 	}
 
 	// 生成新主密鑰
-	log.Println("🔑 生成新的數據庫主密鑰 (AES-256)...")
+	log.Info().Msg("🔑 生成新的數據庫主密鑰 (AES-256)...")
 	masterKey := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, masterKey); err != nil {
 		return err
@@ -264,10 +264,10 @@ func (em *EncryptionManager) loadOrGenerateMasterKey() error {
 		return err
 	}
 
-	log.Println("✅ 主密鑰已生成並保存")
-	log.Printf("📁 主密鑰文件位置: %s (權限: 0600)", masterKeyFile)
-	log.Println("🔐 生產環境請設置環境變數: ATRADE_MASTER_KEY=<從文件讀取>")
-	log.Println("⚠️  請妥善保管 .secrets 目錄，切勿將密鑰提交到版本控制系統")
+	log.Info().Msg("✅ 主密鑰已生成並保存")
+	log.Info().Msgf("📁 主密鑰文件位置: %s (權限: 0600)", masterKeyFile)
+	log.Info().Msg("🔐 生產環境請設置環境變數: ATRADE_MASTER_KEY=<從文件讀取>")
+	log.Warn().Msg("⚠️  請妥善保管 .secrets 目錄，切勿將密鑰提交到版本控制系統")
 	return nil
 }
 
@@ -341,7 +341,7 @@ func (em *EncryptionManager) RotateMasterKey() error {
 	em.mu.Lock()
 	defer em.mu.Unlock()
 
-	log.Println("🔄 開始輪換主密鑰...")
+	log.Info().Msg("🔄 開始輪換主密鑰...")
 
 	// 生成新主密鑰
 	newMasterKey := make([]byte, 32)
@@ -365,9 +365,9 @@ func (em *EncryptionManager) RotateMasterKey() error {
 		return err
 	}
 
-	log.Println("✅ 主密鑰已輪換")
-	log.Printf("⚠️ 舊密鑰已備份到: %s", backupFile)
-	log.Printf("🔐 新主密鑰: %s", encoded)
+	log.Info().Msg("✅ 主密鑰已輪換")
+	log.Warn().Msgf("⚠️ 舊密鑰已備份到: %s", backupFile)
+	log.Info().Msgf("🔐 新主密鑰: %s", encoded)
 
 	return nil
 }

@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"os"
 )
 
@@ -56,7 +56,7 @@ type Config struct {
 func LoadConfig(filename string) (*Config, error) {
 	// 检查filename是否存在
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		log.Printf("📄 %s不存在，使用默认配置", filename)
+		log.Info().Msgf("📄 %s不存在，使用默认配置", filename)
 		return &Config{}, nil
 	}
 

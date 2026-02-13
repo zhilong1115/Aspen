@@ -3,7 +3,7 @@ package market
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"strings"
 	"sync"
 	"time"
@@ -92,7 +92,7 @@ func (w *WSClient) Connect() error {
 	w.conn = conn
 	w.mu.Unlock()
 
-	log.Println("WebSocket连接成功")
+	log.Info().Msg("WebSocket连接成功")
 
 	// 启动消息读取循环
 	go w.readMessages()
@@ -157,7 +157,7 @@ func (w *WSClient) sendJSON(msg interface{}) error {
 		return err
 	}
 
-	log.Printf("发送WebSocket消息: %v", msg)
+	log.Info().Msgf("发送WebSocket消息: %v", msg)
 	return nil
 }
 
@@ -178,7 +178,7 @@ func (w *WSClient) readMessages() {
 
 			_, message, err := conn.ReadMessage()
 			if err != nil {
-				log.Printf("读取WebSocket消息失败: %v", err)
+				log.Error().Msgf("读取WebSocket消息失败: %v", err)
 				w.handleReconnect()
 				return
 			}
@@ -208,7 +208,7 @@ func (w *WSClient) handleMessage(message []byte) {
 		select {
 		case ch <- wsMsg.Data:
 		default:
-			log.Printf("订阅者通道已满: %s", wsMsg.Stream)
+			log.Info().Msgf("订阅者通道已满: %s", wsMsg.Stream)
 		}
 	}
 }
@@ -330,11 +330,11 @@ func (w *WSClient) handleReconnect() {
 		return
 	}
 
-	log.Println("尝试重新连接...")
+	log.Info().Msg("尝试重新连接...")
 	time.Sleep(3 * time.Second)
 
 	if err := w.Connect(); err != nil {
-		log.Printf("重新连接失败: %v", err)
+		log.Error().Msgf("重新连接失败: %v", err)
 		go w.handleReconnect()
 	}
 }

@@ -1,7 +1,7 @@
 package hook
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 )
 
 type HookFunc func(args ...any) any
@@ -13,16 +13,16 @@ var (
 
 func HookExec[T any](key string, args ...any) *T {
 	if !EnableHooks {
-		log.Printf("🔌 Hooks are disabled, skip hook: %s", key)
+		log.Info().Msgf("🔌 Hooks are disabled, skip hook: %s", key)
 		var zero *T
 		return zero
 	}
 	if hook, exists := Hooks[key]; exists && hook != nil {
-		log.Printf("🔌 Execute hook: %s", key)
+		log.Info().Msgf("🔌 Execute hook: %s", key)
 		res := hook(args...)
 		return res.(*T)
 	} else {
-		log.Printf("🔌 Do not find hook: %s", key)
+		log.Info().Msgf("🔌 Do not find hook: %s", key)
 	}
 	var zero *T
 	return zero

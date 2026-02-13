@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"aspen/crypto"
 
@@ -45,7 +45,7 @@ func (h *CryptoHandler) HandleDecryptSensitiveData(c *gin.Context) {
 	// 解密
 	decrypted, err := h.cryptoService.DecryptSensitiveData(&payload)
 	if err != nil {
-		log.Printf("❌ 解密失敗: %v", err)
+		log.Error().Msgf("❌ 解密失敗: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failed"})
 		return
 	}

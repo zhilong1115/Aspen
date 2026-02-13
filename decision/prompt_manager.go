@@ -2,7 +2,7 @@ package decision
 
 import (
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,9 +32,9 @@ var (
 func init() {
 	globalPromptManager = NewPromptManager()
 	if err := globalPromptManager.LoadTemplates(promptsDir); err != nil {
-		log.Printf("⚠️  加载提示词模板失败: %v", err)
+		log.Warn().Msgf("⚠️  加载提示词模板失败: %v", err)
 	} else {
-		log.Printf("✓ 已加载 %d 个系统提示词模板", len(globalPromptManager.templates))
+		log.Info().Msgf("✓ 已加载 %d 个系统提示词模板", len(globalPromptManager.templates))
 	}
 }
 
@@ -62,7 +62,7 @@ func (pm *PromptManager) LoadTemplates(dir string) error {
 	}
 
 	if len(files) == 0 {
-		log.Printf("⚠️  提示词目录 %s 中没有找到 .txt 文件", dir)
+		log.Warn().Msgf("⚠️  提示词目录 %s 中没有找到 .txt 文件", dir)
 		return nil
 	}
 
@@ -71,7 +71,7 @@ func (pm *PromptManager) LoadTemplates(dir string) error {
 		// 读取文件内容
 		content, err := os.ReadFile(file)
 		if err != nil {
-			log.Printf("⚠️  读取提示词文件失败 %s: %v", file, err)
+			log.Warn().Msgf("⚠️  读取提示词文件失败 %s: %v", file, err)
 			continue
 		}
 
@@ -85,7 +85,7 @@ func (pm *PromptManager) LoadTemplates(dir string) error {
 			Content: string(content),
 		}
 
-		log.Printf("  📄 加载提示词模板: %s (%s)", templateName, fileName)
+		log.Info().Msgf("  📄 加载提示词模板: %s (%s)", templateName, fileName)
 	}
 
 	return nil

@@ -1,7 +1,7 @@
 package hook
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 )
 
@@ -12,7 +12,7 @@ type SetHttpClientResult struct {
 
 func (r *SetHttpClientResult) Error() error {
 	if r.Err != nil {
-		log.Printf("⚠️ 执行NewAsterTraderResult时出错: %v", r.Err)
+		log.Warn().Msgf("⚠️ 执行NewAsterTraderResult时出错: %v", r.Err)
 	}
 	return r.Err
 }

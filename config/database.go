@@ -8,7 +8,7 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"os"
 	"slices"
 	"strings"
@@ -99,7 +99,7 @@ func NewDatabase(dbPath string) (*Database, error) {
 		return nil, fmt.Errorf("初始化默认数据失败: %w", err)
 	}
 
-	log.Printf("✅ 数据库已启用 WAL 模式和 FULL 同步,数据持久性得到保证")
+	log.Info().Msgf("✅ 数据库已启用 WAL 模式和 FULL 同步,数据持久性得到保证")
 	return database, nil
 }
 
@@ -293,7 +293,7 @@ func (d *Database) createTables() error {
 	// 检查是否需要迁移exchanges表的主键结构
 	err := d.migrateExchangesTable()
 	if err != nil {
-		log.Printf("⚠️ 迁移exchanges表失败: %v", err)
+		log.Warn().Msgf("⚠️ 迁移exchanges表失败: %v", err)
 	}
 
 	return nil
@@ -399,7 +399,7 @@ func (d *Database) migrateExchangesTable() error {
 		return nil
 	}
 
-	log.Printf("🔄 开始迁移exchanges表...")
+	log.Info().Msgf("🔄 开始迁移exchanges表...")
 
 	// 创建新的exchanges表，使用复合主键
 	_, err = d.db.Exec(`
@@ -460,7 +460,7 @@ func (d *Database) migrateExchangesTable() error {
 		return fmt.Errorf("创建触发器失败: %w", err)
 	}
 
-	log.Printf("✅ exchanges表迁移完成")
+	log.Info().Msgf("✅ exchanges表迁移完成")
 	return nil
 }
 
@@ -779,7 +779,7 @@ func (d *Database) UpdateAIModel(userID, id string, enabled bool, apiKey, custom
 
 	if err == nil {
 		// 找到了现有配置（通过 provider 匹配，兼容旧版），更新它
-		log.Printf("⚠️  使用旧版 provider 匹配更新模型: %s -> %s", provider, existingID)
+		log.Warn().Msgf("⚠️  使用旧版 provider 匹配更新模型: %s -> %s", provider, existingID)
 		encryptedAPIKey := d.encryptSensitiveData(apiKey)
 		_, err = d.db.Exec(`
 			UPDATE ai_models SET enabled = ?, api_key = ?, custom_api_url = ?, custom_model_name = ?, updated_at = datetime('now')
@@ -840,7 +840,7 @@ func (d *Database) UpdateAIModel(userID, id string, enabled bool, apiKey, custom
 		newModelID = fmt.Sprintf("%s_%s", userID, provider)
 	}
 
-	log.Printf("✓ 创建新的 AI 模型配置: ID=%s, Provider=%s, Name=%s", newModelID, provider, name)
+	log.Info().Msgf("✓ 创建新的 AI 模型配置: ID=%s, Provider=%s, Name=%s", newModelID, provider, name)
 	encryptedAPIKey := d.encryptSensitiveData(apiKey)
 	_, err = d.db.Exec(`
 		INSERT INTO ai_models (id, user_id, name, provider, enabled, api_key, custom_api_url, custom_model_name, created_at, updated_at)
@@ -897,7 +897,7 @@ func (d *Database) GetExchanges(userID string) ([]*ExchangeConfig, error) {
 // UpdateExchange 更新交易所配置，如果不存在则创建用户特定配置
 // 🔒 安全特性：空值不会覆盖现有的敏感字段（api_key, secret_key, aster_private_key）
 func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secretKey string, testnet bool, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey string, paperTradingInitialUSDC float64) error {
-	log.Printf("🔧 UpdateExchange: userID=%s, id=%s, enabled=%v", userID, id, enabled)
+	log.Info().Msgf("🔧 UpdateExchange: userID=%s, id=%s, enabled=%v", userID, id, enabled)
 
 	// 构建动态 UPDATE SET 子句
 	// 基础字段：总是更新
@@ -943,22 +943,22 @@ func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secre
 	// 执行更新
 	result, err := d.db.Exec(query, args...)
 	if err != nil {
-		log.Printf("❌ UpdateExchange: 更新失败: %v", err)
+		log.Error().Msgf("❌ UpdateExchange: 更新失败: %v", err)
 		return err
 	}
 
 	// 检查是否有行被更新
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		log.Printf("❌ UpdateExchange: 获取影响行数失败: %v", err)
+		log.Error().Msgf("❌ UpdateExchange: 获取影响行数失败: %v", err)
 		return err
 	}
 
-	log.Printf("📊 UpdateExchange: 影响行数 = %d", rowsAffected)
+	log.Info().Msgf("📊 UpdateExchange: 影响行数 = %d", rowsAffected)
 
 	// 如果没有行被更新，说明用户没有这个交易所的配置，需要创建
 	if rowsAffected == 0 {
-		log.Printf("💡 UpdateExchange: 没有现有记录，创建新记录")
+		log.Info().Msgf("💡 UpdateExchange: 没有现有记录，创建新记录")
 
 		// 根据交易所ID确定基本信息
 		var name, typ string
@@ -976,7 +976,7 @@ func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secre
 			typ = "cex"
 		}
 
-		log.Printf("🆕 UpdateExchange: 创建新记录 ID=%s, name=%s, type=%s", id, name, typ)
+		log.Info().Msgf("🆕 UpdateExchange: 创建新记录 ID=%s, name=%s, type=%s", id, name, typ)
 
 		// 创建用户特定的配置，使用原始的交易所ID
 		_, err = d.db.Exec(`
@@ -986,14 +986,14 @@ func (d *Database) UpdateExchange(userID, id string, enabled bool, apiKey, secre
 		`, id, userID, name, typ, enabled, apiKey, secretKey, testnet, hyperliquidWalletAddr, asterUser, asterSigner, asterPrivateKey, paperTradingInitialUSDC)
 
 		if err != nil {
-			log.Printf("❌ UpdateExchange: 创建记录失败: %v", err)
+			log.Error().Msgf("❌ UpdateExchange: 创建记录失败: %v", err)
 		} else {
-			log.Printf("✅ UpdateExchange: 创建记录成功")
+			log.Info().Msgf("✅ UpdateExchange: 创建记录成功")
 		}
 		return err
 	}
 
-	log.Printf("✅ UpdateExchange: 更新现有记录成功")
+	log.Info().Msgf("✅ UpdateExchange: 更新现有记录成功")
 	return nil
 }
 
@@ -1233,7 +1233,7 @@ func (d *Database) GetCustomCoins() []string {
 	if symbol == "" {
 		symbolJSON, _ := d.GetSystemConfig("default_coins")
 		if err := json.Unmarshal([]byte(symbolJSON), &symbols); err != nil {
-			log.Printf("⚠️  解析default_coins配置失败: %v，使用硬编码默认值", err)
+			log.Warn().Msgf("⚠️  解析default_coins配置失败: %v，使用硬编码默认值", err)
 			symbols = []string{"BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"}
 		}
 	}
@@ -1379,7 +1379,7 @@ func (d *Database) LoadBetaCodesFromFile(filePath string) error {
 	for _, code := range codes {
 		result, err := stmt.Exec(code)
 		if err != nil {
-			log.Printf("插入内测码 %s 失败: %v", code, err)
+			log.Error().Msgf("插入内测码 %s 失败: %v", code, err)
 			continue
 		}
 
@@ -1392,7 +1392,7 @@ func (d *Database) LoadBetaCodesFromFile(filePath string) error {
 		return fmt.Errorf("提交事务失败: %w", err)
 	}
 
-	log.Printf("✅ 成功加载 %d 个内测码到数据库 (总计 %d 个)", insertedCount, len(codes))
+	log.Info().Msgf("✅ 成功加载 %d 个内测码到数据库 (总计 %d 个)", insertedCount, len(codes))
 	return nil
 }
 
@@ -1459,7 +1459,7 @@ func (d *Database) encryptSensitiveData(plaintext string) string {
 
 	encrypted, err := d.cryptoService.EncryptForStorage(plaintext)
 	if err != nil {
-		log.Printf("⚠️ 加密失败: %v", err)
+		log.Warn().Msgf("⚠️ 加密失败: %v", err)
 		return plaintext // 返回明文作为降级处理
 	}
 
@@ -1479,7 +1479,7 @@ func (d *Database) decryptSensitiveData(encrypted string) string {
 
 	decrypted, err := d.cryptoService.DecryptFromStorage(encrypted)
 	if err != nil {
-		log.Printf("⚠️ 解密失败: %v", err)
+		log.Warn().Msgf("⚠️ 解密失败: %v", err)
 		return encrypted // 返回加密文本作为降级处理
 	}
 

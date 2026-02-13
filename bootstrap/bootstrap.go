@@ -2,7 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"aspen/logger"
 	"sort"
 	"sync"
@@ -69,7 +69,7 @@ func RunWithPolicy(ctx *Context, defaultPolicy ErrorPolicy) error {
 	hooksMu.Unlock()
 
 	if len(hooksCopy) == 0 {
-		log.Printf("⚠️  没有注册任何初始化钩子")
+		log.Warn().Msgf("⚠️  没有注册任何初始化钩子")
 		return nil
 	}
 
@@ -78,7 +78,7 @@ func RunWithPolicy(ctx *Context, defaultPolicy ErrorPolicy) error {
 		return hooksCopy[i].Priority < hooksCopy[j].Priority
 	})
 
-	log.Printf("🔄 开始初始化 %d 个模块...", len(hooksCopy))
+	log.Info().Msgf("🔄 开始初始化 %d 个模块...", len(hooksCopy))
 	startTime := time.Now()
 
 	var errors []error
@@ -112,16 +112,16 @@ func RunWithPolicy(ctx *Context, defaultPolicy ErrorPolicy) error {
 
 			switch policy {
 			case FailFast:
-				log.Printf("  ❌ 失败: %s (耗时: %v)", hook.Name, elapsed)
+				log.Error().Msgf("  ❌ 失败: %s (耗时: %v)", hook.Name, elapsed)
 				return errMsg
 			case ContinueOnError:
-				log.Printf("  ❌ 失败: %s (耗时: %v) - 继续执行", hook.Name, elapsed)
+				log.Error().Msgf("  ❌ 失败: %s (耗时: %v) - 继续执行", hook.Name, elapsed)
 				errors = append(errors, errMsg)
 			case WarnOnError:
-				log.Printf("  ⚠️  警告: %s (耗时: %v) - %v", hook.Name, elapsed, err)
+				log.Warn().Msgf("  ⚠️  警告: %s (耗时: %v) - %v", hook.Name, elapsed, err)
 			}
 		} else {
-			log.Printf("  ✓ 完成: %s (耗时: %v)", hook.Name, elapsed)
+			log.Info().Msgf("  ✓ 完成: %s (耗时: %v)", hook.Name, elapsed)
 			successCount++
 		}
 	}
@@ -139,8 +139,8 @@ func RunWithPolicy(ctx *Context, defaultPolicy ErrorPolicy) error {
 		return fmt.Errorf("以下模块初始化失败: %v", errors)
 	}
 
-	log.Printf("✅ 所有模块初始化完成 (总耗时: %v)", totalElapsed)
-	log.Printf("📊 统计: 成功=%d, 跳过=%d", successCount, skippedCount)
+	log.Info().Msgf("✅ 所有模块初始化完成 (总耗时: %v)", totalElapsed)
+	log.Info().Msgf("📊 统计: 成功=%d, 跳过=%d", successCount, skippedCount)
 	return nil
 }
 

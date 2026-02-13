@@ -4,7 +4,7 @@ import (
 	"aspen/metrics"
 	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/rs/zerolog/log"
 	"strings"
 	"sync"
 	"time"
@@ -45,7 +45,7 @@ func (c *CombinedStreamsClient) Connect() error {
 		wsURL = "wss://fstream.binance.com/stream"
 	}
 
-	log.Printf("📡 [WebSocket] 连接到数据源: %s", string(GetCurrentDataSource()))
+	log.Info().Msgf("📡 [WebSocket] 连接到数据源: %s", string(GetCurrentDataSource()))
 	conn, _, err := dialer.Dial(wsURL, nil)
 	if err != nil {
 		wsMetrics.RecordConnection(false)
@@ -57,7 +57,7 @@ func (c *CombinedStreamsClient) Connect() error {
 	c.mu.Unlock()
 
 	wsMetrics.RecordConnection(true)
-	log.Printf("✅ [WebSocket] 组合流连接成功: %s", string(GetCurrentDataSource()))
+	log.Info().Msgf("✅ [WebSocket] 组合流连接成功: %s", string(GetCurrentDataSource()))
 	go c.readMessages()
 
 	return nil
@@ -69,7 +69,7 @@ func (c *CombinedStreamsClient) BatchSubscribeKlines(symbols []string, interval 
 	batches := c.splitIntoBatches(symbols, c.batchSize)
 
 	for i, batch := range batches {
-		log.Printf("订阅第 %d 批, 数量: %d", i+1, len(batch))
+		log.Info().Msgf("订阅第 %d 批, 数量: %d", i+1, len(batch))
 
 		if GetCurrentDataSource() == DataSourceBybit {
 			// Bybit 使用不同的订阅格式
@@ -94,7 +94,7 @@ func (c *CombinedStreamsClient) BatchSubscribeKlines(symbols []string, interval 
 					},
 				}
 				if err := c.sendJSON(msg); err != nil {
-					log.Printf("Hyperliquid 订阅失败 %s: %v", symbol, err)
+					log.Error().Msgf("Hyperliquid 订阅失败 %s: %v", symbol, err)
 				}
 			}
 		} else {
@@ -141,7 +141,7 @@ func (c *CombinedStreamsClient) subscribeBybitKlines(symbols []string, interval 
 		return fmt.Errorf("WebSocket未连接")
 	}
 
-	log.Printf("📡 [Bybit] 订阅流: %v", args)
+	log.Info().Msgf("📡 [Bybit] 订阅流: %v", args)
 	return c.conn.WriteJSON(subscribeMsg)
 }
 
@@ -175,7 +175,7 @@ func (c *CombinedStreamsClient) subscribeStreams(streams []string) error {
 		return fmt.Errorf("WebSocket未连接")
 	}
 
-	log.Printf("📡 [Binance] 订阅流: %v", streams)
+	log.Info().Msgf("📡 [Binance] 订阅流: %v", streams)
 	return c.conn.WriteJSON(subscribeMsg)
 }
 
@@ -209,7 +209,7 @@ func (c *CombinedStreamsClient) readMessages() {
 
 			_, message, err := conn.ReadMessage()
 			if err != nil {
-				log.Printf("读取组合流消息失败: %v", err)
+				log.Error().Msgf("读取组合流消息失败: %v", err)
 				wsMetrics.RecordDisconnect("error")
 				c.handleReconnect()
 				return
@@ -328,7 +328,7 @@ func (c *CombinedStreamsClient) handleBinanceMessage(message []byte) {
 	}
 
 	if err := json.Unmarshal(message, &combinedMsg); err != nil {
-		log.Printf("解析Binance组合消息失败: %v", err)
+		log.Error().Msgf("解析Binance组合消息失败: %v", err)
 		return
 	}
 
@@ -340,7 +340,7 @@ func (c *CombinedStreamsClient) handleBinanceMessage(message []byte) {
 		select {
 		case ch <- combinedMsg.Data:
 		default:
-			log.Printf("订阅者通道已满: %s", combinedMsg.Stream)
+			log.Info().Msgf("订阅者通道已满: %s", combinedMsg.Stream)
 		}
 	}
 }
@@ -359,9 +359,9 @@ func (c *CombinedStreamsClient) handleBybitMessage(message []byte) {
 		if err2 := json.Unmarshal(message, &ackMsg); err2 == nil {
 			if op, ok := ackMsg["op"].(string); ok && op == "subscribe" {
 				if success, ok := ackMsg["success"].(bool); ok && success {
-					log.Printf("✅ [Bybit] 订阅成功: %v", ackMsg["args"])
+					log.Info().Msgf("✅ [Bybit] 订阅成功: %v", ackMsg["args"])
 				} else {
-					log.Printf("⚠️  [Bybit] 订阅失败: %v", ackMsg)
+					log.Warn().Msgf("⚠️  [Bybit] 订阅失败: %v", ackMsg)
 				}
 			}
 		}
@@ -392,7 +392,7 @@ func (c *CombinedStreamsClient) handleBybitMessage(message []byte) {
 						select {
 						case ch <- binanceData:
 						default:
-							log.Printf("订阅者通道已满: %s", stream)
+							log.Info().Msgf("订阅者通道已满: %s", stream)
 						}
 					}
 				}
@@ -429,7 +429,7 @@ func (c *CombinedStreamsClient) convertBybitKlineToBinance(bybitData json.RawMes
 	}
 
 	if err := json.Unmarshal(bybitData, &bybitKline); err != nil {
-		log.Printf("解析Bybit K线数据失败: %v", err)
+		log.Error().Msgf("解析Bybit K线数据失败: %v", err)
 		return nil
 	}
 
@@ -503,11 +503,11 @@ func (c *CombinedStreamsClient) handleReconnect() {
 	wsMetrics := metrics.NewWSMetricsRecorder("combined")
 	wsMetrics.RecordReconnect()
 
-	log.Println("组合流尝试重新连接...")
+	log.Info().Msg("组合流尝试重新连接...")
 	time.Sleep(3 * time.Second)
 
 	if err := c.Connect(); err != nil {
-		log.Printf("组合流重新连接失败: %v", err)
+		log.Error().Msgf("组合流重新连接失败: %v", err)
 		go c.handleReconnect()
 	}
 }

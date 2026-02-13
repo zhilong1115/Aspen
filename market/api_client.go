@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,13 +30,13 @@ func NewAPIClient() *APIClient {
 			Proxy: http.ProxyURL(proxyURL),
 		}
 		client.Transport = transport
-		log.Printf("🌐 [Market] 使用代理服务器: %s", proxyURL.Host)
+		log.Info().Msgf("🌐 [Market] 使用代理服务器: %s", proxyURL.Host)
 	}
 
 	// 尝试通过 Hook 设置 HTTP 客户端（优先级更高）
 	hookRes := hook.HookExec[hook.SetHttpClientResult](hook.SET_HTTP_CLIENT, client)
 	if hookRes != nil && hookRes.Error() == nil {
-		log.Printf("使用Hook设置的HTTP客户端")
+		log.Info().Msgf("使用Hook设置的HTTP客户端")
 		client = hookRes.GetResult()
 	}
 
@@ -66,7 +66,7 @@ func getProxyFromEnv() *url.URL {
 
 	proxyURL, err := url.Parse(proxyStr)
 	if err != nil {
-		log.Printf("⚠️  [Market] 代理URL格式错误: %v", err)
+		log.Warn().Msgf("⚠️  [Market] 代理URL格式错误: %v", err)
 		return nil
 	}
 
@@ -275,20 +275,20 @@ func (c *APIClient) GetKlines(symbol, interval string, limit int) ([]Kline, erro
 	if currentDataSource == DataSourceFinnhub {
 		klines, err = parseFinnhubKlinesResponse(body, symbol, interval)
 		if err != nil {
-			log.Printf("❌ [Market] 解析Finnhub K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
+			log.Error().Msgf("❌ [Market] 解析Finnhub K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
 			return nil, fmt.Errorf("解析Finnhub JSON响应失败: %w", err)
 		}
 	} else if currentDataSource == DataSourceBybit {
 		klines, err = parseBybitKlinesResponse(body, symbol, interval)
 		if err != nil {
-			log.Printf("❌ [Market] 解析Bybit K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
+			log.Error().Msgf("❌ [Market] 解析Bybit K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
 			return nil, fmt.Errorf("解析Bybit JSON响应失败: %w", err)
 		}
 	} else if currentDataSource == DataSourceHyperliquid {
 		var hlKlines []HyperliquidCandle
 		err = json.Unmarshal(body, &hlKlines)
 		if err != nil {
-			log.Printf("❌ [Market] 解析Hyperliquid K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
+			log.Error().Msgf("❌ [Market] 解析Hyperliquid K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
 			return nil, fmt.Errorf("解析Hyperliquid JSON响应失败: %w", err)
 		}
 		for _, hlk := range hlKlines {
@@ -322,14 +322,14 @@ func (c *APIClient) GetKlines(symbol, interval string, limit int) ([]Kline, erro
 		var klineResponses []KlineResponse
 		err = json.Unmarshal(body, &klineResponses)
 		if err != nil {
-			log.Printf("❌ [Market] 解析K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
+			log.Error().Msgf("❌ [Market] 解析K线数据失败, symbol=%s, interval=%s, 响应内容: %s", symbol, interval, string(body))
 			return nil, fmt.Errorf("解析JSON响应失败: %w", err)
 		}
 
 		for _, kr := range klineResponses {
 			kline, err := parseKline(kr)
 			if err != nil {
-				log.Printf("解析K线数据失败: %v", err)
+				log.Error().Msgf("解析K线数据失败: %v", err)
 				continue
 			}
 			klines = append(klines, kline)

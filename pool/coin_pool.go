@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -87,7 +87,7 @@ func SetUseDefaultCoins(useDefault bool) {
 func SetDefaultCoins(coins []string) {
 	if len(coins) > 0 {
 		defaultMainstreamCoins = coins
-		log.Printf("✓ 已设置默认币种池（共%d个币种）: %v", len(coins), coins)
+		log.Info().Msgf("✓ 已设置默认币种池（共%d个币种）: %v", len(coins), coins)
 	}
 }
 
@@ -95,13 +95,13 @@ func SetDefaultCoins(coins []string) {
 func GetCoinPool() ([]CoinInfo, error) {
 	// 优先检查是否启用默认币种列表
 	if coinPoolConfig.UseDefaultCoins {
-		log.Printf("✓ 已启用默认主流币种列表")
+		log.Info().Msgf("✓ 已启用默认主流币种列表")
 		return convertSymbolsToCoins(defaultMainstreamCoins), nil
 	}
 
 	// 检查API URL是否配置
 	if strings.TrimSpace(coinPoolConfig.APIURL) == "" {
-		log.Printf("⚠️  未配置币种池API URL，使用默认主流币种列表")
+		log.Warn().Msgf("⚠️  未配置币种池API URL，使用默认主流币种列表")
 		return convertSymbolsToCoins(defaultMainstreamCoins), nil
 	}
 
@@ -111,42 +111,42 @@ func GetCoinPool() ([]CoinInfo, error) {
 	// 尝试从API获取
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		if attempt > 1 {
-			log.Printf("⚠️  第%d次重试获取币种池（共%d次）...", attempt, maxRetries)
+			log.Warn().Msgf("⚠️  第%d次重试获取币种池（共%d次）...", attempt, maxRetries)
 			time.Sleep(2 * time.Second) // 重试前等待2秒
 		}
 
 		coins, err := fetchCoinPool()
 		if err == nil {
 			if attempt > 1 {
-				log.Printf("✓ 第%d次重试成功", attempt)
+				log.Info().Msgf("✓ 第%d次重试成功", attempt)
 			}
 			// 成功获取后保存到缓存
 			if err := saveCoinPoolCache(coins); err != nil {
-				log.Printf("⚠️  保存币种池缓存失败: %v", err)
+				log.Warn().Msgf("⚠️  保存币种池缓存失败: %v", err)
 			}
 			return coins, nil
 		}
 
 		lastErr = err
-		log.Printf("❌ 第%d次请求失败: %v", attempt, err)
+		log.Error().Msgf("❌ 第%d次请求失败: %v", attempt, err)
 	}
 
 	// API获取失败，尝试使用缓存
-	log.Printf("⚠️  API请求全部失败，尝试使用历史缓存数据...")
+	log.Warn().Msgf("⚠️  API请求全部失败，尝试使用历史缓存数据...")
 	cachedCoins, err := loadCoinPoolCache()
 	if err == nil {
-		log.Printf("✓ 使用历史缓存数据（共%d个币种）", len(cachedCoins))
+		log.Info().Msgf("✓ 使用历史缓存数据（共%d个币种）", len(cachedCoins))
 		return cachedCoins, nil
 	}
 
 	// 缓存也失败，使用默认主流币种
-	log.Printf("⚠️  无法加载缓存数据（最后错误: %v），使用默认主流币种列表", lastErr)
+	log.Warn().Msgf("⚠️  无法加载缓存数据（最后错误: %v），使用默认主流币种列表", lastErr)
 	return convertSymbolsToCoins(defaultMainstreamCoins), nil
 }
 
 // fetchCoinPool 实际执行币种池请求
 func fetchCoinPool() ([]CoinInfo, error) {
-	log.Printf("🔄 正在请求AI500币种池...")
+	log.Info().Msgf("🔄 正在请求AI500币种池...")
 
 	client := &http.Client{
 		Timeout: coinPoolConfig.Timeout,
@@ -187,7 +187,7 @@ func fetchCoinPool() ([]CoinInfo, error) {
 		coins[i].IsAvailable = true
 	}
 
-	log.Printf("✓ 成功获取%d个币种", len(coins))
+	log.Info().Msgf("✓ 成功获取%d个币种", len(coins))
 	return coins, nil
 }
 
@@ -214,7 +214,7 @@ func saveCoinPoolCache(coins []CoinInfo) error {
 		return fmt.Errorf("写入缓存文件失败: %w", err)
 	}
 
-	log.Printf("💾 已保存币种池缓存（%d个币种）", len(coins))
+	log.Info().Msgf("💾 已保存币种池缓存（%d个币种）", len(coins))
 	return nil
 }
 
@@ -240,7 +240,7 @@ func loadCoinPoolCache() ([]CoinInfo, error) {
 	// 检查缓存年龄
 	cacheAge := time.Since(cache.FetchedAt)
 	if cacheAge > 24*time.Hour {
-		log.Printf("⚠️  缓存数据较旧（%.1f小时前），但仍可使用", cacheAge.Hours())
+		log.Warn().Msgf("⚠️  缓存数据较旧（%.1f小时前），但仍可使用", cacheAge.Hours())
 	} else {
 		log.Printf("📂 缓存数据时间: %s（%.1f分钟前）",
 			cache.FetchedAt.Format("2006-01-02 15:04:05"),
@@ -422,7 +422,7 @@ var oiTopConfig = struct {
 func GetOITopPositions() ([]OIPosition, error) {
 	// 检查API URL是否配置
 	if strings.TrimSpace(oiTopConfig.APIURL) == "" {
-		log.Printf("⚠️  未配置OI Top API URL，跳过OI Top数据获取")
+		log.Warn().Msgf("⚠️  未配置OI Top API URL，跳过OI Top数据获取")
 		return []OIPosition{}, nil // 返回空列表，不是错误
 	}
 
@@ -432,42 +432,42 @@ func GetOITopPositions() ([]OIPosition, error) {
 	// 尝试从API获取
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		if attempt > 1 {
-			log.Printf("⚠️  第%d次重试获取OI Top数据（共%d次）...", attempt, maxRetries)
+			log.Warn().Msgf("⚠️  第%d次重试获取OI Top数据（共%d次）...", attempt, maxRetries)
 			time.Sleep(2 * time.Second)
 		}
 
 		positions, err := fetchOITop()
 		if err == nil {
 			if attempt > 1 {
-				log.Printf("✓ 第%d次重试成功", attempt)
+				log.Info().Msgf("✓ 第%d次重试成功", attempt)
 			}
 			// 成功获取后保存到缓存
 			if err := saveOITopCache(positions); err != nil {
-				log.Printf("⚠️  保存OI Top缓存失败: %v", err)
+				log.Warn().Msgf("⚠️  保存OI Top缓存失败: %v", err)
 			}
 			return positions, nil
 		}
 
 		lastErr = err
-		log.Printf("❌ 第%d次请求OI Top失败: %v", attempt, err)
+		log.Error().Msgf("❌ 第%d次请求OI Top失败: %v", attempt, err)
 	}
 
 	// API获取失败，尝试使用缓存
-	log.Printf("⚠️  OI Top API请求全部失败，尝试使用历史缓存数据...")
+	log.Warn().Msgf("⚠️  OI Top API请求全部失败，尝试使用历史缓存数据...")
 	cachedPositions, err := loadOITopCache()
 	if err == nil {
-		log.Printf("✓ 使用历史OI Top缓存数据（共%d个币种）", len(cachedPositions))
+		log.Info().Msgf("✓ 使用历史OI Top缓存数据（共%d个币种）", len(cachedPositions))
 		return cachedPositions, nil
 	}
 
 	// 缓存也失败，返回空列表（OI Top是可选的）
-	log.Printf("⚠️  无法加载OI Top缓存数据（最后错误: %v），跳过OI Top数据", lastErr)
+	log.Warn().Msgf("⚠️  无法加载OI Top缓存数据（最后错误: %v），跳过OI Top数据", lastErr)
 	return []OIPosition{}, nil
 }
 
 // fetchOITop 实际执行OI Top请求
 func fetchOITop() ([]OIPosition, error) {
-	log.Printf("🔄 正在请求OI Top数据...")
+	log.Info().Msgf("🔄 正在请求OI Top数据...")
 
 	client := &http.Client{
 		Timeout: oiTopConfig.Timeout,
@@ -529,7 +529,7 @@ func saveOITopCache(positions []OIPosition) error {
 		return fmt.Errorf("写入OI Top缓存文件失败: %w", err)
 	}
 
-	log.Printf("💾 已保存OI Top缓存（%d个币种）", len(positions))
+	log.Info().Msgf("💾 已保存OI Top缓存（%d个币种）", len(positions))
 	return nil
 }
 
@@ -553,7 +553,7 @@ func loadOITopCache() ([]OIPosition, error) {
 
 	cacheAge := time.Since(cache.FetchedAt)
 	if cacheAge > 24*time.Hour {
-		log.Printf("⚠️  OI Top缓存数据较旧（%.1f小时前），但仍可使用", cacheAge.Hours())
+		log.Warn().Msgf("⚠️  OI Top缓存数据较旧（%.1f小时前），但仍可使用", cacheAge.Hours())
 	} else {
 		log.Printf("📂 OI Top缓存数据时间: %s（%.1f分钟前）",
 			cache.FetchedAt.Format("2006-01-02 15:04:05"),
@@ -592,14 +592,14 @@ func GetMergedCoinPool(ai500Limit int) (*MergedCoinPool, error) {
 	// 1. 获取AI500数据
 	ai500TopSymbols, err := GetTopRatedCoins(ai500Limit)
 	if err != nil {
-		log.Printf("⚠️  获取AI500数据失败: %v", err)
+		log.Warn().Msgf("⚠️  获取AI500数据失败: %v", err)
 		ai500TopSymbols = []string{} // 失败时用空列表
 	}
 
 	// 2. 获取OI Top数据
 	oiTopSymbols, err := GetOITopSymbols()
 	if err != nil {
-		log.Printf("⚠️  获取OI Top数据失败: %v", err)
+		log.Warn().Msgf("⚠️  获取OI Top数据失败: %v", err)
 		oiTopSymbols = []string{} // 失败时用空列表
 	}
 
