@@ -5,8 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/rs/zerolog/log"
 	"aspen/hook"
+	"aspen/logger"
+	"github.com/rs/zerolog/log"
 	"strconv"
 	"strings"
 	"sync"
@@ -147,7 +148,7 @@ func (t *FuturesTrader) GetBalance() (map[string]interface{}, error) {
 	result["availableBalance"], _ = strconv.ParseFloat(account.AvailableBalance, 64)
 	result["totalUnrealizedProfit"], _ = strconv.ParseFloat(account.TotalUnrealizedProfit, 64)
 
-	log.Printf("✓ 币安API返回: 总余额=%s, 可用=%s, 未实现盈亏=%s",
+	logger.Log.Infof("✓ 币安API返回: 总余额=%s, 可用=%s, 未实现盈亏=%s",
 		account.TotalWalletBalance,
 		account.AvailableBalance,
 		account.TotalUnrealizedProfit)
@@ -679,7 +680,7 @@ func (t *FuturesTrader) CancelStopOrders(symbol string) error {
 			}
 
 			canceledCount++
-			log.Printf("  ✓ 已取消 %s 的止盈/止损单 (订单ID: %d, 类型: %s)",
+			logger.Log.Infof("  ✓ 已取消 %s 的止盈/止损单 (订单ID: %d, 类型: %s)",
 				symbol, order.OrderID, orderType)
 		}
 	}

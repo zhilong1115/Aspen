@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"aspen/logger"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
@@ -242,7 +243,7 @@ func loadCoinPoolCache() ([]CoinInfo, error) {
 	if cacheAge > 24*time.Hour {
 		log.Warn().Msgf("⚠️  缓存数据较旧（%.1f小时前），但仍可使用", cacheAge.Hours())
 	} else {
-		log.Printf("📂 缓存数据时间: %s（%.1f分钟前）",
+		logger.Log.Infof("📂 缓存数据时间: %s（%.1f分钟前）",
 			cache.FetchedAt.Format("2006-01-02 15:04:05"),
 			cacheAge.Minutes())
 	}
@@ -502,7 +503,7 @@ func fetchOITop() ([]OIPosition, error) {
 		return nil, fmt.Errorf("OI Top持仓列表为空")
 	}
 
-	log.Printf("✓ 成功获取%d个OI Top币种（时间范围: %s）",
+	logger.Log.Infof("✓ 成功获取%d个OI Top币种（时间范围: %s）",
 		len(response.Data.Positions), response.Data.TimeRange)
 	return response.Data.Positions, nil
 }
@@ -555,7 +556,7 @@ func loadOITopCache() ([]OIPosition, error) {
 	if cacheAge > 24*time.Hour {
 		log.Warn().Msgf("⚠️  OI Top缓存数据较旧（%.1f小时前），但仍可使用", cacheAge.Hours())
 	} else {
-		log.Printf("📂 OI Top缓存数据时间: %s（%.1f分钟前）",
+		logger.Log.Infof("📂 OI Top缓存数据时间: %s（%.1f分钟前）",
 			cache.FetchedAt.Format("2006-01-02 15:04:05"),
 			cacheAge.Minutes())
 	}
@@ -638,7 +639,7 @@ func GetMergedCoinPool(ai500Limit int) (*MergedCoinPool, error) {
 		SymbolSources: symbolSources,
 	}
 
-	log.Printf("📊 币种池合并完成: AI500=%d, OI_Top=%d, 总计(去重)=%d",
+	logger.Log.Infof("📊 币种池合并完成: AI500=%d, OI_Top=%d, 总计(去重)=%d",
 		len(ai500TopSymbols), len(oiTopSymbols), len(allSymbols))
 
 	return merged, nil

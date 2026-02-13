@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"aspen/logger"
 	"github.com/rs/zerolog/log"
 	"sync"
 	"time"
@@ -124,7 +125,7 @@ func BlacklistToken(token string, exp time.Time) {
 			}
 		}
 		if len(tokenBlacklist.items) > maxBlacklistEntries {
-			log.Printf("auth: token blacklist size (%d) exceeds limit (%d) after sweep; consider reducing JWT TTL or using a shared persistent store",
+			logger.Log.Warnf("auth: token blacklist size (%d) exceeds limit (%d) after sweep; consider reducing JWT TTL or using a shared persistent store",
 				len(tokenBlacklist.items), maxBlacklistEntries)
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"aspen/logger"
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"os"
@@ -246,14 +247,14 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		if attempt > 1 {
-			fmt.Printf("⚠️  AI API调用失败，正在重试 (%d/%d)...\n", attempt, maxRetries)
+			logger.Log.Warnf("⚠️  AI API调用失败，正在重试 (%d/%d)...\n", attempt, maxRetries)
 			metricsRecorder.RecordRetry()
 		}
 
 		result, err := client.callOnce(systemPrompt, userPrompt)
 		if err == nil {
 			if attempt > 1 {
-				fmt.Printf("✓ AI API重试成功\n")
+				logger.Log.Infof("✓ AI API重试成功")
 			}
 			// 记录成功
 			metricsRecorder.RecordSuccess()
@@ -270,7 +271,7 @@ func (client *Client) CallWithMessages(systemPrompt, userPrompt string) (string,
 		// 重试前等待
 		if attempt < maxRetries {
 			waitTime := time.Duration(attempt) * 2 * time.Second
-			fmt.Printf("⏳ 等待%v后重试...\n", waitTime)
+			logger.Log.Infof("⏳ 等待%v后重试...", waitTime)
 			time.Sleep(waitTime)
 		}
 	}
@@ -466,7 +467,7 @@ func (client *Client) callOpenAICompatible(systemPrompt, userPrompt string) (str
 			metrics.AIEstimatedCost.WithLabelValues(string(client.Provider), client.Model).Add(cost)
 		}
 		
-		log.Printf("📊 [MCP] Token使用: prompt=%d, completion=%d, total=%d, 估算成本=$%.6f",
+		logger.Log.Infof("📊 [MCP] Token使用: prompt=%d, completion=%d, total=%d, 估算成本=$%.6f",
 			result.Usage.PromptTokens, result.Usage.CompletionTokens, result.Usage.TotalTokens, cost)
 	}
 
@@ -593,7 +594,7 @@ func (client *Client) callAnthropic(systemPrompt, userPrompt string) (string, er
 			metrics.AIEstimatedCost.WithLabelValues(string(client.Provider), client.Model).Add(cost)
 		}
 
-		log.Printf("📊 [MCP] Token使用: input=%d, output=%d, 估算成本=$%.6f",
+		logger.Log.Infof("📊 [MCP] Token使用: input=%d, output=%d, 估算成本=$%.6f",
 			result.Usage.InputTokens, result.Usage.OutputTokens, cost)
 	}
 
@@ -716,7 +717,7 @@ func (client *Client) callGoogle(systemPrompt, userPrompt string) (string, error
 			metrics.AIEstimatedCost.WithLabelValues(string(client.Provider), client.Model).Add(cost)
 		}
 
-		log.Printf("📊 [MCP] Token使用: prompt=%d, completion=%d, total=%d, 估算成本=$%.6f",
+		logger.Log.Infof("📊 [MCP] Token使用: prompt=%d, completion=%d, total=%d, 估算成本=$%.6f",
 			result.UsageMetadata.PromptTokenCount, result.UsageMetadata.CandidatesTokenCount,
 			result.UsageMetadata.TotalTokenCount, cost)
 	}

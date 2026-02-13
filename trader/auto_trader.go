@@ -622,29 +622,6 @@ func (at *AutoTrader) runCycle() error {
 		return fmt.Errorf("获取AI决策失败: %w", err)
 	}
 
-	// // 5. 打印系统提示词
-	// log.Printf("\n" + strings.Repeat("=", 70))
-	// log.Printf("📋 系统提示词 [模板: %s]", at.systemPromptTemplate)
-	// log.Println(strings.Repeat("=", 70))
-	// log.Println(decision.SystemPrompt)
-	// log.Printf(strings.Repeat("=", 70) + "\n")
-
-	// 6. 打印AI思维链
-	// log.Printf("\n" + strings.Repeat("-", 70))
-	// log.Println("💭 AI思维链分析:")
-	// log.Println(strings.Repeat("-", 70))
-	// log.Println(decision.CoTTrace)
-	// log.Printf(strings.Repeat("-", 70) + "\n")
-
-	// 7. 打印AI决策
-	// log.Printf("📋 AI决策列表 (%d 个):\n", len(decision.Decisions))
-	// for i, d := range decision.Decisions {
-	//     log.Printf("  [%d] %s: %s - %s", i+1, d.Symbol, d.Action, d.Reasoning)
-	//     if d.Action == "open_long" || d.Action == "open_short" {
-	//        log.Printf("      杠杆: %dx | 仓位: %.2f USDT | 止损: %.4f | 止盈: %.4f",
-	//           d.Leverage, d.PositionSizeUSD, d.StopLoss, d.TakeProfit)
-	//     }
-	// }
 	logger.Info("")
 	logger.Debug(strings.Repeat("-", 70))
 	// 8. 对决策排序：确保先平仓后开仓（防止仓位叠加超限）

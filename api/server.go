@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"aspen/logger"
 	"github.com/rs/zerolog/log"
 	"net"
 	"net/http"
@@ -1035,7 +1036,7 @@ func (s *Server) handleSyncBalance(c *gin.Context) {
 		changeType = "减少"
 	}
 
-	log.Printf("✓ 查询到交易所实际余额: %.2f USDT (当前配置: %.2f USDT, 变化: %.2f%%)",
+	logger.Log.Infof("✓ 查询到交易所实际余额: %.2f USDT (当前配置: %.2f USDT, 变化: %.2f%%)",
 		actualBalance, oldBalance, changePercent)
 
 	// 更新数据库中的 initial_balance
@@ -1428,7 +1429,7 @@ func (s *Server) handleAccount(c *gin.Context) {
 		return
 	}
 
-	log.Printf("✓ 返回账户信息 [%s]: 净值=%.2f, 可用=%.2f, 盈亏=%.2f (%.2f%%)",
+	logger.Log.Infof("✓ 返回账户信息 [%s]: 净值=%.2f, 可用=%.2f, 盈亏=%.2f (%.2f%%)",
 		trader.GetName(),
 		account["total_equity"],
 		account["available_balance"],

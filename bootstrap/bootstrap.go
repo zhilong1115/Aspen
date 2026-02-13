@@ -88,13 +88,13 @@ func RunWithPolicy(ctx *Context, defaultPolicy ErrorPolicy) error {
 	for i, hook := range hooksCopy {
 		// 检查是否启用
 		if hook.Enabled != nil && !hook.Enabled(ctx) {
-			log.Printf("  [%d/%d] 跳过: %s (条件未满足)",
+			logger.Log.Infof("  [%d/%d] 跳过: %s (条件未满足)",
 				i+1, len(hooksCopy), hook.Name)
 			skippedCount++
 			continue
 		}
 
-		log.Printf("  [%d/%d] 初始化: %s (优先级: %d)",
+		logger.Log.Infof("  [%d/%d] 初始化: %s (优先级: %d)",
 			i+1, len(hooksCopy), hook.Name, hook.Priority)
 
 		hookStart := time.Now()
@@ -132,7 +132,7 @@ func RunWithPolicy(ctx *Context, defaultPolicy ErrorPolicy) error {
 	if len(errors) > 0 {
 		logger.Log.Warnf("⚠️  初始化完成，但有 %d 个模块失败 (总耗时: %v)",
 			len(errors), totalElapsed)
-		log.Printf("📊 统计: 成功=%d, 失败=%d, 跳过=%d",
+		logger.Log.Infof("📊 统计: 成功=%d, 失败=%d, 跳过=%d",
 			successCount, len(errors), skippedCount)
 
 		// 返回合并的错误

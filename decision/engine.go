@@ -6,6 +6,7 @@ import (
 	"aspen/pool"
 	"encoding/json"
 	"fmt"
+	"aspen/logger"
 	"github.com/rs/zerolog/log"
 	"regexp"
 	"strings"
@@ -226,7 +227,7 @@ func fetchMarketDataForContext(ctx *Context) error {
 				log.Warn().Msgf("⚠️  %s OpenInterest 为 0（可能是数据获取问题），保留在候选列表中", symbol)
 			} else if oiValueInMillions < minOIThresholdMillions {
 				filteredCount++
-				log.Printf("⚠️  %s 持仓价值过低(%.2fM USD < %.1fM)，跳过此币种 [持仓量:%.0f × 价格:%.4f]",
+				logger.Log.Warnf("⚠️  %s 持仓价值过低(%.2fM USD < %.1fM)，跳过此币种 [持仓量:%.0f × 价格:%.4f]",
 					symbol, oiValueInMillions, minOIThresholdMillions, data.OpenInterest.Latest, data.CurrentPrice)
 				continue
 			}
@@ -828,7 +829,7 @@ func validateDecision(d *Decision, accountEquity float64, btcEthLeverage, altcoi
 			return fmt.Errorf("杠杆必须大于0: %d", d.Leverage)
 		}
 		if d.Leverage > maxLeverage {
-			log.Printf("⚠️  [Leverage Fallback] %s 杠杆超限 (%dx > %dx)，自动调整为上限值 %dx",
+			logger.Log.Warnf("⚠️  [Leverage Fallback] %s 杠杆超限 (%dx > %dx)，自动调整为上限值 %dx",
 				d.Symbol, d.Leverage, maxLeverage, maxLeverage)
 			d.Leverage = maxLeverage // 自动修正为上限值
 		}
