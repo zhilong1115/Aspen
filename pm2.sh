@@ -53,7 +53,6 @@ check_pm2() {
 # 函数：确保日志目录存在
 ensure_log_dirs() {
     mkdir -p "$PROJECT_ROOT/logs"
-    mkdir -p "$PROJECT_ROOT/web/logs"
     print_info "日志目录已创建"
 }
 
@@ -94,6 +93,10 @@ start_services() {
         build_backend
     fi
 
+    if [ ! -d "./web/dist" ]; then
+        build_frontend
+    fi
+
     print_info "正在启动服务..."
     pm2 start pm2.config.js
 
@@ -104,13 +107,12 @@ start_services() {
     print_success "服务启动完成！"
     echo ""
     echo -e "${CYAN}📊 访问地址:${NC}"
-    echo -e "  ${GREEN}前端:${NC} http://localhost:3000"
-    echo -e "  ${GREEN}后端 API:${NC} http://localhost:8080"
+    echo -e "  ${GREEN}前端:${NC} http://45.77.170.157/"
+    echo -e "  ${GREEN}后端 API:${NC} http://127.0.0.1:8080"
     echo ""
     echo -e "${CYAN}📝 查看日志:${NC}"
     echo -e "  ${GREEN}实时日志:${NC} ./pm2.sh logs"
     echo -e "  ${GREEN}后端日志:${NC} ./pm2.sh logs backend"
-    echo -e "  ${GREEN}前端日志:${NC} ./pm2.sh logs frontend"
     echo ""
 }
 
@@ -147,8 +149,6 @@ show_status() {
     echo ""
     print_info "详细信息:"
     pm2 info aspen-backend
-    echo ""
-    pm2 info aspen-frontend
 }
 
 # 函数：查看日志
@@ -158,8 +158,6 @@ show_logs() {
         pm2 logs
     elif [ "$2" = "backend" ]; then
         pm2 logs aspen-backend
-    elif [ "$2" = "frontend" ]; then
-        pm2 logs aspen-frontend
     else
         print_error "未知的日志类型: $2"
         print_info "用法: ./pm2.sh logs [backend|frontend]"
@@ -195,13 +193,12 @@ show_help() {
     echo "  ./pm2.sh [command]"
     echo ""
     echo -e "${CYAN}可用命令:${NC}"
-    echo -e "  ${GREEN}start${NC}       - 启动前后端服务"
-    echo -e "  ${GREEN}stop${NC}        - 停止所有服务"
-    echo -e "  ${GREEN}restart${NC}     - 重启所有服务"
+    echo -e "  ${GREEN}start${NC}       - 启动后端服务"
+    echo -e "  ${GREEN}stop${NC}        - 停止服务"
+    echo -e "  ${GREEN}restart${NC}     - 重启服务"
     echo -e "  ${GREEN}status${NC}      - 查看服务状态"
     echo -e "  ${GREEN}logs${NC}        - 查看所有日志 (Ctrl+C 退出)"
     echo -e "  ${GREEN}logs backend${NC}  - 查看后端日志"
-    echo -e "  ${GREEN}logs frontend${NC} - 查看前端日志"
     echo -e "  ${GREEN}monitor${NC}     - 打开 PM2 监控面板"
     echo -e "  ${GREEN}build${NC}       - 编译后端"
     echo -e "  ${GREEN}rebuild${NC}     - 重新编译后端并重启"
