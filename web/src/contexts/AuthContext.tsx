@@ -201,7 +201,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(requestBody),
       })
 
-      const data = await response.json()
+      const text = await response.text()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let data: any
+      try {
+        data = JSON.parse(text)
+      } catch {
+        return { success: false, message: `服务器错误 (${response.status}): ${text.slice(0, 200)}` }
+      }
 
       if (response.ok) {
         return {
@@ -215,7 +222,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: data.error }
       }
     } catch (error) {
-      return { success: false, message: '注册失败，请重试' }
+      const errMsg = error instanceof Error ? error.message : String(error)
+      return { success: false, message: `注册失败: ${errMsg}` }
     }
   }
 
