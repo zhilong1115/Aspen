@@ -10,6 +10,7 @@ import (
 	"aspen/decision"
 	"aspen/logger"
 	"aspen/market"
+	"aspen/metrics"
 	"aspen/pool"
 
 	"github.com/agiledragon/gomonkey/v2"
@@ -108,6 +109,7 @@ func (s *AutoTraderTestSuite) SetupTest() {
 		lastBalanceSyncTime:   time.Now(),
 		database:              s.mockDB,
 		userID:                "test_user",
+		metricsRecorder:       metrics.NewTradingMetricsRecorder("test-trader", "paper"),
 	}
 }
 

@@ -422,6 +422,7 @@ func (d *Database) migrateExchangesTable() error {
 			aster_user TEXT DEFAULT '',
 			aster_signer TEXT DEFAULT '',
 			aster_private_key TEXT DEFAULT '',
+			paper_trading_initial_usdc REAL DEFAULT 10000.0,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (id, user_id),
@@ -432,10 +433,15 @@ func (d *Database) migrateExchangesTable() error {
 		return fmt.Errorf("创建新exchanges表失败: %w", err)
 	}
 
-	// 复制数据到新表
+	// 复制数据到新表（显式列名，兼容新旧表结构）
 	_, err = d.db.Exec(`
-		INSERT INTO exchanges_new 
-		SELECT * FROM exchanges
+		INSERT INTO exchanges_new (id, user_id, name, type, enabled, api_key, secret_key, testnet,
+			hyperliquid_wallet_addr, aster_user, aster_signer, aster_private_key,
+			paper_trading_initial_usdc, created_at, updated_at)
+		SELECT id, user_id, name, type, enabled, api_key, secret_key, testnet,
+			hyperliquid_wallet_addr, aster_user, aster_signer, aster_private_key,
+			COALESCE(paper_trading_initial_usdc, 10000.0), created_at, updated_at
+		FROM exchanges
 	`)
 	if err != nil {
 		return fmt.Errorf("复制数据失败: %w", err)
