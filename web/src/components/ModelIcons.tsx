@@ -40,6 +40,23 @@ export const getModelIcon = (modelType: string, props: IconProps = {}) => {
     case 'xai':
       iconPath = '/icons/grok.svg'
       break
+    case 'minimax':
+      iconPath = '/icons/minimax.svg'
+      break
+    case 'zhipu':
+    case 'glm':
+      iconPath = '/icons/zhipu.svg'
+      break
+    case 'moonshot':
+    case 'kimi':
+      iconPath = '/icons/moonshot.svg'
+      break
+    case 'doubao':
+      iconPath = '/icons/doubao.svg'
+      break
+    case 'mistral':
+      iconPath = '/icons/mistral.svg'
+      break
     default:
       // Partial match fallback
       if (lower.includes('grok')) {
@@ -56,6 +73,16 @@ export const getModelIcon = (modelType: string, props: IconProps = {}) => {
         iconPath = '/icons/deepseek.svg'
       } else if (lower.includes('qwen')) {
         iconPath = '/icons/qwen.svg'
+      } else if (lower.includes('minimax')) {
+        iconPath = '/icons/minimax.svg'
+      } else if (lower.includes('zhipu') || lower.includes('glm')) {
+        iconPath = '/icons/zhipu.svg'
+      } else if (lower.includes('moonshot') || lower.includes('kimi')) {
+        iconPath = '/icons/moonshot.svg'
+      } else if (lower.includes('doubao')) {
+        iconPath = '/icons/doubao.svg'
+      } else if (lower.includes('mistral')) {
+        iconPath = '/icons/mistral.svg'
       } else {
         return null
       }

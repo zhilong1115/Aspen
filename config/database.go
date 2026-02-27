@@ -311,6 +311,12 @@ func (d *Database) initDefaultData() error {
 		{"anthropic", "Anthropic Claude", "anthropic"},
 		{"openai", "OpenAI GPT", "openai"},
 		{"google", "Google Gemini", "google"},
+		{"minimax", "MiniMax", "minimax"},
+		{"zhipu", "智谱 GLM", "zhipu"},
+		{"moonshot", "Moonshot Kimi", "moonshot"},
+		{"doubao", "豆包 Doubao", "doubao"},
+		{"xai", "xAI Grok", "xai"},
+		{"mistral", "Mistral", "mistral"},
 	}
 
 	for _, model := range aiModels {

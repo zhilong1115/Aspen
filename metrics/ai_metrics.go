@@ -126,6 +126,30 @@ func EstimateTokenCost(provider, model string, promptTokens, completionTokens in
 		// Meta via OpenRouter
 		"meta-llama/llama-3.1-70b-instruct": {0.52, 0.75},
 		"meta-llama/llama-3.1-8b-instruct":  {0.055, 0.055},
+
+		// MiniMax
+		"MiniMax-Text-01":     {0.15, 0.55},
+
+		// 智谱 GLM
+		"glm-4-plus":          {7.14, 7.14},   // ¥50/M tokens ≈ $7.14
+		"glm-4-flash":         {0.014, 0.014},  // ¥0.1/M tokens
+
+		// Moonshot (Kimi)
+		"moonshot-v1-128k":    {8.57, 8.57},    // ¥60/M tokens
+		"moonshot-v1-32k":     {3.43, 3.43},    // ¥24/M tokens
+		"moonshot-v1-8k":      {1.71, 1.71},    // ¥12/M tokens
+
+		// 豆包 Doubao
+		"doubao-1.5-pro-256k": {0.71, 1.29},    // ¥5/M input, ¥9/M output
+		"doubao-1.5-pro-32k":  {0.11, 0.29},
+
+		// xAI Grok
+		"grok-3-mini":         {0.30, 0.50},
+		"grok-3":              {3.00, 15.00},
+
+		// Mistral
+		"mistral-large-latest": {2.0, 6.0},
+		"mistral-small-latest": {0.1, 0.3},
 	}
 
 	p, ok := pricing[model]

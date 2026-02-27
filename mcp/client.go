@@ -26,6 +26,12 @@ const (
 	ProviderAnthropic  Provider = "anthropic"
 	ProviderOpenAI     Provider = "openai"
 	ProviderGoogle     Provider = "google"
+	ProviderMiniMax    Provider = "minimax"
+	ProviderZhipu      Provider = "zhipu"
+	ProviderMoonshot   Provider = "moonshot"
+	ProviderDoubao     Provider = "doubao"
+	ProviderXAI        Provider = "xai"
+	ProviderMistral    Provider = "mistral"
 	ProviderCustom     Provider = "custom"
 )
 
@@ -203,6 +209,132 @@ func (client *Client) SetGoogleAPIKey(apiKey string, modelName string) {
 
 	if len(apiKey) > 8 {
 		log.Info().Msgf("🔧 [MCP] Google API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetMiniMaxAPIKey 设置MiniMax API密钥
+func (client *Client) SetMiniMaxAPIKey(apiKey string, customURL string, customModel string) {
+	client.Provider = ProviderMiniMax
+	client.APIKey = apiKey
+	if customURL != "" {
+		client.BaseURL = customURL
+	} else {
+		client.BaseURL = "https://api.minimax.chat/v1"
+	}
+	if customModel != "" {
+		client.Model = customModel
+	} else {
+		client.Model = "MiniMax-Text-01"
+	}
+	client.Timeout = 180 * time.Second
+	log.Info().Msgf("🔧 [MCP] MiniMax BaseURL: %s, Model: %s", client.BaseURL, client.Model)
+	if len(apiKey) > 8 {
+		log.Info().Msgf("🔧 [MCP] MiniMax API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetZhipuAPIKey 设置智谱GLM API密钥
+func (client *Client) SetZhipuAPIKey(apiKey string, customURL string, customModel string) {
+	client.Provider = ProviderZhipu
+	client.APIKey = apiKey
+	if customURL != "" {
+		client.BaseURL = customURL
+	} else {
+		client.BaseURL = "https://open.bigmodel.cn/api/paas/v4"
+	}
+	if customModel != "" {
+		client.Model = customModel
+	} else {
+		client.Model = "glm-4-plus"
+	}
+	client.Timeout = 180 * time.Second
+	log.Info().Msgf("🔧 [MCP] Zhipu BaseURL: %s, Model: %s", client.BaseURL, client.Model)
+	if len(apiKey) > 8 {
+		log.Info().Msgf("🔧 [MCP] Zhipu API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetMoonshotAPIKey 设置Moonshot (Kimi) API密钥
+func (client *Client) SetMoonshotAPIKey(apiKey string, customURL string, customModel string) {
+	client.Provider = ProviderMoonshot
+	client.APIKey = apiKey
+	if customURL != "" {
+		client.BaseURL = customURL
+	} else {
+		client.BaseURL = "https://api.moonshot.cn/v1"
+	}
+	if customModel != "" {
+		client.Model = customModel
+	} else {
+		client.Model = "moonshot-v1-128k"
+	}
+	client.Timeout = 180 * time.Second
+	log.Info().Msgf("🔧 [MCP] Moonshot BaseURL: %s, Model: %s", client.BaseURL, client.Model)
+	if len(apiKey) > 8 {
+		log.Info().Msgf("🔧 [MCP] Moonshot API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetDoubaoAPIKey 设置豆包 (火山引擎) API密钥
+func (client *Client) SetDoubaoAPIKey(apiKey string, customURL string, customModel string) {
+	client.Provider = ProviderDoubao
+	client.APIKey = apiKey
+	if customURL != "" {
+		client.BaseURL = customURL
+	} else {
+		client.BaseURL = "https://ark.cn-beijing.volces.com/api/v3"
+	}
+	if customModel != "" {
+		client.Model = customModel
+	} else {
+		client.Model = "doubao-1.5-pro-256k"
+	}
+	client.Timeout = 180 * time.Second
+	log.Info().Msgf("🔧 [MCP] Doubao BaseURL: %s, Model: %s", client.BaseURL, client.Model)
+	if len(apiKey) > 8 {
+		log.Info().Msgf("🔧 [MCP] Doubao API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetXAIAPIKey 设置xAI (Grok) API密钥
+func (client *Client) SetXAIAPIKey(apiKey string, customURL string, customModel string) {
+	client.Provider = ProviderXAI
+	client.APIKey = apiKey
+	if customURL != "" {
+		client.BaseURL = customURL
+	} else {
+		client.BaseURL = "https://api.x.ai/v1"
+	}
+	if customModel != "" {
+		client.Model = customModel
+	} else {
+		client.Model = "grok-3-mini"
+	}
+	client.Timeout = 180 * time.Second
+	log.Info().Msgf("🔧 [MCP] xAI BaseURL: %s, Model: %s", client.BaseURL, client.Model)
+	if len(apiKey) > 8 {
+		log.Info().Msgf("🔧 [MCP] xAI API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
+	}
+}
+
+// SetMistralAPIKey 设置Mistral API密钥
+func (client *Client) SetMistralAPIKey(apiKey string, customURL string, customModel string) {
+	client.Provider = ProviderMistral
+	client.APIKey = apiKey
+	if customURL != "" {
+		client.BaseURL = customURL
+	} else {
+		client.BaseURL = "https://api.mistral.ai/v1"
+	}
+	if customModel != "" {
+		client.Model = customModel
+	} else {
+		client.Model = "mistral-large-latest"
+	}
+	client.Timeout = 180 * time.Second
+	log.Info().Msgf("🔧 [MCP] Mistral BaseURL: %s, Model: %s", client.BaseURL, client.Model)
+	if len(apiKey) > 8 {
+		log.Info().Msgf("🔧 [MCP] Mistral API Key: %s...%s", apiKey[:4], apiKey[len(apiKey)-4:])
 	}
 }
 

@@ -304,7 +304,55 @@ func (tm *TraderManager) addTraderFromDB(traderCfg *config.TraderRecord, aiModel
 		traderConfig.GoogleKey = aiModelCfg.APIKey
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 		log.Info().Msgf("✓ 交易员 %s 使用 Google Gemini 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
-	} else if aiModelCfg.Provider == "custom" {
+	} else if aiModelCfg.Provider == "minimax" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (MiniMax) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MiniMaxKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 MiniMax 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "zhipu" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (智谱GLM) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.ZhipuKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 智谱GLM 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "moonshot" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Moonshot) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MoonshotKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 Moonshot Kimi 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "doubao" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (豆包) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.DoubaoKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 豆包Doubao 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "xai" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (xAI) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.XAIKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 xAI Grok 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "mistral" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Mistral) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MistralKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 Mistral 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+		} else if aiModelCfg.Provider == "custom" {
 		if aiModelCfg.APIKey == "" {
 			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
 		}
@@ -460,7 +508,55 @@ func (tm *TraderManager) AddTraderFromDB(traderCfg *config.TraderRecord, aiModel
 		traderConfig.GoogleKey = aiModelCfg.APIKey
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 		log.Info().Msgf("✓ 交易员 %s 使用 Google Gemini 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
-	} else if aiModelCfg.Provider == "custom" {
+	} else if aiModelCfg.Provider == "minimax" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (MiniMax) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MiniMaxKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 MiniMax 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "zhipu" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (智谱GLM) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.ZhipuKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 智谱GLM 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "moonshot" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Moonshot) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MoonshotKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 Moonshot Kimi 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "doubao" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (豆包) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.DoubaoKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 豆包Doubao 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "xai" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (xAI) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.XAIKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 xAI Grok 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "mistral" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Mistral) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MistralKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 Mistral 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+		} else if aiModelCfg.Provider == "custom" {
 		if aiModelCfg.APIKey == "" {
 			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
 		}
@@ -1380,7 +1476,55 @@ func (tm *TraderManager) loadSingleTrader(traderCfg *config.TraderRecord, aiMode
 		traderConfig.GoogleKey = aiModelCfg.APIKey
 		traderConfig.CustomModelName = aiModelCfg.CustomModelName
 		log.Info().Msgf("✓ 交易员 %s 使用 Google Gemini 模型 %s (模型名称: %s)", traderCfg.Name, aiModelCfg.ID, aiModelCfg.CustomModelName)
-	} else if aiModelCfg.Provider == "custom" {
+	} else if aiModelCfg.Provider == "minimax" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (MiniMax) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MiniMaxKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 MiniMax 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "zhipu" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (智谱GLM) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.ZhipuKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 智谱GLM 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "moonshot" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Moonshot) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MoonshotKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 Moonshot Kimi 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "doubao" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (豆包) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.DoubaoKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 豆包Doubao 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "xai" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (xAI) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.XAIKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 xAI Grok 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+	} else if aiModelCfg.Provider == "mistral" {
+		if aiModelCfg.APIKey == "" {
+			return fmt.Errorf("交易员 %s 的AI模型 %s (Mistral) API密钥未设置", traderCfg.Name, aiModelCfg.ID)
+		}
+		traderConfig.MistralKey = aiModelCfg.APIKey
+		traderConfig.CustomAPIURL = aiModelCfg.CustomAPIURL
+		traderConfig.CustomModelName = aiModelCfg.CustomModelName
+		log.Info().Msgf("✓ 交易员 %s 使用 Mistral 模型 (模型名称: %s)", traderCfg.Name, aiModelCfg.CustomModelName)
+		} else if aiModelCfg.Provider == "custom" {
 		if aiModelCfg.APIKey == "" {
 			return fmt.Errorf("交易员 %s 的AI模型 %s (Custom) API密钥未设置，请先在AI模型配置中设置API Key", traderCfg.Name, aiModelCfg.ID)
 		}

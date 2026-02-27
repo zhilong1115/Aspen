@@ -53,6 +53,12 @@ type AutoTraderConfig struct {
 	AnthropicKey  string // Anthropic (Claude) API密钥
 	OpenAIKey     string // OpenAI (GPT) API密钥
 	GoogleKey     string // Google (Gemini) API密钥
+	MiniMaxKey    string // MiniMax API密钥
+	ZhipuKey      string // 智谱GLM API密钥
+	MoonshotKey   string // Moonshot (Kimi) API密钥
+	DoubaoKey     string // 豆包 (火山引擎) API密钥
+	XAIKey        string // xAI (Grok) API密钥
+	MistralKey    string // Mistral API密钥
 
 	// 自定义AI API配置
 	CustomAPIURL    string
@@ -202,6 +208,42 @@ func NewAutoTrader(config AutoTraderConfig, database interface{}, userID string)
 			modelName = "gemini-2.0-flash"
 		}
 		logger.Infof("🤖 [%s] 使用Google Gemini AI (模型: %s)", config.Name, modelName)
+	} else if config.AIModel == "minimax" {
+		if config.MiniMaxKey == "" {
+			return nil, fmt.Errorf("MiniMax API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetMiniMaxAPIKey(config.MiniMaxKey, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用MiniMax AI (模型: %s)", config.Name, mcpClient.Model)
+	} else if config.AIModel == "zhipu" {
+		if config.ZhipuKey == "" {
+			return nil, fmt.Errorf("智谱GLM API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetZhipuAPIKey(config.ZhipuKey, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用智谱GLM AI (模型: %s)", config.Name, mcpClient.Model)
+	} else if config.AIModel == "moonshot" {
+		if config.MoonshotKey == "" {
+			return nil, fmt.Errorf("Moonshot API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetMoonshotAPIKey(config.MoonshotKey, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用Moonshot Kimi AI (模型: %s)", config.Name, mcpClient.Model)
+	} else if config.AIModel == "doubao" {
+		if config.DoubaoKey == "" {
+			return nil, fmt.Errorf("豆包API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetDoubaoAPIKey(config.DoubaoKey, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用豆包Doubao AI (模型: %s)", config.Name, mcpClient.Model)
+	} else if config.AIModel == "xai" {
+		if config.XAIKey == "" {
+			return nil, fmt.Errorf("xAI API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetXAIAPIKey(config.XAIKey, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用xAI Grok AI (模型: %s)", config.Name, mcpClient.Model)
+	} else if config.AIModel == "mistral" {
+		if config.MistralKey == "" {
+			return nil, fmt.Errorf("Mistral API密钥未设置，请先在AI模型配置中设置API Key")
+		}
+		mcpClient.SetMistralAPIKey(config.MistralKey, config.CustomAPIURL, config.CustomModelName)
+		logger.Infof("🤖 [%s] 使用Mistral AI (模型: %s)", config.Name, mcpClient.Model)
 	} else {
 		// 默认使用DeepSeek (支持自定义URL和Model)
 		if config.DeepSeekKey == "" {
