@@ -31,6 +31,7 @@ func TestUpdateExchange_EmptyValuesShouldNotOverwrite(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化失败: %v", err)
@@ -63,6 +64,7 @@ func TestUpdateExchange_EmptyValuesShouldNotOverwrite(t *testing.T) {
 		"",
 		"",
 		"", // 空 aster_private_key - 不应该覆盖
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新失败: %v", err)
@@ -112,6 +114,7 @@ func TestUpdateExchange_AsterEmptyValuesShouldNotOverwrite(t *testing.T) {
 		"0xAsterUser",
 		"0xAsterSigner",
 		initialAsterKey,
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化 Aster 失败: %v", err)
@@ -129,6 +132,7 @@ func TestUpdateExchange_AsterEmptyValuesShouldNotOverwrite(t *testing.T) {
 		"0xAsterUser",
 		"0xAsterSigner",
 		"", // 空 aster_private_key
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新失败: %v", err)
@@ -164,6 +168,7 @@ func TestUpdateExchange_NonEmptyValuesShouldUpdate(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化失败: %v", err)
@@ -184,6 +189,7 @@ func TestUpdateExchange_NonEmptyValuesShouldUpdate(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新失败: %v", err)
@@ -225,6 +231,7 @@ func TestUpdateExchange_PartialUpdateShouldWork(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化失败: %v", err)
@@ -242,6 +249,7 @@ func TestUpdateExchange_PartialUpdateShouldWork(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("部分更新失败: %v", err)
@@ -304,6 +312,7 @@ func TestUpdateExchange_MultipleExchangeTypes(t *testing.T) {
 				"",
 				"",
 				"",
+		0,
 			)
 			if err != nil {
 				t.Fatalf("创建 %s 失败: %v", tc.exchangeID, err)
@@ -358,6 +367,7 @@ func TestUpdateExchange_MixedSensitiveFields(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化失败: %v", err)
@@ -375,6 +385,7 @@ func TestUpdateExchange_MixedSensitiveFields(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新1失败: %v", err)
@@ -400,6 +411,7 @@ func TestUpdateExchange_MixedSensitiveFields(t *testing.T) {
 		"",
 		"",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新2失败: %v", err)
@@ -439,6 +451,7 @@ func TestUpdateExchange_OnlyNonSensitiveFields(t *testing.T) {
 		"0xUser1",
 		"0xSigner1",
 		"aster-private-key-1",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化失败: %v", err)
@@ -456,6 +469,7 @@ func TestUpdateExchange_OnlyNonSensitiveFields(t *testing.T) {
 		"0xUser2",
 		"0xSigner2",
 		"",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新失败: %v", err)
@@ -507,6 +521,7 @@ func TestUpdateExchange_AllSensitiveFieldsUpdate(t *testing.T) {
 		"",
 		"",
 		"old-aster-key",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("初始化失败: %v", err)
@@ -524,6 +539,7 @@ func TestUpdateExchange_AllSensitiveFieldsUpdate(t *testing.T) {
 		"0xUser",
 		"0xSigner",
 		"new-aster-key",
+		0,
 	)
 	if err != nil {
 		t.Fatalf("更新失败: %v", err)
@@ -670,6 +686,7 @@ func TestDataPersistenceAcrossReopen(t *testing.T) {
 			"",
 			"",
 			"",
+		0,
 		)
 		if err != nil {
 			t.Fatalf("写入数据失败: %v", err)
@@ -745,6 +762,7 @@ func TestConcurrentWritesWithWAL(t *testing.T) {
 				"",
 				"",
 				"",
+		0,
 			)
 			if err != nil {
 				errors <- err
@@ -769,6 +787,7 @@ func TestConcurrentWritesWithWAL(t *testing.T) {
 				"",
 				"",
 				"",
+		0,
 			)
 			if err != nil {
 				errors <- err
